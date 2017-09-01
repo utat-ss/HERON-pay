@@ -1,6 +1,5 @@
 #include "spi.h"
 
-// SPI pins
 #define CLK PB7
 #define MISO PB0
 #define MOSI PB1
