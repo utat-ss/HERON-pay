@@ -1,36 +1,21 @@
 /*
 Author: Shimi Smith
 
-Code for sending and recievign can messages
--------------------------------------------
-
-How to send a can message
--------------------------
-- include can.h
-- call can_init(0)
-- create and fill an array of uint8_t - at most 8 elements in the array
-- call can_send_message with the array, size of the array and an id
-
-How to recieve
---------------
-- program a recieve mob with init_rxx
-- id of recieve mob needs to match id of sent message
-- after recieved RXOK flag set
-
-Things to add and/or change - I'll get started on these in the near future
----------------------------
-- can_send_message and init_rx_mob should take in the data array
-- make all data arrays 8 bytes long and just specify a variable length
-- should probably have a struct defined for each mob - this will make stuff nicer
-- init_rx_interrupts should take in the mob number - defaulting to mob 0 was just for testing purposes
-
+Code for sending and recieving can messages
 */
 
 #include "can.h"
 #include "uart.h"
 #include "log.h"
 
-void can_send_message(uint8_t data[], uint8_t size, uint8_t id){  // Sends a maximum of 8
+/*
+Sends a can message of maximum 8 bytes
+--------------------------------------
+data - an array of the data being sent
+size - the number of bytes being sent (maximum 8)
+id - the id of the can message
+*/
+void can_send_message(uint8_t data[], uint8_t size, uint8_t id){
 
 	st_cmd_t message;  // message object
 
@@ -46,45 +31,69 @@ void can_send_message(uint8_t data[], uint8_t size, uint8_t id){  // Sends a max
 
 }
 
-uint8_t recieved_data[2];
-st_cmd_t rx_mob;
+/*
+Initializes a mob for recieving can messages
+--------------------------------------------
+mob - a pointer to the struct that is representing the mob that is being initialized
+recieved_data[] - an array that will hold the data recieved
+size - the number of bytes the mob will recieve (maximum 8)
+id - this mob is programmmed to recieve can messages with this id, i.e this id must be the same as the id of the can messages you wish to recieve
+*/
+void init_rx_mob(st_cmd_t* mob, uint8_t recieved_data[], uint8_t size, uint8_t id){
 
-void init_rx_mob(uint8_t size, uint8_t id){
+	mob->pt_data = recieved_data;
+	mob->status = 0;  // clear status
 
-	rx_mob.pt_data = &recieved_data[0];
-	rx_mob.status = 0;  // clear status
+	mob->id.std = id;  // only accepts frames from this id
+	mob->ctrl.ide = 0; // This message object accepts only standard (2.0A) CAN frames
+	mob->ctrl.rtr = 0; // this message object is not requesting a remote node to transmit data back
+	mob->dlc = size; // Number of bytes (8 max) of data to expect
+	mob->cmd = CMD_RX_DATA; // assign this as a "Receive Standard (2.0A) CAN frame" message object
 
-	rx_mob.id.std = id;  // only accepts frames from this id
-	rx_mob.ctrl.ide = 0; // This message object accepts only standard (2.0A) CAN frames
-	rx_mob.ctrl.rtr = 0; // this message object is not requesting a remote node to transmit data back
-	rx_mob.dlc = size; // Number of bytes (8 max) of data to expect
-	rx_mob.cmd = CMD_RX_DATA; // assign this as a "Receive Standard (2.0A) CAN frame" message object
-
-	while(can_cmd(&rx_mob) != CAN_CMD_ACCEPTED);  // Wait for MOb to configure (Must re-configure MOb for every transaction)
+	while(can_cmd(mob) != CAN_CMD_ACCEPTED);  // Wait for MOb to configure (Must re-configure MOb for every transaction)
 
 }
 
+/*
+Enables the can recieve interrupt for the given mob
+---------------------------------------------------
+precondition - mob was already initialized as a recieving mob with init_rx_mob
 
-void init_rx_interrupts(){
+mob - the mob to initialize interrupts on
+*/
+void init_rx_interrupts(st_cmd_t mob){
 
 	CANGIE |= _BV(ENIT) | _BV(ENRX);  // enable CAN interrupts and enable the recieve interrupt
-	CANIE2 |= _BV(IEMOB0);
+	CANIE2 |= _BV(mob.handle);
 
 	sei();  // enable global interrupts
 }
 
+/*
+This is the ISR to handle all can interrupts
+--------------------------------------------
+*/
 ISR(CAN_INT_vect){
-	print("INTERRUPT\n");
-	if(CANSTMOB & _BV(RXOK) && can_get_status(&rx_mob) == CAN_STATUS_COMPLETED){  // interrupt caused by recieve finished
-		CANSTMOB &= ~_BV(RXOK);  // clear interrupt flag
+	if(CANSTMOB & _BV(RXOK)){  // interrupt caused by recieve finished
 
-		print("------------\n");
-		print("%u\n", recieved_data[0]);
-		print("%u\n", recieved_data[1]);
-		print("------------\n");
+		if(can_get_status(&rx_mob) == CAN_STATUS_COMPLETED){  // interrupt on rx_mob
 
-		for(uint8_t i=0; i<2; i++) {recieved_data[i] = 0;}  // clear data array
+			CANIE2 &= ~_BV(rx_mob.handle);  // disable interrupts for this mob - this is in case the mob number changes
 
-		while(can_cmd(&rx_mob) != CAN_CMD_ACCEPTED);  // Wait for MOb to configure (Must re-configure MOb for every transaction)
+			CANSTMOB &= ~_BV(RXOK);  // clear interrupt flag
+
+			// do something with data or just print it
+			print("------------\n");
+			for(uint8_t i = 0; i < rx_mob.dlc; i++){
+				print("%u\n", rx_mob.pt_data[i]);
+			}
+			print("------------\n");
+
+			for(uint8_t i=0; i < rx_mob.dlc; i++) {rx_mob.pt_data[i] = 0;}  // clear data array
+
+			while(can_cmd(&rx_mob) != CAN_CMD_ACCEPTED);  // Wait for MOb to configure (Must re-configure MOb for every transaction)
+
+			CANIE2 |= _BV(rx_mob.handle);  // re-enable the interrupt - might be a new mob number
+		}
 	}
 }

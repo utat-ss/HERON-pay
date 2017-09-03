@@ -32,6 +32,7 @@
 #include "config.h"
 #include "can_lib.h"
 #include "can_drv.h"
+#include "log.h"
 
 //_____ D E F I N I T I O N S __________________________________________________
 
@@ -271,7 +272,7 @@ uint8_t can_get_status (st_cmd_t* cmd)
             rtn_val = CAN_STATUS_NOT_COMPLETED;
             break;
         //---------------      
-        case MOB_RX_COMPLETED:    
+        case MOB_RX_COMPLETED:
         case MOB_RX_COMPLETED_DLCW:
             cmd->dlc = Can_get_dlc();
             can_get_data(cmd->pt_data);
