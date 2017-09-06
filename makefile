@@ -12,16 +12,19 @@ UART := uart.c log.c
 SPI := spi.c
 PEX := pex.c
 
-SRC_FILES = $(SPI) $(PEX)
-
-SRC_FILES := $(SRC_FILES:%=./src/%)
+SRC_FILES = $(SPI) $(UART) pressure_sensor.c
 
 OBJS := $(SRC_FILES:.c=.o)
+OBJS := $(OBJS:%=./build/%)
 
-OBJS := $(OBJS:./src/%=./build/%)
+# SRC_FILES := $(SRC_FILES:%=./src/%) $(LIB_COMMON:%=./lib-common/%)
 
 ELF := ./build/$(program_NAME).elf
 HEX  := ./build/$(program_NAME).hex
+
+# first look for .c files in lib-common and then in src
+vpath %.c lib-common
+vpath %.c src
 
 all: $(HEX)
 
@@ -31,7 +34,7 @@ $(HEX): $(ELF)
 $(ELF): $(OBJS)
 	$(CC) $(CFLAGS) -o $(ELF) $(OBJS)
 
-./build/%.o: ./src/%.c
+./build/%.o: %.c
 	$(CC) $(CFLAGS) -Os -c $<
 	@mv $(@F) $@
 
