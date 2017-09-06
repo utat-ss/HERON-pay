@@ -6,6 +6,7 @@ PROG = stk500
 PORT = /dev/tty.usbmodem00187462
 MCU = m32m1
 program_NAME = pay
+INCLUDES = -Ilib-common -Isrc
 
 CAN := can_drv.c can_lib.c can_test.c
 UART := uart.c log.c
@@ -16,8 +17,6 @@ SRC_FILES = $(SPI) $(UART) pressure_sensor.c
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)
-
-# SRC_FILES := $(SRC_FILES:%=./src/%) $(LIB_COMMON:%=./lib-common/%)
 
 ELF := ./build/$(program_NAME).elf
 HEX  := ./build/$(program_NAME).hex
@@ -35,7 +34,7 @@ $(ELF): $(OBJS)
 	$(CC) $(CFLAGS) -o $(ELF) $(OBJS)
 
 ./build/%.o: %.c
-	$(CC) $(CFLAGS) -Os -c $<
+	$(CC) $(CFLAGS) -Os -c $< $(INCLUDES)
 	@mv $(@F) $@
 
 
