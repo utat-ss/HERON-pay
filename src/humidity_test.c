@@ -15,22 +15,16 @@ uint32_t getHumidityAndTemperature() {
 }
 
 int main() {
-  /*init_spi();
+  init_spi();
   init_cs(CS, &CS_DDR);
-  set_cs_high(CS, &CS_PORT);*/
+  set_cs_high(CS, &CS_PORT);
   init_uart();
 
-  send_uart("start");
+  print("start");
 
   while (true) {
-    // uint32_t data = getHumidityAndTemperature();
-    // // send_uart(&data);
-    // put_char(data >> 24);
-    // put_char(data >> 16);
-    // put_char(data >> 8);
-    // put_char(data);
-
-    send_uart("test");
+    uint32_t data = getHumidityAndTemperature();
+    print("%d\n", data);
     _delay_ms(100);
   }
 }
