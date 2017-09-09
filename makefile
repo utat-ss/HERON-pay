@@ -12,8 +12,9 @@ CAN := can_drv.c can_lib.c can_test.c
 UART := uart.c log.c
 SPI := spi.c
 PEX := pex.c
+HUM := humidity_test.c
 
-SRC_FILES = $(SPI) $(UART) pressure_sensor.c
+SRC_FILES = $(SPI) $(UART) $(HUM)
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)
