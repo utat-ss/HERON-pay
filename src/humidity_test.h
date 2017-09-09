@@ -8,6 +8,7 @@
 #include <util/delay.h>
 #include "spi.h"
 #include "uart.h"
+#include "log.h"
 
 // TODO fix
 #define CS PD4
