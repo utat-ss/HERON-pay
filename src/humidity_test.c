@@ -1,30 +1,28 @@
 #include "humidity_test.h"
 
 uint32_t getHumidityAndTemperature() {
-  set_cs_low(CS, &CS_PORT);
+  int i = 0;
+  uint32_t data = 0x00;
 
-  uint32_t b1 = send_spi(0);
-  uint32_t b2 = send_spi(0);
-  uint32_t b3 = send_spi(0);
-  uint32_t b4 = send_spi(0);
-  uint32_t b = (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
+  set_gpio_a(0, 0);
+  for (i; i<4; i++){
+    data << 8;
+    data |= send_spi(0);
+  }
+  set_gpio_a(0, 0b00100001);
 
-  set_cs_high(CS, &CS_PORT);
-
-  return b;
+  return data;
 }
 
 int main() {
   init_spi();
-  init_cs(CS, &CS_DDR);
-  set_cs_high(CS, &CS_PORT);
+  port_expander_init();
+  set_gpio_a(0, 0b00100001);
   init_uart();
 
-  print("start");
-
-  while (true) {
+  while (1) {
     uint32_t data = getHumidityAndTemperature();
-    print("%d\n", data);
-    _delay_ms(100);
+    print("%u\n", data);
+    _delay_ms(1000);
   }
 }

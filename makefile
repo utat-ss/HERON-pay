@@ -13,8 +13,9 @@ UART := uart.c log.c
 SPI := spi.c
 PEX := pex.c
 HUM := humidity_test.c
+TEMP := main.c
 
-SRC_FILES = $(SPI) $(UART) $(HUM)
+SRC_FILES = $(SPI) $(UART) $(PEX) $(TEMP)
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)

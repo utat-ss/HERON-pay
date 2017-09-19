@@ -1,5 +1,3 @@
-#include "spi.h"
-
 #ifndef F_CPU
 #define F_CPU 8000000UL
 #endif
@@ -7,6 +5,8 @@
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
+
+#include "spi.h"
 
 // Assumes bank = 0, which it does on RST
 #define IOCON 0x0A  // where config is stored
@@ -19,10 +19,14 @@
 #define write_control_byte 0b01000000
 #define read_control_byte 0b01000001    // Bits 3-1 (MSB first) are A2-A0 for hardware address.
 
-#define CS PB3
+#define CS PB5
 #define CS_PORT PORTB
 #define CS_DDR DDRB
 
 void port_expander_init(void);
-void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data);
-uint8_t port_expander_read(uint8_t address, uint8_t register_addr);
+void port_expander_write(uint8_t, uint8_t, uint8_t);
+uint8_t port_expander_read(uint8_t, uint8_t);
+void set_gpio_b(uint8_t, uint8_t);
+void set_gpio_a(uint8_t, uint8_t);
+void set_dir_a(uint8_t, uint8_t);
+void set_dir_b(uint8_t, uint8_t);

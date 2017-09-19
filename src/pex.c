@@ -12,7 +12,6 @@
 */
 
 #include "pex.h"
-#include "spi.h"
 
 void port_expander_init(){
 	init_cs(CS, &CS_DDR);
@@ -27,6 +26,14 @@ void set_gpio_a(uint8_t address, uint8_t pin_states){
 
 void set_gpio_b(uint8_t address, uint8_t pin_states){
 	port_expander_write(address, GPIO_BASE + 0x01, pin_states);
+}
+
+void set_dir_a(uint8_t address, uint8_t pin_states){
+	port_expander_write(address, IODIR_BASE, pin_states);
+}
+
+void set_dir_b(uint8_t address, uint8_t pin_states){
+	port_expander_write(address, IODIR_BASE + 0x01, pin_states);
 }
 
 void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data){

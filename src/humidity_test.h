@@ -3,16 +3,16 @@
 #endif
 
 #include <stdint.h>
-#include <stdbool.h>
 #include <avr/io.h>
 #include <util/delay.h>
+
+#include "pex.h"
 #include "spi.h"
 #include "uart.h"
 #include "log.h"
 
-// TODO fix
-#define CS PD4
-#define CS_PORT PORTD
-#define CS_DDR DDRD
+#define HUM_CS 0
+#define PRES_CS 1
+#define TEMP_CS 2
 
 uint32_t getHumidityAndTemperature();
