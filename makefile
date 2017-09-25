@@ -10,14 +10,14 @@ program_NAME = pay
 
 # Might want to change these
 INCLUDES = -I./lib-common/include/
-LIB = -L./lib-common/lib -luart -lspi -lcan
+LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 
 #CAN := can_drv.c can_lib.c can_test.c
 #UART := uart.c log.c
 #SPI := spi.c
 PEX := pex.c
 SENSORS := pex.c sensors.c
-MAIN := queue.c main.c
+MAIN := main.c
 #HUM := humidity_test.c
 
 SRC_FILES = $(SENSORS) $(MAIN)
