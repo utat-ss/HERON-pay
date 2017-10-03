@@ -87,20 +87,15 @@ uint32_t get_raw_humidity() {
 
 double read_humidity() {
   uint32_t data = get_raw_humidity();
-  uint16_t humidity_bytes = (uint16_t)(data >> 16) & ~(3 << 14); // if you don't mask out the first two bits, you get interesting oscillating ones in front of the humidity output.
-
-  //uint16_t temperature_bytes = (uint16_t)data >> 2;
+  uint16_t humidity_bytes = (uint16_t)(data >> 16) & ~(3 << 14);
   double humidity = (double)humidity_bytes / (pow(2, 14) - 2.0) * 100.0;
-  //double temperature = (double)temperature_bytes / (pow(2, 14) - 2.0) * 165.0 - 40.0;
 
   return humidity;
 }
 
 double read_humidity_temp() {
   uint32_t data = get_raw_humidity();
-  //uint16_t humidity_bytes = (uint16_t)(data >> 16) & ~(3 << 14);
   uint16_t temperature_bytes = (uint16_t)data >> 2;
-  //double humidity = (double)humidity_bytes / (pow(2, 14) - 2.0) * 100.0;
   double temperature = (double)temperature_bytes / (pow(2, 14) - 2.0) * 165.0 - 40.0;
 
   return temperature;
@@ -151,6 +146,8 @@ uint32_t pressure_sensor_read(uint8_t cmd){  // reads the uncompensated pressure
 }
 
 float read_pressure(uint16_t *PROM_data){
+  uint16_t PROM_data[8];
+  get_PROM(&PROM_data);
 
   // The data is only 24 bits
   uint32_t D1 = pressure_sensor_read(D1_4096);  // pressure
