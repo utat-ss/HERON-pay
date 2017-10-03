@@ -101,6 +101,16 @@ double read_humidity_temp() {
   return temperature;
 }
 
+void init_pressure_sensor(){
+  pressure_sensor_reset();
+
+  // read the calibration PROM
+  for(uint8_t i = 0; i < 8; i++){
+    PROM_data[i] = read_PROM(i);
+  }
+
+}
+
 void pressure_sensor_reset(){
   clear_gpio_b(SSM, CS_1);
   send_spi(RESET);
@@ -118,13 +128,6 @@ uint16_t read_PROM(uint8_t address){  // reads the callibration coefficients fro
 	set_gpio_b(SSM, CS_1);
 
 	return data;
-}
-
-uint16_t *get_PROM(uint16_t *PROM_data){
-  uint8_t i;
-  for(i = 0; i < 8; i++){
-    *(PROM_data + i) = read_PROM(i);
-  }
 }
 
 uint32_t pressure_sensor_read(uint8_t cmd){  // reads the uncompensated pressure or temperature depending on the command given

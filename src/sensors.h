@@ -15,6 +15,8 @@
 #define ADC_READ 0x00
 #define PROM_BASE 0xA0
 
+uint16_t PROM_data[8];
+
 void sensor_setup(void);
 
 float read_temperature(void);
