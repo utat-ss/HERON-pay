@@ -26,6 +26,5 @@ double read_humidity_temp(void);
 
 void pressure_sensor_reset(void);
 uint16_t read_PROM(uint8_t address);
-uint16_t *get_PROM(uint16_t*);
 uint32_t pressure_sensor_read(uint8_t);
 float read_pressure(uint16_t*);

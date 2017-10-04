@@ -31,7 +31,7 @@ void sensor_setup(){
   clear_gpio_b(SSM, TEMP_SHUTDOWN); // Clears the shutdown bit.
   //set_dir_b(SSM, TEMP_CS, 0);
   //set_gpio_b(SSM, TEMP_CS);
-  //pressure_sensor_reset();
+  //init_pressure_sensor();
 }
 
 float read_temperature(){
@@ -149,8 +149,6 @@ uint32_t pressure_sensor_read(uint8_t cmd){  // reads the uncompensated pressure
 }
 
 float read_pressure(uint16_t *PROM_data){
-  uint16_t PROM_data[8];
-  get_PROM(&PROM_data);
 
   // The data is only 24 bits
   uint32_t D1 = pressure_sensor_read(D1_4096);  // pressure

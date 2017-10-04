@@ -7,5 +7,5 @@
 #include <uart/uart.h>
 #include <uart/log.h>
 
-#include "queue.h"
-#include "can.h"
+#include <queue/queue.h>
+#include <can/can.h>

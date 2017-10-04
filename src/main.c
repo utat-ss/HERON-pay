@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define SIZE 8;
+#define SIZE 8
 
 // void package_sensor_data(uint8_t *data){
 //
@@ -8,8 +8,7 @@
 // }
 
 
-int main (void)
-{
+int main (void){
 	uint8_t data[SIZE];
 
 	sensor_setup();
