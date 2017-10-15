@@ -36,9 +36,12 @@ $(HEX): $(ELF)
 $(ELF): $(OBJS)
 	$(CC) $(CFLAGS) -o $(ELF) $(OBJS) $(LIB)
 
-./build/%.o: %.c
+./build/%.o: %.c ./build
 	$(CC) $(CFLAGS) -Os -c $< $(INCLUDES)
 	@mv $(@F) $@
+
+./build:
+	mkdir build
 
 
 .PHONY: clean upload debug
