@@ -1,3 +1,6 @@
+#include <spi/spi.h>
+#include "pex.h"
+
 #define COMM_BYTE_READ 01000000
 #define COMM_BYTE_WRITE 00000000
 // bit[5:3] is register address

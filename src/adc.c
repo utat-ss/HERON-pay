@@ -28,6 +28,26 @@
 
 // We might want to trigger an interrupt on RDY
 
+#include adc.h
+
+void init_adc(){
+  // We're assuming that port_expander_init() has already been called.
+  int i;
+
+  // Set all the directions needed for sensor board functionality.
+  for (i = 0; i < 4; i++){
+    set_dir_a(SENSOR_PCB, i, 0);  //Set all the LED outputs
+    clear_gpio_a(SENSOR_PCB, i);
+  }
+  for (i = 0; i < 2; i++){
+    set_dir_b(SENSOR_PCB, i, 0); // Set ITF and ADC CS
+    set_gpio_b(SENSOR_PCB, i);
+  }
+
+  adc_transfer()
+}
+
+uint8_t * transfer_ADC();
 
 uint8_t select_channel(uint8_t channel_num){
   // Only need to select 5-7
@@ -39,6 +59,8 @@ uint24_t read_channel(uint8_t channel_num){
   // Send appropriate byte to comm register
   // Delay until RDY bit low
   // Return 24 bit data
+
+
 }
 
 void set_PGA(uint8_t gain){

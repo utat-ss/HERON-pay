@@ -42,12 +42,12 @@
 
 
 void port_expander_init(void);
-void port_expander_write(uint8_t, uint8_t, uint8_t);
-uint8_t port_expander_read(uint8_t, uint8_t);
-void set_gpio_b(uint8_t, uint8_t);
-void set_gpio_a(uint8_t, uint8_t);
-void clear_gpio_a(uint8_t, uint8_t);
-void clear_gpio_b(uint8_t, uint8_t);
-void set_dir_a(uint8_t, uint8_t, uint8_t);
-void set_dir_b(uint8_t, uint8_t, uint8_t);
+void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data);
+uint8_t port_expander_read(uint8_t address, uint8_t register_addr);
+void set_gpio_b(uint8_t address, uint8_t pin);
+void set_gpio_a(uint8_t address, uint8_t pin);
+void clear_gpio_a(uint8_t address, uint8_t pin);
+void clear_gpio_b(uint8_t address, uint8_t pin);
+void set_dir_a(uint8_t address, uint8_t pin, uint8_t state);
+void set_dir_b(uint8_t address, uint8_t pin, uint8_t state);
 void reset_pex(void);
