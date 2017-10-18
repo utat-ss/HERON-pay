@@ -10,7 +10,7 @@
     * Decide on a config register default state
       * bit[23] to 0 - chop bit
       * bit[20] set to 0 — ref select
-      * bit[18] should be 1
+      * bit[18] should be 1 (psuedo bit)
       * bit[16] set to 0 — temp bit
       * bit[15:8] – channel select
       * bit[7] set to 0 – burnout
@@ -151,12 +151,36 @@ void write_ADC_register(uint8_t register_addr, uint32_t data) {
 }
 
 
-// TODO
-uint8_t select_channel(uint8_t channel_num){
-  // Only need to select 5-7
-  // return (channel num - 1);
-  return 0;
-};
+/*
+  Sets the configuration register's bits for a specified input channel.
+  channel_num - one of 5, 6, 7
+*/
+void select_channel(uint8_t channel_num) {
+  // Get the 4 bits for the channel (p. 26)
+  uint8_t channel_bits = channel_num - 1;
+
+  // Read from configuration register
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+
+
+  // Mask configuration bits to set the channel
+
+  // TODO - is there an error in the data sheet (p. 25)?
+  // CON16-CON8 -> should be CON15-CON8
+
+  // Clear bits 15-12 (CH7-4, set to 0) (p.25)
+  for (int i = 15; i >= 12; i--) {
+    // TODO - refactor this into a function
+    config_data = config_data & ~(1 << i);
+  }
+
+  // Set bits 15-12 to the appropriate gain
+  config_data = config_data | (channel_bits << 12);
+
+
+  // Write to configuration register
+  write_ADC_register(CONFIG_ADDR, config_data);
+}
 
 
 // TODO
@@ -202,7 +226,7 @@ uint8_t convert_gain_bits(uint8_t gain) {
 
 
 /*
-  Sets the communication register's bits for a specified programmable gain.
+  Sets the configuration register's bits for a specified programmable gain.
   gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, p. 25)
 */
 void set_PGA(uint8_t gain) {
