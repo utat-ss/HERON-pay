@@ -16,10 +16,10 @@ LIB = -L./lib-common/lib -luart -lspi -lcan
 #CAN := can_test.c
 PEX := pex.c
 ADC := adc.c
-SENSORS := pex.c sensors.c
+SENSORS := sensors.c
 MAIN := main.c
 
-SRC_FILES = $(ADC) $(SENSORS) $(MAIN)
+SRC_FILES = $(PEX) $(ADC) $(SENSORS) $(MAIN)
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)

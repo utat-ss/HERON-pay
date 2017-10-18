@@ -21,13 +21,13 @@
 
       0b0000 0100 0000 0000 0000 1000
       0x040008;
-
-
-
 */
+
 
 /*
   Datasheet - Important Pages
+
+  19 - register selection
 
   24 - configuration register - select gain
     - CON2-CON0 - gain select
@@ -41,7 +41,8 @@
 
 
 
-// We might want to trigger an interrupt on RDY (falling edge)
+
+// TODO - We might want to trigger an interrupt on RDY (falling edge)
 
 #include "adc.h"
 
@@ -59,28 +60,113 @@ void init_adc(){
     set_gpio_b(SENSOR_PCB, i);
   }
 
-  // TODO - is this supposed to say transfer_ADC()?
   // adc_transfer()
 
-  // TODO - write the default configuration register state we want?
+  // TODO - maybe write the default configuration register state we want?
 }
 
-// TODO - what is this supposed to do?
-uint8_t * transfer_ADC();
 
+/*
+  Returns the number of BYTES in the specified register at the given address
+  TODO - careful of data register + status information - pg. 20
+*/
+uint8_t num_register_bytes(uint8_t register_addr) {
+  switch (register_addr) {
+    case STATUS_ADDR:
+      return 1;
+      break;
+    case MODE_ADDR:
+      return 3;
+      break;
+    case CONFIG_ADDR:
+      return 3;
+      break;
+    // TODO - could be 3 or 4? check datasheet (p.20)
+    case DATA_ADDR:
+      return 3;
+      break;
+    case ID_ADDR:
+      return 1;
+      break;
+    case GPOCON_ADDR:
+      return 1;
+      break;
+    case OFFSET_ADDR:
+      return 3;
+      break;
+    case FULL_SCALE_ADDR:
+      return 3;
+      break;
+    default:
+      return 0;
+      break;
+  }
+}
+
+
+// TODO - check if a register if read-only or write-only?
+
+/*
+  Reads the current state of the specified ADC register.
+*/
+uint32_t read_ADC_register(uint8_t register_addr) {
+  // Set CS low
+  clear_gpio_b(SENSOR_PCB, ADC_CS);
+
+  // Write the communication register byte to read from the register (p. 19)
+  send_spi(COMM_BYTE_READ | (register_addr << 3));
+
+  // Read the required number of bytes
+  uint32_t data = 0;
+  for (int i = 0; i < num_register_bytes(register_addr); i++) {
+    data = data << 8;
+    data = data | send_spi(0);
+  }
+
+  // Set CS high
+  set_gpio_b(SENSOR_PCB, ADC_CS);
+
+  return data;
+}
+
+
+/*
+  Writes a new state to the specified ADC register.
+*/
+void write_ADC_register(uint8_t register_addr, uint32_t data) {
+  // Set CS low
+  clear_gpio_b(SENSOR_PCB, ADC_CS);
+
+  // Write the communication register byte
+  // to write to the register (p.19)
+  send_spi(COMM_BYTE_WRITE | (register_addr << 3));
+
+  // Write the required number of bytes
+  for (int i = num_register_bytes(register_addr) - 1; i >= 0; i--) {
+    send_spi( (uint8_t) (data >> (i * 8)) );
+  }
+
+  // Set CS high
+  set_gpio_b(SENSOR_PCB, ADC_CS);
+}
+
+
+// TODO
 uint8_t select_channel(uint8_t channel_num){
   // Only need to select 5-7
   // return (channel num - 1);
+  return 0;
 };
 
+
+// TODO
 uint32_t read_channel(uint8_t channel_num){
   // Select channel from 5-7
   // Send appropriate byte to comm register
   // Delay until RDY bit low
   // Return 24 bit data
+  return 0;
 }
-
-
 
 
 /*
@@ -116,52 +202,6 @@ uint8_t convert_gain_bits(uint8_t gain) {
 
 
 /*
-  Reads the current state of the configuration register.
-*/
-uint32_t read_config_register() {
-  // Set CS low
-  clear_gpio_b(SENSOR_PCB, ADC_CS);
-
-  // Write the communication register byte
-  // to read from the configuration register (p. 19)
-  send_spi(COMM_BYTE_READ | (CONFIG_ADDR << 3));
-
-  // Read (24 bits)
-  uint32_t config_data = send_spi(0);
-  config_data = config_data << 8;
-  config_data = config_data | send_spi(0);
-  config_data = config_data << 8;
-  config_data = config_data | send_spi(0);
-
-  // Set CS high
-  set_gpio_b(SENSOR_PCB, ADC_CS);
-
-  return config_data;
-}
-
-
-/*
-  Writes a new state to the configuration register.
-*/
-void write_config_register(uint32_t config_data) {
-  // Set CS low
-  clear_gpio_b(SENSOR_PCB, ADC_CS);
-
-  // Write the communication register byte
-  // to write to the configuration register (p.19)
-  send_spi(COMM_BYTE_WRITE | (CONFIG_ADDR << 3));
-
-  // Write the new state of the configuration register (24 bits)
-  send_spi((uint8_t)(config_data >> 16));
-  send_spi((uint8_t)(config_data >> 8));
-  send_spi((uint8_t)(config_data));
-
-  // Set CS high
-  set_gpio_b(SENSOR_PCB, ADC_CS);
-}
-
-
-/*
   Sets the communication register's bits for a specified programmable gain.
   gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, p. 25)
 */
@@ -170,7 +210,7 @@ void set_PGA(uint8_t gain) {
   uint8_t gain_bits = convert_gain_bits(gain);
 
   // Read from configuration register
-  uint32_t config_data = read_config_register();
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
 
 
   // Mask configuration bits to set the gain
@@ -185,5 +225,5 @@ void set_PGA(uint8_t gain) {
 
 
   // Write to configuration register
-  write_config_register(config_data);
+  write_ADC_register(CONFIG_ADDR, config_data);
 }
