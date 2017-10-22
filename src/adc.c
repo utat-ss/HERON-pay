@@ -43,8 +43,15 @@
 
 
 // TODO - We might want to trigger an interrupt on RDY (falling edge)
+// RDY goes low when in continuous conversion mode, CS is low,
+// and a new conversion has just completed
 
+#include <stdbool.h>
+
+#include <uart/log.h>
 #include "adc.h"
+
+int pga_gain = 1;
 
 void init_adc(){
   // We're assuming that port_expander_init() has already been called.
@@ -59,6 +66,8 @@ void init_adc(){
     set_dir_b(SENSOR_PCB, i, 0); // Set ITF and ADC CS
     set_gpio_b(SENSOR_PCB, i);
   }
+
+  // "Continuous conversion is the default power-up mode." (p. 32)
 
   // adc_transfer()
 
@@ -152,10 +161,10 @@ void write_ADC_register(uint8_t register_addr, uint32_t data) {
 
 
 /*
-  Sets the configuration register's bits for a specified input channel.
+  Sets the configuration register's bits for the specified ADC input channel.
   channel_num - one of 5, 6, 7
 */
-void select_channel(uint8_t channel_num) {
+void select_ADC_channel(uint8_t channel_num) {
   // Get the 4 bits for the channel (p. 26)
   uint8_t channel_bits = channel_num - 1;
 
@@ -183,13 +192,50 @@ void select_channel(uint8_t channel_num) {
 }
 
 
-// TODO
-uint32_t read_channel(uint8_t channel_num){
-  // Select channel from 5-7
-  // Send appropriate byte to comm register
-  // Delay until RDY bit low
-  // Return 24 bit data
-  return 0;
+/*
+  Reads 24 bit raw data from the specified ADC channel.
+  channel_num - one of 5, 6, 7
+*/
+uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
+  select_ADC_channel(channel_num);
+
+  // TODO - is it bad to block like this?
+  while (true) {
+    uint32_t status_data = read_ADC_register(STATUS_ADDR);
+    // Break and continue function execution when RDY (bit 7) is 0 (p. 20)
+    if ((status_data & (1 << 7)) == 0) {
+      break;
+    } else {
+      print("Conversion not ready yet\n");
+    }
+  }
+
+  // Read and return 24 bit data
+  uint32_t read_data = read_ADC_register(DATA_ADDR);
+  return read_data;
+}
+
+
+/*
+  Reads the input voltage for the specified ADC channel,
+  including applying the gain factor.
+  channel_num - one of 5, 6, 7
+*/
+double read_ADC_channel(uint8_t channel_num) {
+  // Read 24 bit raw data
+  uint32_t read_data = read_ADC_channel_raw_data(channel_num);
+
+  print("Read Data (Channel %d)\n", channel_num);
+  print("%X = %d\n", read_data, read_data); // hexadecimal and decimal
+  print("Gain = %d\n", pga_gain);
+
+  // (p.31) Code = (2^N * AIN * Gain) / (V_REF)
+  //     => AIN = (Code * V_REF) / (2^N * Gain)
+  double AIN =  ((double) ( read_data * V_REF               )) /
+                ((double) ( ((uint32_t) 1 << N) * pga_gain  ));
+  print("AIN = %f\n", AIN);
+
+  return AIN;
 }
 
 
@@ -250,4 +296,7 @@ void set_PGA(uint8_t gain) {
 
   // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
+
+  // Keep track of the set gain
+  pga_gain = gain;
 }

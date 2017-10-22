@@ -4,8 +4,10 @@
 // For writing to the communication register
 // (when starting a communication operation with the ADC)
 // to specify whether the following operation will be read or write
-#define COMM_BYTE_READ  0b01000000
-#define COMM_BYTE_WRITE 0b00000000
+#define COMM_BYTE_READ        0b01000000
+#define COMM_BYTE_WRITE       0b00000000
+#define COMM_BYTE_CONT_CONV   0b00000100  // continuous conversion
+#define COMM_BYTE_SINGLE_CONV 0b00000000  // single conversion
 // bit[5:3] is register address
 // bit[2] is CREAD. Set to 1 to enable continuous read
 
@@ -24,3 +26,8 @@
 // GPIOB pins on the PAY_SENSOR board's port expander
 #define ADC_CS 0
 #define ITF_CS 1
+
+
+// For ADC read conversion (p.31)
+#define N 24      // number of bits read
+#define V_REF 2.5 // reference voltage
