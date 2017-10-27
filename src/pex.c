@@ -11,6 +11,7 @@
 	REVISION HISTORY:
 
 
+		2017-10-27: 	Added comments.
 	`	2017-09-22:		Fixed the switch-case statements in set_gpio_x`
 		2017-09-19: 	Added "clear_gpio_x" functions to clear a GPIO register bit.
 									"set_gpio_x" now sets a GPIO register bit.
@@ -22,7 +23,16 @@
 
 #include "pex.h"
 
+void reset_ssm_pex(){
+	// Reset the SSM port expander
+	set_cs_low(SSM_RST, &RST_PORT);
+	_delay_ms(2);
+	set_cs_high(RST, &RST_PORT);
+	_delay_ms(2);
+}
+
 void reset_pex(){
+	// Reset the sensor port expanders
 	set_cs_low(RST, &RST_PORT);
 	_delay_ms(2);
 	set_cs_high(RST, &RST_PORT);
@@ -30,8 +40,12 @@ void reset_pex(){
 }
 
 void port_expander_init(){
+	// Initialize port expander resets, chip selects, and SPI
 	init_cs(RST, &RST_DDR);
+	init_cs(SSM_RST, &SSM_RST_DDR);
 	set_cs_high(RST, &RST_PORT);
+	set_cs_high(SSM_RST, &SSM_RST_PORT);
+
 	init_cs(CS, &CS_DDR);
 	set_cs_high(CS, &CS_PORT);
 	init_spi();
@@ -39,26 +53,32 @@ void port_expander_init(){
 }
 
 void set_gpio_a(uint8_t address, uint8_t pin){
+	// Set pin 'pin' on GPIOA high on port expander 'address'
 	uint8_t register_state = port_expander_read(address, GPIO_BASE);
 	port_expander_write(address, GPIO_BASE, register_state | (1 << pin));
 }
 
 void set_gpio_b(uint8_t address, uint8_t pin){
+	// Set pin 'pin' on GPIOB high on port expander 'address'
 	uint8_t register_state = port_expander_read(address, GPIO_BASE + 0x01);
 	port_expander_write(address, GPIO_BASE + 0x01, register_state | (1 << pin));
 }
 
 void clear_gpio_a(uint8_t address, uint8_t pin){
+	// Set pin 'pin' on GPIOA low on port expander 'address'
 	uint8_t register_state = port_expander_read(address, GPIO_BASE);
 	port_expander_write(address, GPIO_BASE, register_state & ~(1 << pin));
 }
 
 void clear_gpio_b(uint8_t address, uint8_t pin){
+	// Set pin 'pin' on GPIOB low on port expander 'address'
 	uint8_t register_state = port_expander_read(address, GPIO_BASE + 0x01);
 	port_expander_write(address, GPIO_BASE + 0x01, register_state & ~(1 << pin));
 }
 
 void set_dir_a(uint8_t address, uint8_t pin, uint8_t state){
+	// Set the direction of pin 'pin' on GPIOA on port expander 'address' to state 'state'
+	// state == 0 corresponds to output, state == 1 corresponds to input
 	uint8_t register_state = port_expander_read(address, IODIR_BASE);
 	switch (state) {
 		case 0: // OUTPUT
@@ -71,6 +91,8 @@ void set_dir_a(uint8_t address, uint8_t pin, uint8_t state){
 }
 
 void set_dir_b(uint8_t address, uint8_t pin, uint8_t state){
+	// Set the direction of pin 'pin' on GPIOA on port expander 'address' to state 'state'
+	// state == 0 corresponds to output, state == 1 corresponds to input
 	uint8_t register_state = port_expander_read(address, IODIR_BASE + 0x01);
 	switch(state) {
 		case 0: // OUTPUT
@@ -83,6 +105,7 @@ void set_dir_b(uint8_t address, uint8_t pin, uint8_t state){
 }
 
 void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data){
+	// Write data 'data' to register 'register_addr' on port expander 'address'
 	set_cs_low(CS, &CS_PORT);  //write CS low
 	send_spi(write_control_byte | address << 1);
 	send_spi(register_addr);
@@ -92,6 +115,7 @@ void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data){
 }
 
 uint8_t port_expander_read(uint8_t address, uint8_t register_addr){
+	// Read data on register 'register_addr' on port expander 'address'
   uint8_t read_data;
   set_cs_low(CS, &CS_PORT);
   send_spi(read_control_byte | address << 1);
