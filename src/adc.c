@@ -54,7 +54,7 @@
 int pga_gain = 1;
 
 void init_adc(){
-  // We're assuming that port_expander_init() has already been called.
+  // We're assuming that init_port_expander() has already been called.
   int i;
 
   // Set all the directions needed for sensor board functionality.

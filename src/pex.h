@@ -8,6 +8,9 @@
 
 #include <spi/spi.h>
 
+#define OUTPUT 0
+#define INPUT 1
+
 // REGISTER ADDRESSES
 #define IOCON 0x0A  // Assumes bank = 0, such as after reset
 #define IODIR_BASE 0x00 // where direction is stored. 0 is output.
@@ -37,7 +40,7 @@
 #define LED_PCB 1
 #define SENSOR_PCB 2
 
-//GPIOB REGISTER
+//GPIOB SSM REGISTER
 #define PRES_CS 0
 #define TEMP_CS 1
 #define TEMP_SHUTDOWN 2
@@ -46,8 +49,16 @@
 #define CS_2 5
 #define PEX_LED 6
 
+//GPIOB LED PCB REGISTER
+#define LED_1 0
+#define LED_2 1
+#define LED_3 2
+#define LED_4 3
 
-void port_expander_init(void);
+//GPIOX SENSOR PCB REGISTER
+
+
+void init_port_expander(void);
 void port_expander_write(uint8_t address, uint8_t register_addr, uint8_t data);
 uint8_t port_expander_read(uint8_t address, uint8_t register_addr);
 void set_gpio_b(uint8_t address, uint8_t pin);

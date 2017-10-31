@@ -27,11 +27,9 @@
 #define ADC_CS 0
 #define ITF_CS 1
 
-
 // For ADC read conversion (p.31)
 #define N 24      // number of bits read
 #define V_REF 2.5 // reference voltage
-
 
 // ADC channels (see KiCad schematic)
 #define TEMD_ADC_CHANNEL  5

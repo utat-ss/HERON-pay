@@ -11,7 +11,8 @@
 	REVISION HISTORY:
 
 
-		2017-10-27: 	Added comments.
+		2017-10-27: 	Added comments. Changed port_expander_init to init_port_expander
+									to match convention elsewhere
 	`	2017-09-22:		Fixed the switch-case statements in set_gpio_x`
 		2017-09-19: 	Added "clear_gpio_x" functions to clear a GPIO register bit.
 									"set_gpio_x" now sets a GPIO register bit.
@@ -39,7 +40,7 @@ void reset_pex(){
 	_delay_ms(2);
 }
 
-void port_expander_init(){
+void init_port_expander(){
 	// Initialize port expander resets, chip selects, and SPI
 	init_cs(RST, &RST_DDR);
 	init_cs(SSM_RST, &SSM_RST_DDR);
