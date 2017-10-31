@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+build
+=======
 *.o
 *.elf
 *.hex
+>>>>>>> origin/master

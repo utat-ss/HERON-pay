@@ -22,7 +22,7 @@
 void sensor_setup(){
   uint8_t i;
 
-  port_expander_init();
+  init_port_expander();
 
   for (i = 1; i < 5; i++) { // NEEDS TO BE CHANGED WHEN PRES SOLDERED ON
     set_dir_b(SSM, i, 0); // Sets chip selects to low.
