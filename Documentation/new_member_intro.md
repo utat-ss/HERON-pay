@@ -15,7 +15,7 @@ numbersections: true
 
 ------------ ---------------- ----------------------------------------------------
 2017-11-07   Dylan Vogel      Created document and added existing write-ups.
-2017-11-07   Bruno Almeida    Edited and added missing content in the Lab Equipment section.
+2017-11-07   Bruno Almeida    Edited and added missing content in the Lab Equipment section; fixed attributions.
 ------------ ---------------- ----------------------------------------------------
 
 # Introduction
@@ -232,7 +232,7 @@ I think this should be enough of a crash course on C to get you writing programs
 \newpage
 
 # SPI (Serial Peripheral Interface)
-*Written by Bruno Almeida*
+*Written by Shimi Smith*
 
 In this section, we will describe the SPI protocol and how to use our library with the ATmega32m1, the main microcontroller used on the Heron Mk. II cube-satellite.
 
@@ -347,7 +347,9 @@ The two clock settings introduced here are Clock Polarity and Clock Phase. Clock
 This is the end of this SPI tutorial. Hopefully you you are now a SPI expert.
 
 # Lab Equipment (WIP)
+
 *Written by Bruno Almeida*
+
 Here is some equipment you will see and use in the lab (MP 099). We will demonstrate how to use the equipment in-person.
 
 ## Circuit Platforms
@@ -388,10 +390,10 @@ These are some of the tools you will use to build, test, and debug circuits.
 ### Multimeter
 Used to measure voltage, current, resistance, and connected points in parts of a circuit.
 
-* Voltage - must be **measured across a component** because voltage is the relative energy between two points
-* Current - must be **measured through a wire**; you have to break (disconnect) the circuit at the point you want to measure, then insert the multimeter as a component in series
-* Resistance - must be **measured across a component** because resistance is measured between two points
-* Short circuit mode (go to resistance mode and press Shift) - used to determine if there is a short circuit between two points in the circuit (a direct connection through wires with no components in between)
+* **Voltage** - must be **measured across a component** because voltage is the relative energy between two points
+* **Current** - must be **measured through a wire**; you have to break (disconnect) the circuit at the point you want to measure, then insert the multimeter as a component in series
+* **Resistance** - must be **measured across a component** because resistance is measured between two points
+* **Short circuit mode** - used to determine if there is a short circuit **between two points** in the circuit (a direct connection through wires with no components in between)
   * After assembling a circuit, can check that you have made the intended connections
   * Can check that you have not made accidental connections that change your circuit. An unintentional short circuit can change the circuit's behaviour and/or produce a high current that can damage components.
 
@@ -414,14 +416,15 @@ Used to measure voltage, current, resistance, and connected points in parts of a
 ### Soldering Iron
 * Used to form strong electrical connections between components on PCBs or protoboards
 
-## Microcontrollers
-A microcontroller is a processing unit, like the brain of a board or circuit.
 
-### Arduino
-Arduino is an open-source platform of microcontrollers, which we use to test components and code quickly. It is faster to write and upload code to test individual components than using the main AVR microcontroller. Arduino also has more built-in code which is easier to get individual components tested. It is programmed using a slightly modified version of the C++ language.
+## Microcontrollers
+A microcontroller is a processing unit, like the brain of a circuit.
 
 ### AVR/ATmega32M1
-Our subsystem's components are controlled by the ATmega32M1 microcontroller on the satellite. It is programmed in the C language, and you will need to install the AVR software to compile and upload code to it (which we will help you to get set up).
+Our subsystem's components will be controlled by the ATmega32M1 microcontroller on the satellite, part of the AVR family of microcontrollers. It is programmed in the C language, and you will need to install the AVR software to compile and upload code to it (which we will help you to get set up).
+
+### Arduino
+Arduino is an open-source platform of microcontrollers, which we sometimes use to test components quickly. Since Arduino has more built-in code libraries, it is faster to write and upload code to test individual components than using the AVR microcontroller. Arduino is programmed using a slightly modified version of the C++ language.
 
 
 
