@@ -15,7 +15,7 @@ numbersections: true
 
 ------------ ---------------- ----------------------------------------------------
 2017-11-07   Dylan Vogel      Created document and added existing write-ups.
-
+2017-11-07   Bruno Almeida    Edited and added missing content in the Lab Equipment section.
 ------------ ---------------- ----------------------------------------------------
 
 # Introduction
@@ -309,8 +309,9 @@ There are four banks of ports (B, C, D and E) with eight pins on each. There are
 
 ![](./figures/ddrb.jpg)\
 
-```_BV(PB6)``` is a macro that expands to ```1 << PB6``` and PB6 is a macro that expands to 6. Here is the code to write high or low on PB6.
-```
+
+The macro ```_BV(PB6)``` expands to ```1 << PB6``` and PB6 is a macro that expands to 6. Here is the code to write high or low on PB6.
+
 
 ![](./figures/portb.jpg)\
 
@@ -346,70 +347,84 @@ The two clock settings introduced here are Clock Polarity and Clock Phase. Clock
 This is the end of this SPI tutorial. Hopefully you you are now a SPI expert.
 
 # Lab Equipment (WIP)
-*Written by Russel Brown*
+*Written by Bruno Almeida*
+Here is some equipment you will see and use in the lab (MP 099). We will demonstrate how to use the equipment in-person.
 
-Here are some of the types of equipment in our lab (MP 099).
+## Circuit Platforms
+These are some of the different base platforms for building circuits.
 
-## Breadboard
-Used to quickly build and change circuits for prototyping
-Has holes to insert through-hole components and wires
-Particular sets of holes are connected under the board
-The long rails (two on each side) are all connected. Generally you will want to use the red rails for power and the blue rails for ground.
-Each row of 5 holes in the main part of the board is connected together. These are generally used to connect components together.
-Follow the lines, and notice the breaks in the lines
-(diagram/photo with lines indicating the connected sets of holes)
+### Breadboard
+* Used to quickly build and change circuits for fast prototyping
+* Has holes to insert through-hole components and wires
+* Components and wires can be moved easily, but can also be knocked loose easily
+* Uses through hole (TH) components
+* Connections:
+  * Particular sets of holes are connected under the board
+  * Each long rail of holes is connected together (there are two rails on each side). It is general convention to use the red rails for power and the blue rails for ground.
+  * Each row of 5 holes in the main part of the board is connected together. These are used to connect components together.
+  * If you forget which holes are connected, follow the lines and notice the breaks in the lines
+(add diagram/photo with lines indicating the connected sets of holes)
 
-## Printed Circuit Board (PCB)
-Used to create final circuits or major prototype versions of a circuit
-Getting a functional PCB requires many steps:
-Design it using CAD software (we use one called KiCad) - create a schematic of the components then create a PCB layout of those components
-Send the design to a manufacturer, who prints the board with just the connections/traces/wiring
-Order all of the actual components
-After receiving the board from the manufacturer, solder the components onto it
-The ordering and soldering process alone usually takes at least a week, which is why PCBs are not used for fast prototyping
-A PCB’s connections can’t be changed after it is ordered and printed (with rare exceptions, ask Dylan for a good story/photos)
-It is possible to use through-hole (TH) components on PCBs, but we use surface mounted (SMD/SMT) components, which are much smaller
+### Printed Circuit Board (PCB)
+* Used to create final circuits or major prototype versions of a circuit
+* Getting a functional PCB requires several steps:
+  * Design it using CAD software (we use one called KiCad) - create a schematic of the component connections, then create a PCB layout of those components
+  * Send the design to a manufacturer, who prints the board with just the traces (connections/wires)
+  * Order all of the components
+  * After receiving the board from the manufacturer, solder the components onto it
+  * The ordering and soldering process alone usually takes at least a week, which is why PCBs are not used for fast prototyping
+* A PCB’s connections can’t be changed after it is ordered and printed (with some exceptions, you can ask for some good stories)
+* Generally uses surface mount (SMD/SMT) components, which are much smaller than through hole
 
-## Protoboard (not entirely sure about this, need someone to check it)
-Somewhat between a breadboard and PCB
-Has connected tracks like a breadboard, but components need to be soldered and are more likely to stay in plane
-
-Use through hole components
+### Protoboard
+* Somewhat of a hybrid between a breadboard and PCB
+* Has connected tracks like a breadboard, but components need to be soldered and are more likely to stay on the board
+* Uses through hole components
 
 
 ## Tools
+These are some of the tools you will use to build, test, and debug circuits.
 
 ### Multimeter
-Used to measure voltage, current, and resistance in specific parts of a circuit and check for short circuits
+Used to measure voltage, current, resistance, and connected points in parts of a circuit.
 
-* Voltage - must be measured across a component because voltage measures the relative energy between two points
-* Current - you have to break (disconnect) your circuit at the point you want to measure, then insert the multimeter like another series component in the circuit
-* Resistance - must be measured across a component because resistance is measured between two points
-* Short mode - use this mode to determine if there is a short circuit (direct connection with no resistance) between two points in the circuit. This is important to check that you have not made extra connections that change your circuit. A short circuit produces a very high current that can damage components.
+* Voltage - must be **measured across a component** because voltage is the relative energy between two points
+* Current - must be **measured through a wire**; you have to break (disconnect) the circuit at the point you want to measure, then insert the multimeter as a component in series
+* Resistance - must be **measured across a component** because resistance is measured between two points
+* Short circuit mode (go to resistance mode and press Shift) - used to determine if there is a short circuit between two points in the circuit (a direct connection through wires with no components in between)
+  * After assembling a circuit, can check that you have made the intended connections
+  * Can check that you have not made accidental connections that change your circuit. An unintentional short circuit can change the circuit's behaviour and/or produce a high current that can damage components.
 
 ### Oscilloscope
-Used to measure waveforms (signals) over time in a circuit
-This is useful for viewing the raw data/signal in a wire, such as a sensor’s output or communication lines
+* Used to measure waveforms (signals) over time in a circuit
+* This is useful for viewing the raw signal data in a wire, such as a sensor’s output or communication lines
 
-### Function Generator/Power Supply (are these the same thing? Check AC vs DC)
-Used to generate power or a signal with a specific voltage, current, and/or waveform
+### Function Generator
+* Used to generate an AC (alternating current) signal with a specific voltage and waveform
+
+### Power Supply
+* Used to generate DC (direct current) power with a specific voltage or current
 
 ### Wire Cutters
-Used to cut specific length of wire
+* Used to cut specific lengths of wire to use on breadboards
 
 ### Wire Strippers
-Used to remove some of the insulation off the ends of a wire so it can be connected
+* Used to remove some of the insulation on the end of a wire so it can be connected to a breadboard
 
 ### Soldering Iron
+* Used to form strong electrical connections between components on PCBs or protoboards
 
-## AVR/ATmega32M1
-Our subsystem uses/will controlled by the ATmega32M1 microcontroller (how to define this, like a processor maybe?) on the satellite as the subsystem’s main controller
-Programmed in C
-Need to install the AVR software to compile and upload code to it (we will help you with this)
+## Microcontrollers
+A microcontroller is a processing unit, like the brain of a board or circuit.
 
-## Arduino
-Arduino is a platform of microcontrollers, which we use to test components and code quickly
-Faster to write and upload code to test individual components than using the main AVR computer, and Arduino already has more built-in code which is easier to get running (but this isn’t available on AVR)
+### Arduino
+Arduino is an open-source platform of microcontrollers, which we use to test components and code quickly. It is faster to write and upload code to test individual components than using the main AVR microcontroller. Arduino also has more built-in code which is easier to get individual components tested. It is programmed using a slightly modified version of the C++ language.
+
+### AVR/ATmega32M1
+Our subsystem's components are controlled by the ATmega32M1 microcontroller on the satellite. It is programmed in the C language, and you will need to install the AVR software to compile and upload code to it (which we will help you to get set up).
+
+
+
 
 # Reading Datasheets
 *Written by Dylan Vogel*
