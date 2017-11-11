@@ -232,7 +232,7 @@ I think this should be enough of a crash course on C to get you writing programs
 \newpage
 
 # SPI (Serial Peripheral Interface)
-*Written by Bruno Almeida*
+*Written by Shimi Smith*
 
 In this section, we will describe the SPI protocol and how to use our library with the ATmega32m1, the main microcontroller used on the Heron Mk. II cube-satellite.
 
@@ -346,7 +346,7 @@ The two clock settings introduced here are Clock Polarity and Clock Phase. Clock
 This is the end of this SPI tutorial. Hopefully you you are now a SPI expert.
 
 # Lab Equipment (WIP)
-*Written by Russel Brown*
+*Written by Bruno Almeida*
 
 Here are some of the types of equipment in our lab (MP 099).
 
@@ -412,8 +412,10 @@ Arduino is a platform of microcontrollers, which we use to test components and c
 Faster to write and upload code to test individual components than using the main AVR computer, and Arduino already has more built-in code which is easier to get running (but this isn’t available on AVR)
 
 # Reading Datasheets
-*Written by Dylan Vogel*
+*Written by Dylan Vogel*  
+One recurring area of confusion which arises within Instrumentation is how to read the datasheet for a component. The datasheet for a component is an important 
 
 ## Reading Datasheets for Electrical Engineers
+
 
 ## Reading Datasheets for Computer Scientists
