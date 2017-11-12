@@ -206,7 +206,7 @@ uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
     if ((status_data & (1 << 7)) == 0) {
       break;
     } else {
-      print("Conversion not ready yet\n");
+      // print("Conversion not ready yet\n");
     }
   }
 
@@ -225,16 +225,20 @@ double read_ADC_channel(uint8_t channel_num) {
   // Read 24 bit raw data
   uint32_t read_data = read_ADC_channel_raw_data(channel_num);
 
-  print("Read Data (Channel %d)\n", channel_num);
-  print("%X = %d\n", read_data, read_data); // hexadecimal and decimal
+  print("\nRead Data (Channel %d)\n", channel_num);
+  print("Data = %lX (HEX) = %lu (DEC)\n", read_data, read_data);
   print("Gain = %d\n", pga_gain);
 
   // (p.31) Code = (2^N * AIN * Gain) / (V_REF)
   //     => AIN = (Code * V_REF) / (2^N * Gain)
-  double AIN =  ((double) ( read_data * V_REF               )) /
-                ((double) ( ((uint32_t) 1 << N) * pga_gain  ));
-  print("AIN = %f\n", AIN);
+  double num = read_data * V_REF;
+  double denom = (((uint32_t) 1) << N) * pga_gain;
+  double AIN = num / denom;
 
+  // print("%f") doesn't work over UART, so convert to integers
+  print("AIN = %ld / %ld\n", (uint32_t) num, (uint32_t) denom);
+
+  // return AIN;
   return AIN;
 }
 

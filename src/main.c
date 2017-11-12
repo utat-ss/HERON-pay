@@ -1,27 +1,30 @@
 #include "main.h"
 
-#define SIZE 8
-
-// void package_sensor_data(uint8_t *data){
-//
-//
-// }
 
 
 int main (void){
-	uint8_t data[SIZE];
-
-	sensor_setup();
+	init_spi();
 	init_uart();
-	print("\n");
-	print("UART Initialized\n");
-	// Queue q = initQueue();
-	// Queue *command = &q;
-	//package_sensor_data(&data);
-	//can_send_message(data, SIZE, )
+	sensor_setup();
+	print("\n\n\nInitialized\n");
 
-	while(1){
-		print("Temperature:\t%d\n", ((int)(read_temperature() * 100)));
-		print("Humidity:\t%d\n", (int)(read_humidity() * 100));
+	init_adc();
+	set_PGA(1);
+
+	int adc_channel = 5;
+
+	while (1) {
+		select_ADC_channel(adc_channel);
+
+		double AIN = read_ADC_channel(adc_channel);
+		print("AIN = %ld%%\n", (uint32_t) (AIN / V_REF * 100.0));
+
+		_delay_ms(2000);
+
+		if (adc_channel == 7) {
+			adc_channel = 5;
+		} else {
+			adc_channel++;
+		}
 	}
 }

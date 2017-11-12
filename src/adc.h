@@ -35,3 +35,9 @@
 #define TEMD_ADC_CHANNEL  5
 #define SFH_ADC_CHANNEL   6
 #define ADPD_ADC_CHANNEL  7
+
+
+void init_adc();
+void select_ADC_channel(uint8_t channel_num);
+double read_ADC_channel(uint8_t channel_num);
+void set_PGA(uint8_t gain);
