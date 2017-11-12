@@ -15,8 +15,11 @@ numbersections: true
 
 ------------ ---------------- ----------------------------------------------------
 2017-11-07   Dylan Vogel      Created document and added existing write-ups.
-2017-11-07   Bruno Almeida    Edited and added missing content in the Lab
-                              Equipment section; fixed attributions.
+
+2017-11-07   Bruno Almeida    Edited and added missing content in Lab Equipment
+                              section; fixed attributions.
+
+2017-11-11   Bruno Almeida    Added images to Lab Equipment section.
 ------------ ---------------- ----------------------------------------------------
 
 # Introduction
