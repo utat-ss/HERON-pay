@@ -368,6 +368,8 @@ These are some of the different base platforms for building circuits.
   * If you forget which holes are connected, follow the lines and notice the breaks in the lines
 (add diagram/photo with lines indicating the connected sets of holes)
 
+![](./figures/breadboard.jpg)\
+
 ### Printed Circuit Board (PCB)
 * Used to create final circuits or major prototype versions of a circuit
 * Getting a functional PCB requires several steps:
@@ -379,10 +381,16 @@ These are some of the different base platforms for building circuits.
 * A PCB’s connections can’t be changed after it is ordered and printed (with some exceptions, you can ask for some good stories)
 * Generally uses surface mount (SMD/SMT) components, which are much smaller than through hole
 
+![](./figures/pcb_front.jpg)\
+
+![](./figures/pcb_back.jpg)\
+
 ### Protoboard
 * Somewhat of a hybrid between a breadboard and PCB
 * Has connected tracks like a breadboard, but components need to be soldered and are more likely to stay on the board
 * Uses through hole components
+
+![](./figures/protoboard.jpg)\
 
 
 ## Tools
@@ -398,24 +406,34 @@ Used to measure voltage, current, resistance, and connected points in parts of a
   * After assembling a circuit, can check that you have made the intended connections
   * Can check that you have not made accidental connections that change your circuit. An unintentional short circuit can change the circuit's behaviour and/or produce a high current that can damage components.
 
+![](./figures/multimeter.jpg)\
+
 ### Oscilloscope
 * Used to measure waveforms (signals) over time in a circuit
 * This is useful for viewing the raw signal data in a wire, such as a sensor’s output or communication lines
 
+![](./figures/oscilloscope.jpg)\
+
 ### Function Generator
 * Used to generate an AC (alternating current) signal with a specific voltage and waveform
+
+![](./figures/function_generator.jpg)\
 
 ### Power Supply
 * Used to generate DC (direct current) power with a specific voltage or current
 
-### Wire Cutters
-* Used to cut specific lengths of wire to use on breadboards
+![](./figures/power_supply.jpg)\
 
-### Wire Strippers
-* Used to remove some of the insulation on the end of a wire so it can be connected to a breadboard
+### Wire Cutters/Wire Strippers
+* **Wire cutter** - to cut specific lengths of wire to use on breadboards
+* **Wire stripper** - to remove some of the insulation on the end of a wire so it can be connected to a breadboard
+
+![](./figures/wire_tools.jpg)\
 
 ### Soldering Iron
 * Used to form strong electrical connections between components on PCBs or protoboards
+
+![](./figures/soldering_iron.jpg)\
 
 
 ## Microcontrollers
@@ -424,8 +442,12 @@ A microcontroller is a processing unit, like the brain of a circuit.
 ### AVR/ATmega32M1
 Our subsystem's components will be controlled by the ATmega32M1 microcontroller on the satellite, part of the AVR family of microcontrollers. It is programmed in the C language, and you will need to install the AVR software to compile and upload code to it (which we will help you to get set up).
 
+![](./figures/avr.png)\
+
 ### Arduino
 Arduino is an open-source platform of microcontrollers, which we sometimes use to test components quickly. Since Arduino has more built-in code libraries, it is faster to write and upload code to test individual components than using the AVR microcontroller. Arduino is programmed using a slightly modified version of the C++ language.
+
+![](./figures/arduino.jpg)\
 
 
 
