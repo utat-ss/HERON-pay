@@ -39,6 +39,12 @@
   34 - continuous conversion mode
 */
 
+/*
+TODO (things to try for debugging)
+  - write a default state to the configuration register in init_adc()
+  - add intermediate print statements within functions to check data sent/received
+  - read and print the data in each register to check the ADC's state
+*/
 
 
 
@@ -175,7 +181,7 @@ void select_ADC_channel(uint8_t channel_num) {
   // Mask configuration bits to set the channel
 
   // TODO - is there an error in the data sheet (p. 25)?
-  // CON16-CON8 -> should be CON15-CON8
+  // CON16-CON8 -> should it be CON15-CON8?
 
   // Clear bits 15-12 (CH7-4, set to 0) (p.25)
   for (int i = 15; i >= 12; i--) {
@@ -277,7 +283,7 @@ uint8_t convert_gain_bits(uint8_t gain) {
 
 /*
   Sets the configuration register's bits for a specified programmable gain.
-  gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, p. 25)
+  gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
 */
 void set_PGA(uint8_t gain) {
   // Convert gain to 3 bits

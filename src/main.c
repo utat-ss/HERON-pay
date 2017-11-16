@@ -21,6 +21,7 @@ int main (void){
 
 		_delay_ms(2000);
 
+		// Cycle between channels 5-7
 		if (adc_channel == 7) {
 			adc_channel = 5;
 		} else {
