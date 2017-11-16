@@ -29,3 +29,12 @@ int main (void){
 		}
 	}
 }
+
+void adc_sequence(){
+	// set the PEX_RST pin to output high
+	DDRC |= _BV(0);
+	PORTC |= _BV(0);
+
+	init_adc();
+	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
+}

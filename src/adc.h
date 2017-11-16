@@ -4,10 +4,9 @@
 // For writing to the communication register
 // (when starting a communication operation with the ADC)
 // to specify whether the following operation will be read or write
-#define COMM_BYTE_READ        0b01000000
 #define COMM_BYTE_WRITE       0b00000000
-#define COMM_BYTE_CONT_CONV   0b00000100  // continuous conversion
-#define COMM_BYTE_SINGLE_CONV 0b00000000  // single conversion
+#define COMM_BYTE_READ_CONT   0b01000100  // continuous conversion
+#define COMM_BYTE_READ_SINGLE 0b01000000  // single conversion
 // bit[5:3] is register address
 // bit[2] is CREAD. Set to 1 to enable continuous read
 
@@ -21,7 +20,10 @@
 #define OFFSET_ADDR     0x06
 #define FULL_SCALE_ADDR 0x07
 
-#define CONFIG_DEFAULT 0x040008
+#define CONFIG_DEFAULT  0x040008
+
+// Current default mode settings are alright.
+// #define MODE_DEFAULT    0x00
 
 // GPIOB pins on the PAY_SENSOR board's port expander
 #define ADC_CS 0
