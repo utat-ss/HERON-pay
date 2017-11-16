@@ -1,54 +1,44 @@
 /*
 
-  ADC DEVELOPMENT CODE
-  Written by Bruno and Dylan
+	FILENAME: 			adc.c
+	DEPENDENCIES:		pex, spi
 
-  ADC7194
+	DESCRIPTION:		AD7194 ADC functions
+	AUTHORS:				Bruno Almeida, Dylan Vogel
+	DATE MODIFIED:	2017-11-16
+	NOTES:
 
+                  Configuration register bits:
+                    * bit[23] to 0 - chop bit
+                    * bit[20] set to 0 — ref select
+                    * bit[18] should be 1 (psuedo bit)
+                    * bit[16] set to 0 — temp bit
+                    * bit[15:8] – channel select
+                    * bit[7] set to 0 – burnout
+                    * bit[6] set to 0 - ref detect
+                    * bit[4] set to 0 – buffer, might want to enable
+                    * bit[3] set to 1 - unipolar or bipolar (1 for unipolar)
+                    * bit[2:0] set to 000 - programmable gain
 
-  TODO:
-    * Decide on a config register default state
-      * bit[23] to 0 - chop bit
-      * bit[20] set to 0 — ref select
-      * bit[18] should be 1 (psuedo bit)
-      * bit[16] set to 0 — temp bit
-      * bit[15:8] – channel select
-      * bit[7] set to 0 – burnout
-      * bit[6] set to 0 - ref detect
-      * bit[4] set to 0 – buffer, might want to enable
-      * bit[3] set to 1 - unipolar or bipolar (1 for unipolar)
-      * bit[2:0] set to 000 - programmable gain
+                  Datasheet - Important Pages:
+                    19 - register selection
+                    24 - configuration register - select gain
+                      - CON2-CON0 - gain select
+                    32 - overall communication, read/write operations to registers
+                    33 - single conversion mode
+                    34 - continuous conversion mode
 
-      0b0000 0100 0000 0000 0000 1000
-      0x040008;
+                  TODO:
+                    * Decide on a config register default state
+                    * Decide whether we want to trigger an interrup on RDY (falling edge)
+                      Goes low when in continuous conversion mode, and a conversion has just completed.
+
+	REVISION HISTORY:
+
+		2017-11-16: 	Created header. Existing functions created by Bruno and Dylan
+
 */
 
-
-/*
-  Datasheet - Important Pages
-
-  19 - register selection
-
-  24 - configuration register - select gain
-    - CON2-CON0 - gain select
-
-  32 - overall communication, read/write operations to registers
-
-  33 - single conversion mode
-
-  34 - continuous conversion mode
-*/
-
-
-
-
-// TODO - We might want to trigger an interrupt on RDY (falling edge)
-// RDY goes low when in continuous conversion mode, CS is low,
-// and a new conversion has just completed
-
-#include <stdbool.h>
-
-#include <uart/log.h>
 #include "adc.h"
 
 int pga_gain = 1;
@@ -64,12 +54,12 @@ void init_adc(){
   }
   for (i = 0; i < 2; i++){
     set_dir_b(SENSOR_PCB, i, 0); // Set ITF and ADC CS
-    set_gpio_b(SENSOR_PCB, i);
+    set_gpio_b(SENSOR_PCB, i);  // Set them HIGH
   }
 
-  // "Continuous conversion is the default power-up mode." (p. 32)
+  // write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
 
-  // adc_transfer()
+  // "Continuous conversion is the default power-up mode." (p. 32)
 
   // TODO - maybe write the default configuration register state we want?
 }
@@ -90,7 +80,6 @@ uint8_t num_register_bytes(uint8_t register_addr) {
     case CONFIG_ADDR:
       return 3;
       break;
-    // TODO - could be 3 or 4? check datasheet (p.20)
     case DATA_ADDR:
       return 3;
       break;
@@ -113,17 +102,14 @@ uint8_t num_register_bytes(uint8_t register_addr) {
 }
 
 
-// TODO - check if a register if read-only or write-only?
-
-/*
-  Reads the current state of the specified ADC register.
-*/
 uint32_t read_ADC_register(uint8_t register_addr) {
+  //  Reads the current state of the specified ADC register.
+
   // Set CS low
   clear_gpio_b(SENSOR_PCB, ADC_CS);
 
   // Write the communication register byte to read from the register (p. 19)
-  send_spi(COMM_BYTE_READ | (register_addr << 3));
+  send_spi(COMM_BYTE_READ_SINGLE | (register_addr << 3));
 
   // Read the required number of bytes
   uint32_t data = 0;
@@ -131,18 +117,28 @@ uint32_t read_ADC_register(uint8_t register_addr) {
     data = data << 8;
     data = data | send_spi(0);
   }
+  // B/C of the wiring I think we need to perform a hard reset
+
+  adc_pex_hard_rst();
 
   // Set CS high
-  set_gpio_b(SENSOR_PCB, ADC_CS);
-
+  //set_gpio_b(SENSOR_PCB, ADC_CS);
   return data;
 }
 
+void adc_pex_hard_rst(){
+  // Performs a hard reset of the ADC port expander
+  PORTC &= ~(_BV(0));
+  _delay_ms(10);
+  PORTC |= _BV(0);
 
-/*
-  Writes a new state to the specified ADC register.
-*/
+  port_expander_write(SENSOR_PCB, IOCON, IOCON_DEFAULT);
+  init_adc();
+}
+
 void write_ADC_register(uint8_t register_addr, uint32_t data) {
+  // Writes a new state to the specified ADC register.
+
   // Set CS low
   clear_gpio_b(SENSOR_PCB, ADC_CS);
 
@@ -152,51 +148,40 @@ void write_ADC_register(uint8_t register_addr, uint32_t data) {
 
   // Write the required number of bytes
   for (int i = num_register_bytes(register_addr) - 1; i >= 0; i--) {
-    send_spi( (uint8_t) (data >> (i * 8)) );
+    send_spi( (uint8_t)(data >> (i * 8)) );
   }
 
+  adc_pex_hard_rst();
   // Set CS high
-  set_gpio_b(SENSOR_PCB, ADC_CS);
+  //set_gpio_b(SENSOR_PCB, ADC_CS);
 }
 
 
-/*
-  Sets the configuration register's bits for the specified ADC input channel.
-  channel_num - one of 5, 6, 7
-*/
 void select_ADC_channel(uint8_t channel_num) {
+  //Sets the configuration register's bits for the specified ADC input channel.
+  // channel_num - one of 5, 6, 7
+
   // Get the 4 bits for the channel (p. 26)
   uint8_t channel_bits = channel_num - 1;
 
   // Read from configuration register
   uint32_t config_data = read_ADC_register(CONFIG_ADDR);
-
-
   // Mask configuration bits to set the channel
 
   // TODO - is there an error in the data sheet (p. 25)?
   // CON16-CON8 -> should be CON15-CON8
 
-  // Clear bits 15-12 (CH7-4, set to 0) (p.25)
-  for (int i = 15; i >= 12; i--) {
-    // TODO - refactor this into a function
-    config_data = config_data & ~(1 << i);
-  }
-
-  // Set bits 15-12 to the appropriate gain
-  config_data = config_data | (channel_bits << 12);
-
+  config_data &= 0xff00ff;
+  config_data |= (channel_bits << 8);
 
   // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
 }
 
-
-/*
-  Reads 24 bit raw data from the specified ADC channel.
-  channel_num - one of 5, 6, 7
-*/
 uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
+  // Reads 24 bit raw data from the specified ADC channel.
+  // channel_num - one of 5, 6, 7
+
   select_ADC_channel(channel_num);
 
   // TODO - is it bad to block like this?
