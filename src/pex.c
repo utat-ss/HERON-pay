@@ -27,17 +27,17 @@
 void reset_ssm_pex(){
 	// Reset the SSM port expander
 	set_cs_low(SSM_RST, &RST_PORT);
-	_delay_ms(2);
+	_delay_ms(1);			// minimum 1 microsecond
 	set_cs_high(RST, &RST_PORT);
-	_delay_ms(2);
+	_delay_ms(1);
 }
 
 void reset_pex(){
 	// Reset the sensor port expanders
 	set_cs_low(RST, &RST_PORT);
-	_delay_ms(2);
+	_delay_ms(1);		// minimum 1 microsecond
 	set_cs_high(RST, &RST_PORT);
-	_delay_ms(2);
+	_delay_ms(1);
 }
 
 void init_port_expander(){

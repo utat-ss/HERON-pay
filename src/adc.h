@@ -5,7 +5,7 @@
 // (when starting a communication operation with the ADC)
 // to specify whether the following operation will be read or write
 #define COMM_BYTE_WRITE       0b00000000
-#define COMM_BYTE_READ_CONT   0b01000100  // continuous conversion
+#define COMM_BYTE_READ_CONT   0b01000100  // CREAD is set
 #define COMM_BYTE_READ_SINGLE 0b01000000  // single conversion
 // bit[5:3] is register address
 // bit[2] is CREAD. Set to 1 to enable continuous read
@@ -39,7 +39,15 @@
 #define ADPD_ADC_CHANNEL  7
 
 
-void init_adc();
+void init_adc(void);
+void adc_pex_hard_rst(void);
+uint32_t read_ADC_register(uint8_t register_addr);
+void write_ADC_register(uint8_t register_addr, uint32_t data);
+
 void select_ADC_channel(uint8_t channel_num);
-double read_ADC_channel(uint8_t channel_num);
+uint32_t read_ADC_channel(uint8_t channel_num);
+double convert_ADC_reading(uint8_t ADC_reading, uint8_t pga_gain);
+
+uint8_t num_register_bytes(uint8_t register_addr);
 void set_PGA(uint8_t gain);
+uint8_t convert_gain_bits(uint8_t gain);

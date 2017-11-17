@@ -41,35 +41,33 @@
 
 #include "adc.h"
 
-int pga_gain = 1;
+void init_adc(void){
+  // Initialize ports and registers needed for ADC usage
+  // Assumes init_port_expander() has already been called
 
-void init_adc(){
-  // We're assuming that init_port_expander() has already been called.
   int i;
 
-  // Set all the directions needed for sensor board functionality.
+  // Set up LEDs as output and set to low
   for (i = 0; i < 4; i++){
-    set_dir_a(SENSOR_PCB, i, 0);  //Set all the LED outputs
+    set_dir_a(SENSOR_PCB, i, 0);
     clear_gpio_a(SENSOR_PCB, i);
   }
+  // Set ITF and ADC CS as output and set to high
   for (i = 0; i < 2; i++){
-    set_dir_b(SENSOR_PCB, i, 0); // Set ITF and ADC CS
-    set_gpio_b(SENSOR_PCB, i);  // Set them HIGH
+    set_dir_b(SENSOR_PCB, i, 0);
+    set_gpio_b(SENSOR_PCB, i);
   }
 
+  // NOTE: The following line is only disabled while 'hard' PEX reset is being called
+  //        We wish to maintain ADC config states between PEX resets
   // write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
-
   // "Continuous conversion is the default power-up mode." (p. 32)
-
-  // TODO - maybe write the default configuration register state we want?
 }
 
-
-/*
-  Returns the number of BYTES in the specified register at the given address
-  TODO - careful of data register + status information - pg. 20
-*/
 uint8_t num_register_bytes(uint8_t register_addr) {
+  // Returns the number of BYTES in the specified register at the given address
+  // TODO - careful of data register + status information - pg. 20
+
   switch (register_addr) {
     case STATUS_ADDR:
       return 1;
@@ -103,96 +101,84 @@ uint8_t num_register_bytes(uint8_t register_addr) {
 
 
 uint32_t read_ADC_register(uint8_t register_addr) {
-  //  Reads the current state of the specified ADC register.
+  // Read the current state of the specified ADC register.
 
-  // Set CS low
   clear_gpio_b(SENSOR_PCB, ADC_CS);
-
-  // Write the communication register byte to read from the register (p. 19)
   send_spi(COMM_BYTE_READ_SINGLE | (register_addr << 3));
 
-  // Read the required number of bytes
+  // Read the required number of bytes based on register
   uint32_t data = 0;
   for (int i = 0; i < num_register_bytes(register_addr); i++) {
     data = data << 8;
     data = data | send_spi(0);
   }
-  // B/C of the wiring I think we need to perform a hard reset
 
+  // BUG: Shouldn't 'hard reset' the PEX in final implementation
   adc_pex_hard_rst();
 
   // Set CS high
   //set_gpio_b(SENSOR_PCB, ADC_CS);
+
   return data;
 }
 
-void adc_pex_hard_rst(){
-  // Performs a hard reset of the ADC port expander
-  PORTC &= ~(_BV(0));
-  _delay_ms(10);
-  PORTC |= _BV(0);
+void adc_pex_hard_rst(void){
+  // Perform a hard reset of the ADC port expander
+  // Toggle PEX RST pin and re-initialize the the default state
 
-  port_expander_write(SENSOR_PCB, IOCON, IOCON_DEFAULT);
+  // BUG:  Current issue, it will reset all connected port expanders
+  //        Make it not do this.
+
+  reset_pex();
+
+  // BUG: Port expandes reset to address 000 on reset.
+  //      To write to them, need to write to 000
+  //      This is the address of the SSM PEX. Therefore need to change SSM PEX hardware address
+  port_expander_write(0x00, IOCON, IOCON_DEFAULT);
   init_adc();
 }
 
 void write_ADC_register(uint8_t register_addr, uint32_t data) {
   // Writes a new state to the specified ADC register.
 
-  // Set CS low
   clear_gpio_b(SENSOR_PCB, ADC_CS);
-
-  // Write the communication register byte
-  // to write to the register (p.19)
   send_spi(COMM_BYTE_WRITE | (register_addr << 3));
 
-  // Write the required number of bytes
+  // Write the number of bytes in the register
   for (int i = num_register_bytes(register_addr) - 1; i >= 0; i--) {
     send_spi( (uint8_t)(data >> (i * 8)) );
   }
 
+  // BUG: Shouldn't 'hard reset' the PEX in final implementation
   adc_pex_hard_rst();
   // Set CS high
   //set_gpio_b(SENSOR_PCB, ADC_CS);
 }
 
-
 void select_ADC_channel(uint8_t channel_num) {
-  //Sets the configuration register's bits for the specified ADC input channel.
+  // Sets the configuration register's bits for the specified ADC input channel.
   // channel_num - one of 5, 6, 7
 
   // Get the 4 bits for the channel (p. 26)
   uint8_t channel_bits = channel_num - 1;
 
-  // Read from configuration register
-  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
   // Mask configuration bits to set the channel
-
-  // TODO - is there an error in the data sheet (p. 25)?
-  // CON16-CON8 -> should it be CON15-CON8?
-
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
   config_data &= 0xff00ff;
   config_data |= (channel_bits << 8);
 
-  // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
 }
 
-uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
-  // Reads 24 bit raw data from the specified ADC channel.
+uint32_t read_ADC_channel(uint8_t channel_num) {
+  // Read 24 bit raw data from the specified ADC channel.
   // channel_num - one of 5, 6, 7
 
   select_ADC_channel(channel_num);
 
-  // TODO - is it bad to block like this?
-  while (true) {
-    uint32_t status_data = read_ADC_register(STATUS_ADDR);
-    // Break and continue function execution when RDY (bit 7) is 0 (p. 20)
-    if ((status_data & (1 << 7)) == 0) {
-      break;
-    } else {
-      // print("Conversion not ready yet\n");
-    }
+  // Check the state of PB0 on the 32M1, which is MISO
+  while ((PINB & 1) != 0) {
+    continue;
   }
 
   // Read and return 24 bit data
@@ -200,28 +186,18 @@ uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
   return read_data;
 }
 
-
 /*
   Reads the input voltage for the specified ADC channel,
   including applying the gain factor.
   channel_num - one of 5, 6, 7
 */
-double read_ADC_channel(uint8_t channel_num) {
-  // Read 24 bit raw data
-  uint32_t read_data = read_ADC_channel_raw_data(channel_num);
-
-  print("\nRead Data (Channel %d)\n", channel_num);
-  print("Data = %lX (HEX) = %lu (DEC)\n", read_data, read_data);
-  print("Gain = %d\n", pga_gain);
+double convert_ADC_reading(uint8_t ADC_reading, uint8_t pga_gain) {
 
   // (p.31) Code = (2^N * AIN * Gain) / (V_REF)
   //     => AIN = (Code * V_REF) / (2^N * Gain)
-  double num = read_data * V_REF;
+  double num = ADC_reading * V_REF;
   double denom = (((uint32_t) 1) << N) * pga_gain;
   double AIN = num / denom;
-
-  // print("%f") doesn't work over UART, so convert to integers
-  print("AIN = %ld / %ld\n", (uint32_t) num, (uint32_t) denom);
 
   // return AIN;
   return AIN;
@@ -271,21 +247,11 @@ void set_PGA(uint8_t gain) {
   // Read from configuration register
   uint32_t config_data = read_ADC_register(CONFIG_ADDR);
 
-
-  // Mask configuration bits to set the gain
-
-  // Clear bits 2-0 (set to 0)
-  for (int i = 2; i >= 0; i--) {
-    config_data = config_data & ~(1 << i);
-  }
-
-  // Set bits 2-0 to the appropriate gain
-  config_data = config_data | gain_bits;
-
+  // Clear gain bits and set
+  config_data &= 0xfffffff8;
+  config_data |= gain_bits;
 
   // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
 
-  // Keep track of the set gain
-  pga_gain = gain;
 }

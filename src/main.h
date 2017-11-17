@@ -10,3 +10,7 @@
 
 // #include <queue/queue.h>
 #include <can/can.h>
+
+
+int main (void);
+void adc_sequence(void);
