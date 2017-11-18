@@ -32,6 +32,9 @@
                     * Decide on a config register default state
                     * Decide whether we want to trigger an interrup on RDY (falling edge)
                       Goes low when in continuous conversion mode, and a conversion has just completed.
+                    * Adapt to handle multiple ADCs
+                    * Fix the CS and hardware address issues
+
 
 	REVISION HISTORY:
 
@@ -114,10 +117,10 @@ uint32_t read_ADC_register(uint8_t register_addr) {
   }
 
   // BUG: Shouldn't 'hard reset' the PEX in final implementation
-  adc_pex_hard_rst();
+  //adc_pex_hard_rst();
 
   // Set CS high
-  //set_gpio_b(SENSOR_PCB, ADC_CS);
+  set_gpio_b(SENSOR_PCB, ADC_CS);
 
   return data;
 }
@@ -150,9 +153,9 @@ void write_ADC_register(uint8_t register_addr, uint32_t data) {
   }
 
   // BUG: Shouldn't 'hard reset' the PEX in final implementation
-  adc_pex_hard_rst();
+  //adc_pex_hard_rst();
   // Set CS high
-  //set_gpio_b(SENSOR_PCB, ADC_CS);
+  set_gpio_b(SENSOR_PCB, ADC_CS);
 }
 
 void select_ADC_channel(uint8_t channel_num) {
@@ -177,7 +180,7 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
   select_ADC_channel(channel_num);
 
   // Check the state of PB0 on the 32M1, which is MISO
-  while ((PINB & 1) != 0) {
+  while (bit_is_set(PINB, PB0)){
     continue;
   }
 
@@ -191,7 +194,7 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
   including applying the gain factor.
   channel_num - one of 5, 6, 7
 */
-double convert_ADC_reading(uint8_t ADC_reading, uint8_t pga_gain) {
+double convert_ADC_reading(uint32_t ADC_reading, uint8_t pga_gain) {
 
   // (p.31) Code = (2^N * AIN * Gain) / (V_REF)
   //     => AIN = (Code * V_REF) / (2^N * Gain)
@@ -212,25 +215,25 @@ uint8_t convert_gain_bits(uint8_t gain) {
   // Add breaks just in case
   switch (gain) {
     case 1:
-      return 0b000;
+      return 0x00;
       break;
     case 8:
-      return 0b011;
+      return 0x03;
       break;
     case 16:
-      return 0b100;
+      return 0x04;
       break;
     case 32:
-      return 0b101;
+      return 0x05;
       break;
     case 64:
-      return 0b110;
+      return 0x06;
       break;
     case 128:
-      return 0b111;
+      return 0x07;
       break;
     default:
-      return 0b000;
+      return 0x00;
       break;
   }
 }
@@ -253,5 +256,4 @@ void set_PGA(uint8_t gain) {
 
   // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
-
 }
