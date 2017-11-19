@@ -7,6 +7,8 @@
 	AUTHORS:				Dylan Vogel, Shimi Smith
 	DATE MODIFIED:	2017-09-19
 	NOTES:
+									TODO:
+									* Change the macro name for the PEX CS in case another program wants to use it
 
 	REVISION HISTORY:
 

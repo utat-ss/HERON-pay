@@ -14,4 +14,4 @@
 
 int main (void);
 void sensor_led_sequence(void);
-void adc_sequence(void);
+void adc_test_sequence(void);

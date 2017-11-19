@@ -27,18 +27,18 @@ int main (void){
 	init_uart();
 	print("\n\nUART Initialized\n");
 	// CALL YOUR SPECIFIC TESTING FUNCTIONS HERE
-	adc_sequence();
+	adc_test_sequence();
 	//sensor_led_sequence();
 
 }
 
-void adc_sequence(void){
+void adc_test_sequence(void){
 	// Code to be called for testing the ADC
-	// Temporary solution to the frequent changes to main.c across channels
+
 	int pga_gain = 1;
 	uint32_t read_data;
-	double converted_data;
 	uint32_t config_data;
+	double converted_data;
 
 	init_port_expander();
 	init_adc();
@@ -51,9 +51,6 @@ void adc_sequence(void){
 
 	set_PGA(pga_gain);
 
-	config_data = read_ADC_register(CONFIG_ADDR);
-	print("Configuration Register: %lX\n", config_data);
-
 	int channel = 0;
 	while(1){
 
@@ -62,9 +59,13 @@ void adc_sequence(void){
 		print("Data = %lX (HEX) = %lu (DEC)\n", read_data, read_data);
 		print("Gain = %d\n", pga_gain);
 
+		// In here for sanity, for the time being
+		config_data = read_ADC_register(CONFIG_ADDR);
+		print("Configuration Register: %lX\n", config_data);
+
 		converted_data = convert_ADC_reading(read_data, pga_gain);
 
-		print("Converted voltage reading: %u uV\n", (uint16_t)(converted_data * 1000000));
+		print("Converted voltage reading: %lu mV\n", (uint32_t)(converted_data * 1000));
 
 		// Count 0, 1, 2
 		// Adding 5 gives channels 5, 6, 7, the only three hooked up
