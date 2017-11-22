@@ -38,6 +38,13 @@
 #define SFH_ADC_CHANNEL   6
 #define ADPD_ADC_CHANNEL  7
 
+// Mode select bits for continuous conversion or calibration (p. 21-23, 37)
+#define CONT_CONV             0x0
+#define INT_ZERO_SCALE_CALIB  0x4
+#define INT_FULL_SCALE_CALIB  0x5
+#define SYS_ZERO_SCALE_CALIB  0x6
+#define SYS_FULL_SCALE_CALIB  0x7
+
 
 void init_adc(void);
 void adc_pex_hard_rst(void);

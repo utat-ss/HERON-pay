@@ -233,6 +233,43 @@ uint8_t convert_gain_bits(uint8_t gain) {
   }
 }
 
+void calibrate_adc(uint8_t mode_select_bits) {
+  // Read from mode register
+  uint32_t mode_data = read_ADC_register(MODE_ADDR);
+
+  // Clear and set mode select bits
+  mode_data &= 0xff1fffff;
+  mode_data |= ( ((uint32_t) mode_select_bits) << 21 );
+
+  // Write to mode register
+  write_ADC_register(MODE_ADDR, mode_data);
+
+  // Check the state of PB0 on the 32M1, which is MISO
+
+  // Wait for _RDY_ to go high (when the calibration starts)
+  while (!bit_is_set(PINB, PB0)){
+    continue;
+  }
+  // Wait for _RDY_ to go low (when the calibration finishes)
+  while (bit_is_set(PINB, PB0)){
+    continue;
+  }
+}
+
+void enable_cont_conv_mode(void) {
+  // Continuous conversion mode
+
+  // Read from mode register
+  uint32_t mode_data = read_ADC_register(MODE_ADDR);
+
+  // Clear and set mode select bits
+  mode_data &= 0xff1fffff;
+  mode_data |= ( ((uint32_t) CONT_CONV) << 21 );
+
+  // Write to mode register
+  write_ADC_register(MODE_ADDR, mode_data);
+}
+
 void set_PGA(uint8_t gain) {
   // Sets the configuration register's bits for a specified programmable gain.
   // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
@@ -249,4 +286,9 @@ void set_PGA(uint8_t gain) {
 
   // Write to configuration register
   write_ADC_register(CONFIG_ADDR, config_data);
+
+  // Calibrate the ADC and re-enable continuous conversion mode
+  calibrate_adc(SYS_ZERO_SCALE_CALIB);
+  calibrate_adc(SYS_FULL_SCALE_CALIB);
+  enable_cont_conv_mode();
 }
