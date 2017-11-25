@@ -6,7 +6,7 @@ CFLAGS = -g -mmcu=atmega32m1
 PROG = stk500
 PORT = /dev/tty.usbmodem00187462
 MCU = m32m1
-program_NAME = pay
+PROG_NAME = pay
 
 # Might want to change these
 INCLUDES = -I./lib-common/include/
@@ -26,8 +26,8 @@ SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS)
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)
 
-ELF := ./build/$(program_NAME).elf
-HEX  := ./build/$(program_NAME).hex
+ELF := ./build/$(PROG_NAME).elf
+HEX  := ./build/$(PROG_NAME).hex
 
 # makes it look for .c files in src without having src in path
 vpath %.c src
@@ -43,10 +43,6 @@ $(ELF): $(OBJS)
 ./build/%.o: %.c ./build
 	$(CC) $(CFLAGS) -Os -c $< $(INCLUDES)
 	@mv $(@F) $@
-
-./build:
-	mkdir build
-
 
 .PHONY: clean upload debug
 

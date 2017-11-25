@@ -185,7 +185,7 @@ uint32_t read_ADC_channel_raw_data(uint8_t channel_num) {
   select_ADC_channel(channel_num);
 
   // TODO - is it bad to block like this?
-  while (true) {
+  while (1) {
     uint32_t status_data = read_ADC_register(STATUS_ADDR);
     // Break and continue function execution when RDY (bit 7) is 0 (p. 20)
     if ((status_data & (1 << 7)) == 0) {
