@@ -212,23 +212,6 @@ double convert_ADC_reading(uint32_t ADC_reading, uint8_t pga_gain) {
   return AIN;
 }
 
-void set_PGA(uint8_t gain) {
-  // Sets the configuration register's bits for a specified programmable gain.
-  // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
-
-  // Convert gain to 3 bits
-  uint8_t gain_bits = convert_gain_bits(gain);
-
-  // Read from configuration register
-  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
-
-  // Clear gain bits and set
-  config_data &= 0xfffffff8;
-  config_data |= gain_bits;
-
-  // Write to configuration register
-  write_ADC_register(CONFIG_ADDR, config_data);
-}
 
 uint8_t convert_gain_bits(uint8_t gain) {
   // Converts the numerical gain to 3 gain select bits (p.25).
@@ -260,13 +243,77 @@ uint8_t convert_gain_bits(uint8_t gain) {
   }
 }
 
-uint8_t auto_set_gain(void){
-  // Automatically determine the highest possible internal gain that can be used
-  // without going over range of the ADC (2.5V)
-  // Do this by checking 6th bit in the satus register
+void calibrate_adc(uint8_t mode_select_bits) {
+  // Read from mode register
+  uint32_t mode_data = read_ADC_register(MODE_ADDR);
+
+  // Clear and set mode select bits
+  mode_data &= 0xff1fffff;
+  mode_data |= ( ((uint32_t) mode_select_bits) << 21 );
+
+  // Write to mode register
+  write_ADC_register(MODE_ADDR, mode_data);
+
+  // Check the state of PB0 on the 32M1, which is MISO
+
+  // Wait for _RDY_ to go high (when the calibration starts)
+  while (!bit_is_set(PINB, PB0)){
+    continue;
+  }
+  // Wait for _RDY_ to go low (when the calibration finishes)
+  while (bit_is_set(PINB, PB0)){
+    continue;
+  }
+}
+
+void enable_cont_conv_mode(void) {
+  // Continuous conversion mode
+
+  // Read from mode register
+  uint32_t mode_data = read_ADC_register(MODE_ADDR);
+
+  // Clear and set mode select bits
+  mode_data &= 0xff1fffff;
+  mode_data |= ( ((uint32_t) CONT_CONV) << 21 );
+
+  // Write to mode register
+  write_ADC_register(MODE_ADDR, mode_data);
+}
+
+/*void set_PGA(uint8_t gain) {
+  // Sets the configuration register's bits for a specified programmable gain.
+  // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
+
+  // Convert gain to 3 bits
+  uint8_t gain_bits = convert_gain_bits(gain);
 
   uint8_t gain = 128;
 
   set_PGA(gain);
 
+  // Write to configuration register
+  write_ADC_register(CONFIG_ADDR, config_data);
+
+  // Calibrate the ADC and re-enable continuous conversion mode
+  calibrate_adc(SYS_ZERO_SCALE_CALIB);
+  calibrate_adc(SYS_FULL_SCALE_CALIB);
+  enable_cont_conv_mode();
+}*/
+
+void set_PGA(uint8_t gain) {
+  // Sets the configuration register's bits for a specified programmable gain.
+  // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
+
+  // Convert gain to 3 bits
+  uint8_t gain_bits = convert_gain_bits(gain);
+
+  // Read from configuration register
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+
+  // Clear gain bits and set
+  config_data &= 0xfffffff8;
+  config_data |= gain_bits;
+
+  // Write to configuration register
+  write_ADC_register(CONFIG_ADDR, config_data);
 }
