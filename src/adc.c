@@ -36,6 +36,7 @@
 */
 
 #include "adc.h"
+#include <uart/log.h>
 
 void init_adc(void){
   // Initialize ports and registers needed for ADC usage
@@ -177,8 +178,16 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
   select_ADC_channel(channel_num);
 
   // Check the state of PB0 on the 32M1, which is MISO
-  while (bit_is_set(PINB, PB0)){
+  // TODO: check that this timeout isn't too short for normal conversions
+  uint16_t timeout = 0;
+  while ((bit_is_set(PINB, PB0)) && (timeout != 65535)){
+    timeout++;
     continue;
+  }
+
+  // NOTE: Here for testing
+  if (timeout == 65535){
+    print("Timeout triggered\n");
   }
 
   // Read and return 24 bit data
@@ -201,6 +210,24 @@ double convert_ADC_reading(uint32_t ADC_reading, uint8_t pga_gain) {
 
   // return AIN;
   return AIN;
+}
+
+void set_PGA(uint8_t gain) {
+  // Sets the configuration register's bits for a specified programmable gain.
+  // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
+
+  // Convert gain to 3 bits
+  uint8_t gain_bits = convert_gain_bits(gain);
+
+  // Read from configuration register
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+
+  // Clear gain bits and set
+  config_data &= 0xfffffff8;
+  config_data |= gain_bits;
+
+  // Write to configuration register
+  write_ADC_register(CONFIG_ADDR, config_data);
 }
 
 uint8_t convert_gain_bits(uint8_t gain) {
@@ -233,20 +260,13 @@ uint8_t convert_gain_bits(uint8_t gain) {
   }
 }
 
-void set_PGA(uint8_t gain) {
-  // Sets the configuration register's bits for a specified programmable gain.
-  // gain - one of 1, 8, 16, 32, 64, 128 (2 and 4 are reserved/unavailable, see p. 25)
+uint8_t auto_set_gain(void){
+  // Automatically determine the highest possible internal gain that can be used
+  // without going over range of the ADC (2.5V)
+  // Do this by checking 6th bit in the satus register
 
-  // Convert gain to 3 bits
-  uint8_t gain_bits = convert_gain_bits(gain);
+  uint8_t gain = 128;
 
-  // Read from configuration register
-  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+  set_PGA(gain);
 
-  // Clear gain bits and set
-  config_data &= 0xfffffff8;
-  config_data |= gain_bits;
-
-  // Write to configuration register
-  write_ADC_register(CONFIG_ADDR, config_data);
 }

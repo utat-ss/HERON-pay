@@ -99,3 +99,51 @@ void sensor_led_sequence(void){
 		_delay_ms(500);
 	}
 }
+
+void setup_adc(void){
+	int pga_gain = 1;
+
+	init_port_expander();
+	init_adc();
+	print("ADC Setup Completed\n");
+
+	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
+
+	set_PGA(pga_gain);
+
+	print("PGA gain: %d", pga_gain);
+
+	print("Read Data (HEX)\tRead Data (DEC)\tConverted Voltage\n")
+}
+
+void poll_adpd(void){
+	int channel = 7;
+	int LED = LED_4;
+	int i;
+
+	print("Channel %d", channel);
+
+	set_gpio_a(SENSOR_PCB, LED);
+	_delay_ms(10);
+
+	for (i=0, i<50, i++){
+		uint32_t read_data = read_ADC_channel(channel);
+		print("%lX\t%lu\n", read_data, read_data);
+	}
+}
+
+void poll_sfh(void){
+	int channel = 6;
+
+}
+
+
+void poll_pht(void){
+	int channel = 5;
+
+}
+
+void poll_int(void){
+
+
+}
