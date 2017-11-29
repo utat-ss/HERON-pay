@@ -1,28 +1,47 @@
+/**
+This is WIP main code
+Author: Shimi Smith
+**/
+
 #include "main.h"
 
+rx_mob_t rx_mob = {
+    .mob_num = 0,
+    .dlc = 7,
+    .id_tag = 0x0000,
+    .id_mask = 0xFFFF,
+    .ctrl = default_rx_ctrl,
+    .rx_cb = pay_rx_callback
+};
+
+
 int main (void){
-	int i;
-	// This main.c file shoud be replaced with the one from origin/master before
-	// creating a pull request.
-	//
-	// This code is only meant for testing purposes.
-
-	init_port_expander();
 	init_uart();
-	print("\n");
-	print("UART Initialized\n");
-	print("Running ADC debug code\n");
+	print("Main has started\n");
 
-	adc_sequence();
+	init_can();
+	init_rx_mob(&rx_mob);
 
+	Queue temp_queue = init_queue();
+	cmd_queue = &temp_queue;
+
+	while(1){
+		if(!isEmpty(queue)){
+			Data cmd = dequeue(queue);
+			run_cmd(cmd);
+		}
 	}
 }
 
-void adc_sequence(){
-	// set the PEX_RST pin to output high
-	DDRC |= _BV(0);
-	PORTC |= _BV(0);
-
-	init_adc();
-	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
+void pay_rx_callback(uint8_t* data, uint8_t len) {
+    Data cmd;
+    cmd.array = data;
+    enqueue(cmd_queue, cmd);
 }
+
+void run_cmd(Data cmd){
+	print("%s%u\n", "Data: ", cmd);
+}
+
+
+
