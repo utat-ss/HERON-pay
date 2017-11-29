@@ -39,6 +39,7 @@ void pay_rx_callback(uint8_t* data, uint8_t len) {
     enqueue(cmd_queue, cmd);
 }
 
+
 void run_cmd(Data cmd){
 	print("%s%u\n", "Data: ", cmd);
 }

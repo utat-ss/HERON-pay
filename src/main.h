@@ -3,6 +3,7 @@
 #endif
 
 #include "sensors.h"
+#include "adc.h"
 #include <util/delay.h>
 #include <uart/uart.h>
 #include <uart/log.h>
