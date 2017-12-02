@@ -171,16 +171,37 @@ void select_ADC_channel(uint8_t channel_num) {
   write_ADC_register(CONFIG_ADDR, config_data);
 }
 
-uint32_t read_ADC_channel(uint8_t channel_num) {
+uint32_t read_ADC_channel(uint8_t channel_num, uint8_t LED) {
   // Read 24 bit raw data from the specified ADC channel.
   // channel_num - one of 5, 6, 7
 
-  select_ADC_channel(channel_num);
+  // DETERMINE THE CHANNEL TO TOGGLE
+  uint8_t channel_bits = channel_num - 1;
+
+  // Mask configuration bits to set the channel
+  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+
+  config_data &= 0xffff00ff;
+  // Pseudo bit is set, channel bits are 15-12
+  config_data |= (channel_bits << 12);
+
+  // SET THE LED
+  set_gpio_a(SENSOR_PCB, LED);
+  _delay_ms(10);
+
+  // DO THE WRITE OPERATION
+  clear_gpio_b(SENSOR_PCB, ADC_CS);
+  send_spi(COMM_BYTE_WRITE | (CONFIG_ADDR << 3));
+
+  // Write the number of bytes in the register
+  for (int i = num_register_bytes(CONFIG_ADDR) - 1; i >= 0; i--) {
+    send_spi( (uint8_t)(config_data >> (i * 8)) );
+  }
 
   // Check the state of PB0 on the 32M1, which is MISO
   // TODO: check that this timeout isn't too short for normal conversions
   uint16_t timeout = 0;
-  while ((bit_is_set(PINB, PB0)) && (timeout != 65535)){
+  while (bit_is_set(PINB, PB0)){
     timeout++;
     continue;
   }
@@ -191,7 +212,19 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
   }
 
   // Read and return 24 bit data
-  uint32_t read_data = read_ADC_register(DATA_ADDR);
+  send_spi(COMM_BYTE_READ_SINGLE | (DATA_ADDR << 3));
+
+  // Read the required number of bytes based on register
+  uint32_t read_data = 0;
+  for (int i = 0; i < num_register_bytes(DATA_ADDR); i++) {
+    read_data = read_data << 8;
+    read_data = read_data | send_spi(0);
+  }
+
+  // BUG: Shouldn't 'hard reset' the PEX in final implementation
+  clear_gpio_a(SENSOR_PCB, LED);
+  adc_pex_hard_rst();
+
   return read_data;
 }
 

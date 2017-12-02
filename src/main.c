@@ -27,12 +27,17 @@ int main (void){
 	init_uart();
 	print("\n\nUART Initialized\n");
 	// CALL YOUR SPECIFIC TESTING FUNCTIONS HERE
-	adc_test_sequence();
+	//adc_test_sequence();
 	//sensor_led_sequence();
+	setup_adc();
+	//poll_pht();
+	poll_sfh();
+	//poll_int();
+
 
 }
 
-void adc_test_sequence(void){
+/*void adc_test_sequence(void){
 	// Code to be called for testing the ADC
 
 	int pga_gain = 1;
@@ -73,7 +78,7 @@ void adc_test_sequence(void){
 
 		_delay_ms(500);
 	}
-}
+}*/
 
 void sensor_led_sequence(void){
 	// Simple function which cycles the LEDs on the sensor PCB
@@ -113,7 +118,7 @@ void setup_adc(void){
 
 	print("PGA gain: %d", pga_gain);
 
-	print("Read Data (HEX)\tRead Data (DEC)\tConverted Voltage\n")
+	print("Read Data (HEX)\tRead Data (DEC)\tConverted Voltage\n");
 }
 
 void poll_adpd(void){
@@ -121,29 +126,77 @@ void poll_adpd(void){
 	int LED = LED_4;
 	int i;
 
-	print("Channel %d", channel);
+	print("Channel %d\n", channel);
 
 	set_gpio_a(SENSOR_PCB, LED);
-	_delay_ms(10);
+	_delay_ms(1);
 
-	for (i=0, i<50, i++){
-		uint32_t read_data = read_ADC_channel(channel);
-		print("%lX\t%lu\n", read_data, read_data);
+	for (i=0; i<10; i++){
+		uint32_t read_data = read_ADC_channel(channel, LED);
+		print("%lX\t %lu\n", read_data, read_data);
 	}
+
+	clear_gpio_a(SENSOR_PCB, LED);
 }
 
 void poll_sfh(void){
 	int channel = 6;
+	int LED = LED_3;
+	int i;
 
+	print("Channel %d\n", channel);
+
+	for (i=0; i<20; i++){
+		uint32_t read_data = read_ADC_channel(channel, LED);
+		print("%lX\t %lu\n", read_data, read_data);
+	}
+
+	//clear_gpio_a(SENSOR_PCB, LED);
 }
 
 
 void poll_pht(void){
 	int channel = 5;
+	int LED = LED_2;
+	int i;
 
+	print("Channel %d\n", channel);
+
+	for (i=0; i<20; i++){
+		uint32_t read_data = read_ADC_channel(channel, LED);
+		print("%lX\t %lu\n", read_data, read_data);
+	}
+
+	//clear_gpio_a(SENSOR_PCB, LED);
 }
 
 void poll_int(void){
+	set_dir_b(SENSOR_PCB, ITF_CS, 0);
+	set_gpio_b(SENSOR_PCB, ITF_CS);
+	init_freq_measure();
 
+	int LED = LED_1;
+	uint32_t read_data;
+	float frequency;
+	int i=0;
 
+	print("Int to freq\n");
+	//set_gpio_a(SENSOR_PCB, LED);
+	_delay_ms(1);
+	clear_gpio_b(SENSOR_PCB, ITF_CS);
+
+	for (i=0;i<100;i++){
+		while (!available()){
+			continue;
+		}
+		read_data = read_freq_measure();
+		frequency = convert_count_to_freq(read_data);
+
+		print("%lu\n",frequency);
+		_delay_ms(100);
+	}
+	set_gpio_b(SENSOR_PCB, ITF_CS);
+	//clear_gpio_a(SENSOR_PCB, LED);
+
+	end_freq_measure();
 }

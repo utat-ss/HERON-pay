@@ -20,8 +20,9 @@ PEX := pex.c
 ADC := adc.c
 SENSORS := sensors.c
 MAIN := main.c
+FREQ := freq_measure.c
 
-SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS)
+SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS) $(FREQ)
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)
