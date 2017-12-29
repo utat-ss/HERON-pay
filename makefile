@@ -10,16 +10,16 @@ PROG_NAME = pay
 
 # Might want to change these
 INCLUDES = -I./lib-common/include/
-#LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
-LIB = -L./lib-common/lib -luart -lspi -lcan
+LIB = -L./lib-common/lib -luart -lspi -lcan -lqueue
 
 
 # CHANGE THESE BASED ON WHAT YOU WANT TO COMPILE
 CAN := can_test.c
 PEX := pex.c
 ADC := adc.c
-SENSORS := sensors.c
+SENSORS := sensors.c analog_temp.c
 MAIN := main.c
+
 
 SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS)
 

@@ -8,7 +8,7 @@
 #include <uart/uart.h>
 #include <uart/log.h>
 #include <can/can.h>
-#include <queue/queue.h>
+//#include <queue/queue.h>
 #include <spi/spi.h>
 
 #include "sensors.h"
@@ -30,8 +30,8 @@ void tx_callback(uint8_t*, uint8_t*);
 void run_cmd(Data cmd);
 
 #define THERMISTOR_BASE 0b10001100
-#define PORT    PORTC
-#define DDR     DDRC
-#define PIN     PC6
+#define THER_PORT    PORTC
+#define THER_DDR     DDRC
+#define THER_PIN     PC6
 
 void thermistor_testing(void);

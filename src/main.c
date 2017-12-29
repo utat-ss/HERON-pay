@@ -22,6 +22,10 @@
 */
 
 #include "main.h"
+#include "analog_temp.h"
+
+#define R0 9.97
+
 /*
 rx_mob_t rx_mob = {
     .mob_num = 0,
@@ -75,30 +79,30 @@ void thermistor_testing(void){
 	// use PC6 on the 32M1 for chip select of the ADC
 	// ADC seems to be sending data back
 
-    uint32_t data = 0;
-	double voltage = 0;
+    uint32_t data;
+	double res;
 
 	print("Thermistor testing");
 
-	init_cs(PIN, &DDR);
-	set_cs_high(PIN, &PORT);
+	init_cs(THER_PIN, &THER_DDR);
+	set_cs_high(THER_PIN, &THER_PORT);
 
     while(1){
 		data = 0;
 
-		set_cs_low(PIN, &PORT);
+		set_cs_low(THER_PIN, &THER_PORT);
 
         data = send_spi(THERMISTOR_BASE);
         data <<= 8;
         data |= send_spi(0x00);
         data >>= 4;
 
-		set_cs_high(PIN, &PORT);
+		set_cs_high(THER_PIN, &THER_PORT);
 
-		voltage = (double)data * 2.5;
-		voltage /= (1<<12);
+		res = (double)(1<<12) / (double)data;
+		res = R0 * (res-1);
 
-		print("%lu\n", (uint32_t)(voltage * 1000));
+		print("%lu\n", (uint32_t)(res * 1000));
 
 		_delay_ms(1000);
     }
