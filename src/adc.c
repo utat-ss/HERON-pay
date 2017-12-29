@@ -4,8 +4,8 @@
 	DEPENDENCIES:		pex, spi
 
 	DESCRIPTION:		AD7194 ADC functions
-	AUTHORS:				Bruno Almeida, Dylan Vogel
-	DATE MODIFIED:	2017-11-16
+	AUTHORS:			Bruno Almeida, Dylan Vogel
+	DATE MODIFIED:	    2017-12-28
 	NOTES:
 
                   TODO:
@@ -30,17 +30,18 @@
 
 	REVISION HISTORY:
 
-    2017-11-17:   Fixed bit shift in channel selection function from 8 to 12
+        2017-12-28:     DV: Reverted BioStack I changes to read_ADC_channel.
+                        BA: implemented calibrate_adc();
+        2017-11-17:     Fixed bit shift in channel selection function from 8 to 12
 		2017-11-16: 	Created header. Existing functions created by Bruno and Dylan
 
 */
 
 #include "adc.h"
-#include <uart/log.h>
 
 void init_adc(void){
   // Initialize ports and registers needed for ADC usage
-  // Assumes init_port_expander() has already been called
+  // ASSUMES init_port_expander() has already been called
 
   int i;
 
@@ -161,69 +162,34 @@ void select_ADC_channel(uint8_t channel_num) {
   // Get the 4 bits for the channel (p. 26)
   uint8_t channel_bits = channel_num - 1;
 
-  // Mask configuration bits to set the channel
+  // Read the current register status
   uint32_t config_data = read_ADC_register(CONFIG_ADDR);
 
+  // Mask the channel bits and write new channel
   config_data &= 0xffff00ff;
-  // Pseudo bit is set, channel bits are 15-12
   config_data |= (channel_bits << 12);
 
+  // Write modified config register
   write_ADC_register(CONFIG_ADDR, config_data);
 }
 
-uint32_t read_ADC_channel(uint8_t channel_num, uint8_t LED) {
+uint32_t read_ADC_channel(uint8_t channel_num) {
   // Read 24 bit raw data from the specified ADC channel.
   // channel_num - one of 5, 6, 7
 
-  // DETERMINE THE CHANNEL TO TOGGLE
-  uint8_t channel_bits = channel_num - 1;
+  uint32_t read_data;
 
-  // Mask configuration bits to set the channel
-  uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+  // Select the channel for conversion
+  select_ADC_channel(channel_num);
 
-  config_data &= 0xffff00ff;
-  // Pseudo bit is set, channel bits are 15-12
-  config_data |= (channel_bits << 12);
-
-  // SET THE LED
-  set_gpio_a(SENSOR_PCB, LED);
-  _delay_ms(10);
-
-  // DO THE WRITE OPERATION
-  clear_gpio_b(SENSOR_PCB, ADC_CS);
-  send_spi(COMM_BYTE_WRITE | (CONFIG_ADDR << 3));
-
-  // Write the number of bytes in the register
-  for (int i = num_register_bytes(CONFIG_ADDR) - 1; i >= 0; i--) {
-    send_spi( (uint8_t)(config_data >> (i * 8)) );
-  }
-
-  // Check the state of PB0 on the 32M1, which is MISO
-  // TODO: check that this timeout isn't too short for normal conversions
-  uint16_t timeout = 0;
+  // Wait until the conversion finishes, signalled by MISO going high
+  // TODO: add a timeout
   while (bit_is_set(PINB, PB0)){
-    timeout++;
     continue;
   }
 
-  // NOTE: Here for testing
-  if (timeout == 65535){
-    print("Timeout triggered\n");
-  }
-
-  // Read and return 24 bit data
-  send_spi(COMM_BYTE_READ_SINGLE | (DATA_ADDR << 3));
-
-  // Read the required number of bytes based on register
-  uint32_t read_data = 0;
-  for (int i = 0; i < num_register_bytes(DATA_ADDR); i++) {
-    read_data = read_data << 8;
-    read_data = read_data | send_spi(0);
-  }
-
-  // BUG: Shouldn't 'hard reset' the PEX in final implementation
-  clear_gpio_a(SENSOR_PCB, LED);
-  adc_pex_hard_rst();
+  // Read back the conversion result
+  read_data = read_ADC_register(DATA_ADDR);
 
   return read_data;
 }
@@ -277,26 +243,28 @@ uint8_t convert_gain_bits(uint8_t gain) {
 }
 
 void calibrate_adc(uint8_t mode_select_bits) {
-  // Read from mode register
-  uint32_t mode_data = read_ADC_register(MODE_ADDR);
+    // NOT TESTED YET
 
-  // Clear and set mode select bits
-  mode_data &= 0xff1fffff;
-  mode_data |= ( ((uint32_t) mode_select_bits) << 21 );
+    // Read from mode register
+    uint32_t mode_data = read_ADC_register(MODE_ADDR);
 
-  // Write to mode register
-  write_ADC_register(MODE_ADDR, mode_data);
+    // Clear and set mode select bits
+    mode_data &= 0xff1fffff;
+    mode_data |= ( ((uint32_t) mode_select_bits) << 21 );
 
-  // Check the state of PB0 on the 32M1, which is MISO
+    // Write to mode register
+    write_ADC_register(MODE_ADDR, mode_data);
 
-  // Wait for _RDY_ to go high (when the calibration starts)
-  while (!bit_is_set(PINB, PB0)){
+    // Check the state of PB0 on the 32M1, which is MISO
+
+    // Wait for _RDY_ to go high (when the calibration starts)
+    while (!bit_is_set(PINB, PB0)){
     continue;
-  }
-  // Wait for _RDY_ to go low (when the calibration finishes)
-  while (bit_is_set(PINB, PB0)){
+    }
+    // Wait for _RDY_ to go low (when the calibration finishes)
+    while (bit_is_set(PINB, PB0)){
     continue;
-  }
+    }
 }
 
 void enable_cont_conv_mode(void) {

@@ -52,7 +52,7 @@ uint32_t read_ADC_register(uint8_t register_addr);
 void write_ADC_register(uint8_t register_addr, uint32_t data);
 
 void select_ADC_channel(uint8_t channel_num);
-uint32_t read_ADC_channel(uint8_t channel_num, uint8_t LED);
+uint32_t read_ADC_channel(uint8_t channel_num);
 double convert_ADC_reading(uint32_t ADC_reading, uint8_t pga_gain);
 
 uint8_t num_register_bytes(uint8_t register_addr);

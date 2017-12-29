@@ -17,14 +17,28 @@ int main (void);
 void sensor_led_sequence(void);
 void adc_test_sequence(void);
 
-void poll_adpd(void);
-void poll_sfh(void);
-void poll_pht(void);
 void setup_adc(void);
 void poll_int(void);
 
 Queue* cmd_queue;
 
-void pay_rx_callback(uint8_t* data, uint8_t len);
-void tx_callback(uint8_t*, uint8_t*);
-void run_cmd(Data cmd);
+//void pay_rx_callback(uint8_t* data, uint8_t len);
+//void tx_callback(uint8_t*, uint8_t*);
+//void run_cmd(Data cmd);
+/*
+rx_mob_t rx_mob = {
+    .mob_num = 0,
+    .dlc = 7,
+    .id_tag = 0x0000,
+    .id_mask = 0xFFFF,
+    .ctrl = default_rx_ctrl,
+    .rx_cb = pay_rx_callback
+};
+
+// this is a tx mob used for testing
+tx_mob_t tx_mob = {
+    .mob_num = 0,
+    .id_tag = { 0x0000 },
+    .ctrl = default_tx_ctrl,
+    .tx_data_cb = tx_callback
+};*/

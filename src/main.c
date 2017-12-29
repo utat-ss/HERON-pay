@@ -5,7 +5,7 @@
 
 	DESCRIPTION:		Main functions to be implemented on the PAY 32M1
 	AUTHORS:				Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-	DATE MODIFIED:	2017-11-16
+	DATE MODIFIED:	2017-12-28
 	NOTE:
 								* Please adhere to the 'separate function for testing' rule
 	BUG:
@@ -14,6 +14,7 @@
 
 	REVISION HISTORY:
 
+		2017-11-20:		SS: Added testing for PAY command queue
 		2017-11-17: 	Added "sensor_led_sequence()" as a sanity check
 		2017-11-16: 	Created header. Implemented 'separate function for testing' rule
 
@@ -21,9 +22,12 @@
 
 #include "main.h"
 
+// RX and TX mob now declared in main.h
+
 int main (void){
 	init_uart();
 	print("\n\nUART Initialized\n");
+	/*
     init_can();
 
 	// CALL YOUR SPECIFIC TESTING FUNCTIONS HERE
@@ -42,27 +46,11 @@ int main (void){
     // This is how we send can messages
 	// init_tx_mob(&tx_mob);
 	// resume_tx_mob(&tx_mob);
-	// while(1){}
+	// while(1){}*/
 }
 
-rx_mob_t rx_mob = {
-    .mob_num = 0,
-    .dlc = 7,
-    .id_tag = 0x0000,
-    .id_mask = 0xFFFF,
-    .ctrl = default_rx_ctrl,
-    .rx_cb = pay_rx_callback
-};
-
-// this is a tx mob used for testing
-tx_mob_t tx_mob = {
-    .mob_num = 0,
-    .id_tag = { 0x0000 },
-    .ctrl = default_tx_ctrl,
-    .tx_data_cb = tx_callback
-};
-
 // currently just sending "Hello!"
+/*
 void tx_callback(uint8_t* data, uint8_t* len) {
     *len = 7;
 
@@ -87,51 +75,8 @@ void pay_rx_callback(uint8_t* data, uint8_t len) {
 
 void run_cmd(Data cmd){
 	print("%s\n", (char *) cmd.array);
-}
-
-
-/*void adc_test_sequence(void){
-	// Code to be called for testing the ADC
-
-	int pga_gain = 1;
-	uint32_t read_data;
-	uint32_t config_data;
-	double converted_data;
-
-	init_port_expander();
-	init_adc();
-
-	print("RUNNING ADC TESTING CODE\n");
-
-	// BUG: See the comment in init_adc()
-	// 			This should be called in init_adc() in final implementation
-	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
-
-	set_PGA(pga_gain);
-
-	int channel = 0;
-	while(1){
-
-		read_data = read_ADC_channel(channel + 5);
-		print("\nRead Data (Channel %d)\n", channel + 5);
-		print("Data = %lX (HEX) = %lu (DEC)\n", read_data, read_data);
-		print("Gain = %d\n", pga_gain);
-
-		// In here for sanity, for the time being
-		config_data = read_ADC_register(CONFIG_ADDR);
-		print("Configuration Register: %lX\n", config_data);
-
-		converted_data = convert_ADC_reading(read_data, pga_gain);
-
-		print("Converted voltage reading: %lu mV\n", (uint32_t)(converted_data * 1000));
-
-		// Count 0, 1, 2
-		// Adding 5 gives channels 5, 6, 7, the only three hooked up
-		channel = (channel + 1) % 3;
-
-		_delay_ms(500);
-	}
 }*/
+
 
 void sensor_led_sequence(void){
 	// Simple function which cycles the LEDs on the sensor PCB
@@ -158,70 +103,6 @@ void sensor_led_sequence(void){
 	}
 }
 
-void setup_adc(void){
-	int pga_gain = 1;
-
-	init_port_expander();
-	init_adc();
-	print("ADC Setup Completed\n");
-
-	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
-
-	set_PGA(pga_gain);
-
-	print("PGA gain: %d", pga_gain);
-
-	print("Read Data (HEX)\tRead Data (DEC)\tConverted Voltage\n");
-}
-
-void poll_adpd(void){
-	int channel = 7;
-	int LED = LED_4;
-	int i;
-
-	print("Channel %d\n", channel);
-
-	set_gpio_a(SENSOR_PCB, LED);
-	_delay_ms(1);
-
-	for (i=0; i<10; i++){
-		uint32_t read_data = read_ADC_channel(channel, LED);
-		print("%lX\t %lu\n", read_data, read_data);
-	}
-
-	clear_gpio_a(SENSOR_PCB, LED);
-}
-
-void poll_sfh(void){
-	int channel = 6;
-	int LED = LED_3;
-	int i;
-
-	print("Channel %d\n", channel);
-
-	for (i=0; i<20; i++){
-		uint32_t read_data = read_ADC_channel(channel, LED);
-		print("%lX\t %lu\n", read_data, read_data);
-	}
-
-	//clear_gpio_a(SENSOR_PCB, LED);
-}
-
-
-void poll_pht(void){
-	int channel = 5;
-	int LED = LED_2;
-	int i;
-
-	print("Channel %d\n", channel);
-
-	for (i=0; i<20; i++){
-		uint32_t read_data = read_ADC_channel(channel, LED);
-		print("%lX\t %lu\n", read_data, read_data);
-	}
-
-	//clear_gpio_a(SENSOR_PCB, LED);
-}
 
 void poll_int(void){
 	set_dir_b(SENSOR_PCB, ITF_CS, 0);
