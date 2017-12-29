@@ -1,5 +1,5 @@
-#import <stdint.h>
-#import <avr/io.h>
+#include <stdint.h>
+#include <avr/io.h>
 
 #define CAPTURE_USE_TIMER1       // TODO: ICP1 is what pin?
 #define TIMER_OVERFLOW_VECTOR  TIMER1_OVF_vect

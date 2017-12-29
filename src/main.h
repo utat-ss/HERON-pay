@@ -2,13 +2,11 @@
 #define F_CPU 8000000UL
 #endif
 
-#include "sensors.h"
-#include "adc.h"
 #include <util/delay.h>
 #include <uart/uart.h>
 #include <uart/log.h>
 #include <can/can.h>
-//#include <queue/queue.h>
+#include <queue/queue.h>
 #include <spi/spi.h>
 
 #include "sensors.h"
@@ -19,9 +17,6 @@
 int main (void);
 void sensor_led_sequence(void);
 void adc_test_sequence(void);
-
-#include <queue/queue.h>
-#include <can/can.h>
 
 Queue* cmd_queue;
 
