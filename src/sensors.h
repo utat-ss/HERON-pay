@@ -1,6 +1,6 @@
-/*#ifndef F_CPU
+#ifndef F_CPU
 #define F_CPU 8000000UL
-#endif*/
+#endif
 
 #include <stdint.h>
 #include <avr/io.h>

@@ -3,30 +3,27 @@
 #endif
 
 #include <util/delay.h>
+#include <stdint.h>
+
+// Core libraries from lib-common
 #include <uart/uart.h>
 #include <uart/log.h>
 #include <can/can.h>
 #include <queue/queue.h>
 #include <spi/spi.h>
 
+// Pay-specific libraries
 #include "sensors.h"
 #include "adc.h"
 #include "pex.h"
 #include "freq_measure.h"
+#include "analog_temp.h"
+
 
 int main (void);
-void sensor_led_sequence(void);
-void adc_test_sequence(void);
-
-void setup_adc(void);
 void poll_int(void);
 
 Queue* cmd_queue;
-
-#define THERMISTOR_BASE 0b10001100
-#define THER_PORT    PORTC
-#define THER_DDR     DDRC
-#define THER_PIN     PC6
 
 void thermistor_testing(void);
 
