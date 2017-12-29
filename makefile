@@ -10,7 +10,7 @@ PROG_NAME = pay
 
 # Might want to change these
 INCLUDES = -I./lib-common/include/
-LIB = -L./lib-common/lib -luart -lspi -lcan -lqueue
+LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 
 
 # CHANGE THESE BASED ON WHAT YOU WANT TO COMPILE
@@ -19,9 +19,9 @@ PEX := pex.c
 ADC := adc.c
 SENSORS := sensors.c analog_temp.c
 MAIN := main.c
+FREQ := freq_measure.c
 
-
-SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS)
+SRC_FILES = $(PEX) $(ADC) $(MAIN) $(SENSORS) $(FREQ)
 
 OBJS := $(SRC_FILES:.c=.o)
 OBJS := $(OBJS:%=./build/%)

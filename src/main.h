@@ -18,11 +18,10 @@ int main (void);
 void sensor_led_sequence(void);
 void adc_test_sequence(void);
 
-Queue* cmd_queue;
+void setup_adc(void);
+void poll_int(void);
 
-void pay_rx_callback(uint8_t* data, uint8_t len);
-void tx_callback(uint8_t*, uint8_t*);
-void run_cmd(Data cmd);
+Queue* cmd_queue;
 
 #define THERMISTOR_BASE 0b10001100
 #define THER_PORT    PORTC
@@ -30,3 +29,24 @@ void run_cmd(Data cmd);
 #define THER_PIN     PC6
 
 void thermistor_testing(void);
+
+//void pay_rx_callback(uint8_t* data, uint8_t len);
+//void tx_callback(uint8_t*, uint8_t*);
+//void run_cmd(Data cmd);
+/*
+rx_mob_t rx_mob = {
+    .mob_num = 0,
+    .dlc = 7,
+    .id_tag = 0x0000,
+    .id_mask = 0xFFFF,
+    .ctrl = default_rx_ctrl,
+    .rx_cb = pay_rx_callback
+};
+
+// this is a tx mob used for testing
+tx_mob_t tx_mob = {
+    .mob_num = 0,
+    .id_tag = { 0x0000 },
+    .ctrl = default_tx_ctrl,
+    .tx_data_cb = tx_callback
+};*/

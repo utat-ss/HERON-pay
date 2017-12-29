@@ -43,7 +43,7 @@ void capture_shutdown(void) {
 }
 
 void init_freq_measure(void) {
-    capture_init();
+  capture_init();
 	capture_msw = 0;
 	capture_previous = 0;
 	buffer_head = 0;
