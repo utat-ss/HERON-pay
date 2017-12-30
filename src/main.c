@@ -1,11 +1,11 @@
 /*
 
 	FILENAME: 			main.c
-	DEPENDENCIES:		adc, pex, spi, uart
+	DEPENDENCIES:		pex, uart, can, queue, freq_measure, stdint, delay
 
 	DESCRIPTION:		Main functions to be implemented on the PAY 32M1
-	AUTHORS:				Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-	DATE MODIFIED:	2017-12-28
+	AUTHORS:			Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
+	DATE MODIFIED:		2017-12-28
 	NOTE:
 								* Please adhere to the 'separate function for testing' rule
 	BUG:
@@ -21,7 +21,6 @@
 */
 
 #include "main.h"
-#include <avr/pgmspace.h>
 
 // RX and TX mob now declared in main.h
 
@@ -48,31 +47,6 @@ int main (void){
 	// init_tx_mob(&tx_mob);
 	// resume_tx_mob(&tx_mob);
 	// while(1){}*/
-
-	thermistor_testing();
-}
-
-void thermistor_testing(void){
-	uint16_t data;
-	double resistance, temp;
-
-	print("Running thermistor testing code\n");
-
-	init_spi();
-	init_thermistor();
-
-	while(1){
-		data = read_thermistor_adc(0);
-	    set_cs_high(COM_RST, &COM_RST_PORT);
-		print("Raw ADC value: %lX\n", (uint32_t)(data));
-		resistance = convert_thermistor_reading(data);
-		print("Resistance (Ohm): %u\n", (int)(resistance * 1000));
-		temp = resistance_to_temp(resistance);
-		print("Temperature (mC): %u\n", (int)(temp * 1000));
-		print("\n\n");
-		_delay_ms(1000);
-	}
-
 }
 
 /*
