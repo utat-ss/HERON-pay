@@ -21,6 +21,7 @@
 */
 
 #include "main.h"
+#include <avr/pgmspace.h>
 
 // RX and TX mob now declared in main.h
 

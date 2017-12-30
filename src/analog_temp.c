@@ -79,8 +79,8 @@ double resistance_to_temp(double res){
     double diff, slope, temp;
 
     // Resintances are stored in kilo-ohms
-
-    float resistances[34] = {
+/*
+    static const float resistances[34] = {
         195.652,    148.171,    113.347,    87.559, 68.237,
         53.650,     42.506,     33.892,     27.219, 22.021,
         17.926,     14.674,     12.081,     10.000, 8.315,
@@ -89,7 +89,7 @@ double resistance_to_temp(double res){
         1.452,      1.268,      1.110,      0.974,  0.858,
         0.758,      0.672,      0.596,      0.531
     };
-    int temps[34] = {
+    static const int temps[34] = {
         -40,    -35,    -30,    -25,    -20,
         -15,    -10,    -5,     0,      05,
         10,     15,     20,     25,     30,
@@ -107,8 +107,8 @@ double resistance_to_temp(double res){
             temp = temps[i-1] + (diff * slope);
             break;
         }
-    }
-    /*
+    }*/
+
     static const float resistances[34] PROGMEM = {
         195.652,    148.171,    113.347,    87.559, 68.237,
         53.650,     42.506,     33.892,     27.219, 22.021,
@@ -130,13 +130,13 @@ double resistance_to_temp(double res){
 
 
     for (i = 0; i < 34; i++){
-        if ((res - pgm_read_float(resistances[i])) >= 0){
-            diff = res - pgm_read_float(resistances[i-1]);  //should be negative
-            slope = (double)(pgm_read_word(temps[i]) - pgm_read_word(temps[i-1])) / (pgm_read_float(resistances[i]) - pgm_read_float(resistances[i-1]));
-
-            temp = pgm_read_word(temps[i-1]) + (diff * slope);
+        if ((res - pgm_read_float(&resistances[i])) >= 0){
+            diff = res - pgm_read_float(&resistances[i-1]);  //should be negative
+            slope = (pgm_read_word(&temps[i]) - pgm_read_word(&temps[i-1]));
+            slope /= (pgm_read_float(&resistances[i]) - pgm_read_float(&resistances[i-1]));
+            temp = pgm_read_word(&temps[i-1]) + (diff * slope);
             break;
         }
-    }*/
+    }
     return temp;
 }
