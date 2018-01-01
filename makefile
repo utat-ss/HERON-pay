@@ -1,25 +1,18 @@
 # reference: http://www.atmel.com/webdoc/avrlibcreferencemanual/group__demo__project_1demo_project_compile.html
 
-# Shouldn't change these
+# Don't change these
 CC = avr-gcc
-CFLAGS = -g -mmcu=atmega32m1
+CFLAGS = -g -mmcu=atmega32m1 -Os -mcall-prologues
 PROG = stk500
-PORT = /dev/tty.usbmodem00187462
 MCU = m32m1
-PROG_NAME = pay
-
-# Might want to change these
 INCLUDES = -I./lib-common/include/
 
+# Change this line depending on what you're using
 LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 
-# CHANGE THESE BASED ON WHAT YOU WANT TO COMPILE
-CAN := can_test.c
-PEX := pex.c
-ADC := adc.c
-SENSORS := sensors.c analog_temp.c
-MAIN := main.c
-FREQ := freq_measure.c
+# Change this line based on your OS and port
+PORT = /dev/tty.usbmodem00187462
+
 
 SRC_FILES = $(MAIN)
 
