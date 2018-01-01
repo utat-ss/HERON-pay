@@ -2,7 +2,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define F_CPU 8000 // 8 MHz
+#ifndef F_CPU
+#define F_CPU 8000000UL
+#endif
+//#define F_CPU 8000 // 8 MHz
 
 #define CAPTURE_USE_TIMER1   // TODO: ICP1 is what pin?
 #define TIMER_OVERFLOW_VECTOR  TIMER1_OVF_vect

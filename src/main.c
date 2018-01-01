@@ -1,11 +1,11 @@
 /*
 
 	FILENAME: 			main.c
-	DEPENDENCIES:		adc, pex, spi, uart
+	DEPENDENCIES:		pex, uart, can, queue, freq_measure, stdint, delay
 
 	DESCRIPTION:		Main functions to be implemented on the PAY 32M1
-	AUTHORS:				Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-	DATE MODIFIED:	2017-12-28
+	AUTHORS:			Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
+	DATE MODIFIED:		2017-12-28
 	NOTE:
 								* Please adhere to the 'separate function for testing' rule
 	BUG:
@@ -49,6 +49,7 @@ int main (void){
 	// while(1){}*/
 }
 
+/*
 // currently just sending "Hello!"
 /*
 void tx_callback(uint8_t* data, uint8_t* len) {
@@ -60,7 +61,7 @@ void tx_callback(uint8_t* data, uint8_t* len) {
         data[i] = str[i];
     }
 }
-
+/*
 void pay_rx_callback(uint8_t* data, uint8_t len) {
 
 	// create a Data struct from the recieved data
@@ -76,33 +77,6 @@ void pay_rx_callback(uint8_t* data, uint8_t len) {
 void run_cmd(Data cmd){
 	print("%s\n", (char *) cmd.array);
 }*/
-
-
-void sensor_led_sequence(void){
-	// Simple function which cycles the LEDs on the sensor PCB
-	// Good sanity check. If this works, then SPI and the PEX work
-
-	int i = 0;
-
-	print("Starting Sensor PCB LED Sequence");
-
-	init_port_expander();
-
-	// Set the four LED pins to output
-	for (i = 0; i < 4; i++){
-		set_dir_a(SENSOR_PCB, i, 0);
-	}
-
-	while(1){
-		clear_gpio_a(SENSOR_PCB, i);
-
-		i = (i + 1) % 4;
-
-		set_gpio_a(SENSOR_PCB, i);
-		_delay_ms(500);
-	}
-}
-
 
 void poll_int(void){
 	set_dir_b(SENSOR_PCB, ITF_CS, 0);

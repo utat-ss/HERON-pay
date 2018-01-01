@@ -17,7 +17,7 @@ LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 CAN := can_test.c
 PEX := pex.c
 ADC := adc.c
-SENSORS := sensors.c
+SENSORS := sensors.c analog_temp.c
 MAIN := main.c
 FREQ := freq_measure.c
 

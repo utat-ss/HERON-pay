@@ -184,7 +184,7 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
 
   // Wait until the conversion finishes, signalled by MISO going high
   // TODO: add a timeout
-  while (bit_is_set(PINB, PB0)){
+  while (!bit_is_set(PINB, PB0)){
     continue;
   }
 
