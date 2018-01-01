@@ -13,41 +13,34 @@ LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 # Change this line based on your OS and port
 PORT = /dev/tty.usbmodem00187462
 
+SRC = $(wildcard ./src/*.c)
+OBJ = $(SRC:./src/%.c=./build/%.o)
+DEP = $(OBJ:.o=.d)
 
-SRC_FILES = $(MAIN)
+pay: $(OBJ)
+	$(CC) $(CFLAGS) -o ./build/$@.elf $(OBJ) $(LIB)
+	avr-objcopy -j .text -j .data -O ihex ./build/$@.elf ./build/$@.hex
 
-OBJS := $(SRC_FILES:.c=.o)
-OBJS := $(OBJS:%=./build/%)
+./build/%.o: ./src/%.c
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-ELF := ./build/$(PROG_NAME).elf
-HEX  := ./build/$(PROG_NAME).hex
+-include $(DEP)
 
-# makes it look for .c files in src without having src in path
-vpath %.c src
-
-all: $(HEX)
-
-$(HEX): $(ELF)
-	avr-objcopy -j .text -j .data -O ihex $(ELF) $(HEX)
-
-$(ELF): $(OBJS)
-	$(CC) $(CFLAGS) -o $(ELF) $(OBJS) $(LIB)
-
-./build/%.o: %.c ./build
-	$(CC) $(CFLAGS) -Os -c $< $(INCLUDES)
-	@mv $(@F) $@
+./build/%.d: ./src/%.c
+	@$(CC) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 .PHONY: clean upload debug
 
 clean:
-	rm ./build/*
+	rm -f $(OBJ)
+	rm -f $(DEP)
 
-upload: all
-	avrdude -c $(PROG) -p $(MCU) -P $(PORT) -U flash:w:$(HEX)
+upload: pay
+	avrdude -c $(PROG) -p $(MCU) -P $(PORT) -U flash:w:./build/$^.hex
 
 debug:
 	@echo ————————————
-	@echo $(SRC_FILES)
+	@echo $(SRC)
 	@echo ————————————
-	@echo $(OBJS)
+	@echo $(OBJ)
 	@echo ————————————
