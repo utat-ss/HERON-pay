@@ -19,10 +19,6 @@
 #include "freq_measure.h"
 #include "analog_temp.h"
 
-
-int main (void);
-void poll_int(void);
-
 Queue* cmd_queue;
 
 //void pay_rx_callback(uint8_t* data, uint8_t len);

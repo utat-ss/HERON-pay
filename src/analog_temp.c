@@ -10,6 +10,7 @@
 	NOTE:               TODO: Implement more efficient channel reading algorithm,
                         instead of having to waste SPI frames from waiting for
                         next message
+                        TODO: Test edge cases
 
 	REVISION HISTORY:
 
@@ -23,6 +24,7 @@
 
 void init_thermistor(void){
     // Initialize COM_RST pin on 32M1 as ADC CS
+    init_spi();
 
     init_cs(COM_RST, &COM_RST_DDR);
     set_cs_high(COM_RST, &COM_RST_PORT);
@@ -43,7 +45,7 @@ uint16_t read_thermistor_adc(int channel){
     ADC_cmd = THERMISTOR_BASE | (channel_bits << 4);
 
     set_cs_low(COM_RST, &COM_RST_PORT);
-    data = send_spi(ADC_cmd);
+    send_spi(ADC_cmd);
     set_cs_high(COM_RST, &COM_RST_PORT);
 
     // Wait for the ADC to finish conversion (pg 4 on datasheet)
@@ -62,9 +64,15 @@ uint16_t read_thermistor_adc(int channel){
 
 double convert_thermistor_reading(uint16_t adc_reading){
     // Converts the ADC reading into a thermistor resistance
-    double res;
     // Assumes the thermistor is wired in series with a resistor of resistance
     // R_REF, using the 2.5V ADC reference voltage
+    // See: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
+    //
+    // Equation is as follows, after rearringing the voltage divider equation:
+    // R = R0 [(ADC_max_value / ADC_read_value) - 1]
+
+    double res;
+
     res = (double)(1<<12) / adc_reading;
     res = R_REF * (res - 1.0);
 
@@ -77,7 +85,7 @@ double resistance_to_temp(double res){
     // Lookup table from manufacturer datasheet (pg 31)
 
     int i;
-    double diff, slope, temp;
+    double diff, slope, temp = 0;
 
     // Resistances are stored in kilo-ohms
     // PROGMEM instructs the compiler to store these values in flash memory
