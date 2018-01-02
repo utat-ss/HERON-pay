@@ -21,10 +21,10 @@
 
 Queue* cmd_queue;
 
-//void pay_rx_callback(uint8_t* data, uint8_t len);
-//void tx_callback(uint8_t*, uint8_t*);
-//void run_cmd(Data cmd);
-/*
+void pay_rx_callback(uint8_t* data, uint8_t len);
+void tx_callback(uint8_t*, uint8_t*);
+void run_cmd(Data cmd);
+
 rx_mob_t rx_mob = {
     .mob_num = 0,
     .dlc = 7,
@@ -40,4 +40,4 @@ tx_mob_t tx_mob = {
     .id_tag = { 0x0000 },
     .ctrl = default_tx_ctrl,
     .tx_data_cb = tx_callback
-};*/
+};

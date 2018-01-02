@@ -7,10 +7,8 @@
 	AUTHORS:			Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
 	DATE MODIFIED:		2017-12-28
 	NOTE:
-								* Please adhere to the 'separate function for testing' rule
-	BUG:
-								* Compiling throws a warning that F_CPU has been previously defined
-									by a file associated with CAN. Can #CDH sort this out?
+						PLEASE DON'T COMMIT YOUR TESTING CODE
+						ONLY COMMIT ACTUAL CHANGES TO MAIN.C
 
 	REVISION HISTORY:
 
@@ -27,10 +25,8 @@
 int main (void){
 	init_uart();
 	print("\n\nUART Initialized\n");
-	/*
-    init_can();
 
-	// CALL YOUR SPECIFIC TESTING FUNCTIONS HERE
+    init_can();
     init_rx_mob(&rx_mob);
 
     Queue temp_queue = initQueue();
@@ -49,9 +45,7 @@ int main (void){
 	// while(1){}*/
 }
 
-/*
 // currently just sending "Hello!"
-/*
 void tx_callback(uint8_t* data, uint8_t* len) {
     *len = 7;
 
@@ -61,7 +55,6 @@ void tx_callback(uint8_t* data, uint8_t* len) {
         data[i] = str[i];
     }
 }
-/*
 void pay_rx_callback(uint8_t* data, uint8_t len) {
 
 	// create a Data struct from the recieved data
@@ -75,36 +68,7 @@ void pay_rx_callback(uint8_t* data, uint8_t len) {
 
 
 void run_cmd(Data cmd){
+	// Should implement a large switch-case statement to handle different commands
+
 	print("%s\n", (char *) cmd.array);
-}*/
-
-void poll_int(void){
-	set_dir_b(SENSOR_PCB, ITF_CS, 0);
-	set_gpio_b(SENSOR_PCB, ITF_CS);
-	init_freq_measure();
-
-	int LED = LED_1;
-	uint32_t read_data;
-	float frequency;
-	int i=0;
-
-	print("Int to freq\n");
-	//set_gpio_a(SENSOR_PCB, LED);
-	_delay_ms(1);
-	clear_gpio_b(SENSOR_PCB, ITF_CS);
-
-	for (i=0;i<100;i++){
-		while (!available()){
-			continue;
-		}
-		read_data = read_freq_measure();
-		frequency = convert_count_to_freq(read_data);
-
-		print("%lu\n",frequency);
-		_delay_ms(100);
-	}
-	set_gpio_b(SENSOR_PCB, ITF_CS);
-	//clear_gpio_a(SENSOR_PCB, LED);
-
-	end_freq_measure();
 }
