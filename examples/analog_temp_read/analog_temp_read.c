@@ -11,6 +11,9 @@ int main(void){
     uint16_t data;                 // stores the raw ADC data
     double resistance, temp;       // stores calculated values
 
+    init_uart();
+    print("UART initialized\n");
+
     print("Running thermistor testing code\n");
 
     init_thermistor();

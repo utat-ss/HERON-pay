@@ -8,7 +8,7 @@ MCU = m32m1
 PORT = /dev/tty.usbmodem00187462
 
 # SRC is defined in the example-specific makefile
-OBJ = $(SRC:../../src%.c=../%.o)
+OBJ = $(SRC:../../src%.c=..%.o)
 
 $(PROG): $(PROG).o $(OBJ)
 	$(CC) $(CFLAGS) -o $@.elf $^ $(LIB)

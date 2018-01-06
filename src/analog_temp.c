@@ -49,7 +49,7 @@ uint16_t read_thermistor_adc(int channel){
     set_cs_high(COM_RST, &COM_RST_PORT);
 
     // Wait for the ADC to finish conversion (pg 4 on datasheet)
-    _delay_ms(4);
+    _delay_ms(1);
 
     set_cs_low(COM_RST, &COM_RST_PORT);
     // Resend command. Could consider enabling nap mode to save power.
