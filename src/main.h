@@ -19,25 +19,20 @@
 #include "freq_measure.h"
 #include "analog_temp.h"
 
-Queue* cmd_queue;
+// CAN ID ALLOCATION FOR PAYLOAD
+#define status_rx_mob_id	{ 0x000B }
+#define status_tx_mob_id	{ 0x0012 }
+#define cmd_tx_mob_id		{ 0x0022 }
+#define cmd_rx_mob_id		{ 0x0043 }
+#define data_tx_mob_id		{ 0x0102 }
 
-void pay_rx_callback(uint8_t* data, uint8_t len);
-void tx_callback(uint8_t*, uint8_t*);
+#define can_rx_mask_id		{ 0x07F8 }
+
+// [6] housekeeping / ~science
+// [5:3]
+#define pay_id_header 		0b10000000
+
+void rx_callback(uint8_t* data, uint8_t len);
+void tx_callback_1(uint8_t*, uint8_t*);
+void tx_callback_2(uint8_t*, uint8_t*);
 void run_cmd(Data cmd);
-
-rx_mob_t rx_mob = {
-    .mob_num = 0,
-    .dlc = 7,
-    .id_tag = 0x0000,
-    .id_mask = 0xFFFF,
-    .ctrl = default_rx_ctrl,
-    .rx_cb = pay_rx_callback
-};
-
-// this is a tx mob used for testing
-tx_mob_t tx_mob = {
-    .mob_num = 0,
-    .id_tag = { 0x0000 },
-    .ctrl = default_tx_ctrl,
-    .tx_data_cb = tx_callback
-};
