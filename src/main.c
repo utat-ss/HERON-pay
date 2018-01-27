@@ -24,55 +24,6 @@
 // Initilaze the command queue as a global so it can be used in the CAN callback
 // Queue cmd_queue;
 
-mob_t status_rx_mob = {
-	.mob_num = 0,
-	.mob_type = RX_MOB,
-    .dlc = 8,
-    .id_tag = status_rx_mob_id
-	.id_mask = can_rx_mask_id
-    .ctrl = default_rx_ctrl,
-
-    .rx_cb = status_rx_callback
-};
-
-mob_t status_tx_mob = {
-    .mob_num = 1,
-	.mob_type = TX_MOB,
-    .id_tag = status_tx_mob_id
-    .ctrl = default_tx_ctrl,
-
-    .tx_data_cb = status_tx_callback
-};
-
-mob_t cmd_tx_mob = {
-	.mob_num = 2,
-	.mob_type = TX_MOB,
-	.id_tag = cmd_tx_mob_id,
-	.ctrl = default_tx_ctrl,
-
-	.tx_data_cb = cmd_tx_callback
-};
-
-mob_t cmd_rx_mob = {
-	.mob_num = 3,
-	.mob_type = RX_MOB,
-    .dlc = 8,
-    .id_tag = cmd_rx_mob_id
-	.id_mask = can_rx_mask_id
-    .ctrl = default_rx_ctrl,
-
-    .rx_cb = cmd_rx_callback
-};
-
-mob_t data_tx_mob = {
-    .mob_num = 5,
-	.mob_type = TX_MOB,
-    .id_tag = data_tx_mob_id,
-    .ctrl = default_tx_ctrl,
-
-    .tx_data_cb = data_tx_callback
-};
-
 void pay_can_init(void){
 	// TODO: Consider adding print statements which show the data loaded into
 	// the TX MObs, for debugging.
@@ -90,7 +41,7 @@ void status_rx_callback(uint8_t* data, uint8_t len){
 	resume_mob(&status_tx_mob);
 }
 void status_tx_callback(uint8_t* data, uint8_t* len){
-	
+
 }
 void cmd_tx_callback(uint8_t* data, uint8_t* len){
 
@@ -103,23 +54,6 @@ void data_tx_callback(uint8_t* data, uint8_t* len){
 
 }
 
-int main (void){
-	init_uart();
-	print("\n\nUART Initialized\n");
-	pay_can_init();
-	// cmd_queue = initQueue();
-    init_can();
-
-	// Testing bi-directional CAN transfers
-	init_rx_mob(&rx_mob);
-	// init_tx_mob(&tx_mob_1);
-    // init_tx_mob(&tx_mob_2);
-    //
-    // resume_mob(&tx_mob_1);
-    while(1){};
-}
-
-// currently just sending "Hello!"
 
 /*
 void tx_callback_1(uint8_t* data, uint8_t* len) {
@@ -154,7 +88,16 @@ void rx_callback(uint8_t* data, uint8_t len) {
     print("\n");
 }*/
 
-void run_cmd(Data cmd){
-	// Should implement a large switch-case statement to handle different commands
-	print("\n%s\n\n", (char *) cmd.array);
+
+int main (void){
+	init_uart();
+	print("\n\nUART Initialized\n");
+	pay_can_init();
+	// cmd_queue = initQueue();
+    init_can();
+
+	// Testing bi-directional CAN transfers
+    while(1){};
 }
+
+// currently just sending "Hello!"

@@ -11,7 +11,8 @@ INCLUDES = -I./lib-common/include/
 LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue
 
 # Change this line based on your OS and port
-PORT = /dev/tty.usbmodem00187462
+#PORT = /dev/tty.usbmodem00187462
+PORT = /dev/tty.usbmodem00100511
 
 SRC = $(wildcard ./src/*.c)
 OBJ = $(SRC:./src/%.c=./build/%.o)

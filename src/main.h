@@ -9,6 +9,7 @@
 #include <uart/uart.h>
 #include <uart/log.h>
 #include <can/can.h>
+#include <can/can_ids.h>
 #include <queue/queue.h>
 #include <spi/spi.h>
 
@@ -19,20 +20,59 @@
 #include "freq_measure.h"
 #include "analog_temp.h"
 
+
 // CAN ID ALLOCATION FOR PAYLOAD
-#define status_rx_mob_id	{ 0x000B }
-#define status_tx_mob_id	{ 0x0012 }
-#define cmd_tx_mob_id		{ 0x0022 }
-#define cmd_rx_mob_id		{ 0x0043 }
-#define data_tx_mob_id		{ 0x0102 }
+void status_rx_callback(uint8_t* data, uint8_t len);
+void status_tx_callback(uint8_t* data, uint8_t* len);
+void cmd_tx_callback(uint8_t* data, uint8_t* len);
+void cmd_rx_callback(uint8_t* data, uint8_t len);
+void data_tx_callback(uint8_t* data, uint8_t* len);
 
-#define can_rx_mask_id		{ 0x07F8 }
+mob_t status_rx_mob = {
+	.mob_num = 0,
+	.mob_type = RX_MOB,
+    .dlc = 8,
+    .id_tag = PAY_STATUS_RX_MOB_ID,
+	.id_mask = CAN_RX_MASK_ID,
+    .ctrl = default_rx_ctrl,
 
-// [6] housekeeping / ~science
-// [5:3]
-#define pay_id_header 		0b10000000
+    .rx_cb = status_rx_callback
+};
 
-void rx_callback(uint8_t* data, uint8_t len);
-void tx_callback_1(uint8_t*, uint8_t*);
-void tx_callback_2(uint8_t*, uint8_t*);
-void run_cmd(Data cmd);
+mob_t status_tx_mob = {
+    .mob_num = 1,
+	.mob_type = TX_MOB,
+    .id_tag = PAY_STATUS_TX_MOB_ID,
+    .ctrl = default_tx_ctrl,
+
+    .tx_data_cb = status_tx_callback
+};
+
+mob_t cmd_tx_mob = {
+	.mob_num = 2,
+	.mob_type = TX_MOB,
+	.id_tag = PAY_CMD_TX_MOB_ID,
+	.ctrl = default_tx_ctrl,
+
+	.tx_data_cb = cmd_tx_callback
+};
+
+mob_t cmd_rx_mob = {
+	.mob_num = 3,
+	.mob_type = RX_MOB,
+    .dlc = 8,
+    .id_tag = PAY_CMD_RX_MOB_ID,
+	.id_mask = CAN_RX_MASK_ID,
+    .ctrl = default_rx_ctrl,
+
+    .rx_cb = cmd_rx_callback
+};
+
+mob_t data_tx_mob = {
+    .mob_num = 5,
+	.mob_type = TX_MOB,
+    .id_tag = PAY_DATA_TX_MOB_ID,
+    .ctrl = default_tx_ctrl,
+
+    .tx_data_cb = data_tx_callback
+};
