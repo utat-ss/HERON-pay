@@ -31,35 +31,44 @@ void sensor_setup(){
   clear_gpio_b(SSM, TEMP_SHUTDOWN); // Clears the shutdown bit.
   //set_dir_b(SSM, TEMP_CS, 0);
   //set_gpio_b(SSM, TEMP_CS);
-  //init_pressure_sensor();
+  init_pressure_sensor();
 }
 
 float read_temperature(){
+  return convert_temperature(read_raw_temperature());
+}
+
+uint16_t read_raw_temperature(){
   // Read a temperature from the temperature sensor.
 
-	//_delay_ms(50);
-	/*
-	set_cs_low(CS, &CS_PORT);
-	send_spi(0x00);
-	send_spi(0x00);
-	GPIO_PORT &= ~_BV(GPIO);
-	send_spi(0x00);
-	send_spi(0x00);
-	set_cs_high(CS, &CS_PORT);
-	*/
+  //_delay_ms(50);
+  /*
+  set_cs_low(CS, &CS_PORT);
+  send_spi(0x00);
+  send_spi(0x00);
+  GPIO_PORT &= ~_BV(GPIO);
+  send_spi(0x00);
+  send_spi(0x00);
+  set_cs_high(CS, &CS_PORT);
+  */
 
   _delay_ms(130);
   int16_t temp_sensor_data;
-	clear_gpio_b(SSM, TEMP_CS);  // SET CS LOW
-	temp_sensor_data = send_spi(0x00);
-	temp_sensor_data <<=  8;
-	temp_sensor_data |= send_spi(0x00);
-	temp_sensor_data >>= 2;
-	/*send_spi(0x00);
-	send_spi(0x00);*/
-	set_gpio_b(SSM, TEMP_CS);
+  clear_gpio_b(SSM, TEMP_CS);  // SET CS LOW
+  temp_sensor_data = send_spi(0x00);
+  temp_sensor_data <<=  8;
+  temp_sensor_data |= send_spi(0x00);
+  temp_sensor_data >>= 2;
+  /*send_spi(0x00);
+  send_spi(0x00);*/
+  set_gpio_b(SSM, TEMP_CS);
 
-	return (((float)temp_sensor_data) * 0.03125);
+  return *(uint16_t *)(&temp_sensor_data);  // type punning - TODO double check this works as expected on 32m1
+}
+
+float convert_temperature(uint16_t raw_temp_data){
+  int16_t signed_temp_data = *(int16_t *)(&raw_temp_data);
+  return (((float)signed_temp_data) * 0.03125);
 }
 
 uint32_t get_raw_humidity() {
@@ -86,16 +95,26 @@ uint32_t get_raw_humidity() {
 }
 
 double read_humidity() {
-  uint32_t data = get_raw_humidity();
-  uint16_t humidity_bytes = (uint16_t)(data >> 16) & ~(3 << 14);
+  return convert_humidity(get_raw_humidity());
+}
+
+double convert_humidity(uint32_t raw_humidity) {
+  uint16_t humidity_bytes = (uint16_t)(raw_humidity >> 16) & ~(3 << 14);
   double humidity = (double)humidity_bytes / (pow(2, 14) - 2.0) * 100.0;
 
   return humidity;
 }
 
 double read_humidity_temp() {
+  return convert_humidity_temp(read_raw_humidity_temp());
+}
+
+uint16_t read_raw_humidity_temp(){
   uint32_t data = get_raw_humidity();
-  uint16_t temperature_bytes = (uint16_t)data >> 2;
+  return (uint16_t)data >> 2;
+}
+
+double convert_humidity_temp(uint16_t raw_humidity_temp){
   double temperature = (double)temperature_bytes / (pow(2, 14) - 2.0) * 165.0 - 40.0;
 
   return temperature;
