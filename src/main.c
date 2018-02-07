@@ -12,7 +12,7 @@
 
 	REVISION HISTORY:
 
-        2018-01-08:     DV: Added CAN id definitions to the header file
+    2018-01-08:     DV: Added CAN id definitions to the header file
 		2017-11-20:		SS: Added testing for PAY command queue
 		2017-11-17: 	Added "sensor_led_sequence()" as a sanity check
 		2017-11-16: 	Created header. Implemented 'separate function for testing' rule
@@ -21,8 +21,37 @@
 
 #include "main.h"
 
-// Initilaze the command queue as a global so it can be used in the CAN callback
-// Queue cmd_queue;
+// function prototypes for functions used only in main.c
+void pay_can_init(void);
+uint8_t handle_cmd(uint8_t*);
+uint8_t handle_hk_req(uint8_t*);
+uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data);
+
+
+queue_t *cmd_queue;
+
+int main (void){
+	init_uart();
+	print("\n\nUART Initialized\n");
+	pay_can_init();
+  init_can();
+
+	sensor_setup();
+
+	// initialize the command queue
+	init_queue(cmd_queue);
+
+	uint8_t data[8];  // the data currently being processed
+
+  while(1){
+		if (!is_empty(cmd_queue)){
+			dequeue(cmd_queue, data);
+
+			// proccess the command
+			handle_cmd(data);
+		}
+	};
+}
 
 void pay_can_init(void){
 	// TODO: Consider adding print statements which show the data loaded into
@@ -37,7 +66,7 @@ void pay_can_init(void){
 
 void status_rx_callback(uint8_t* data, uint8_t len){
 
-	// Resume the MOb to send the stasus back
+	// Resume the MOb to send the status back
 	resume_mob(&status_tx_mob);
 }
 void status_tx_callback(uint8_t* data, uint8_t* len){
@@ -46,14 +75,94 @@ void status_tx_callback(uint8_t* data, uint8_t* len){
 void cmd_tx_callback(uint8_t* data, uint8_t* len){
 
 }
-void cmd_rx_callback(uint8_t* data, uint8_t len){
 
+// this is for recieving commands
+void cmd_rx_callback(uint8_t* data, uint8_t len){
+	// TODO is it always 8 bytes of data?
+	// TODO will the queue ever be full? probably not
+	enqueue(cmd_queue, data);
 }
+
 void data_tx_callback(uint8_t* data, uint8_t* len){
 	// Callback specifically for sending housekeeping/sensor data
 
 }
 
+uint8_t handle_cmd(uint8_t* data){
+	uint8_t result[8];  // data we are sending back
+
+	switch (data[0]){
+		case PAY_HK_REQ:
+			handle_hk_req(result);  // NOTE can't send this all in one shot
+			break;
+		case PAY_HK_SENSOR_REQ:
+			handle_hk_sensor_req(data[1], result);
+			break;
+		default:
+			return 1;
+	}
+
+	return 0;
+}
+
+uint8_t handle_hk_req(uint8_t* data){
+		// TODO make calls to handle_hk_sensor_req
+		// get temp, humidity and pressure
+}
+
+// loads the sensor data of the sensor with id sensor_id into the array data
+uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data){
+	switch (sensor_id){
+		case PAY_TEMP_1:
+		{
+			uint16_t temp = read_raw_temperature();
+			data[0] = (temp >> 8);
+			data[1] = (temp && 0x00FF);
+			break;
+		}
+		case PAY_PRES_1:
+		{
+			// have to send both the pressure and the temperature of the sensor
+			// put data as <PRESSURE><TEMPERATURE>
+			uint32_t pressure = read_raw_pressure();
+			uint32_t temp = read_raw_pressure_temp();
+
+			data[0] = (pressure >> 24) & 0xFF;
+			data[1] = (pressure >> 16) & 0xFF;
+			data[2] = (pressure >> 8) & 0xFF;
+			data[3] = pressure & 0xFF;
+
+			data[4] = (temp >> 24) & 0xFF;
+			data[5] = (temp >> 16) & 0xFF;
+			data[6] = (temp >> 8) & 0xFF;
+			data[7] = temp & 0xFF;
+
+			break;
+		}
+		case PAY_HUMID_1:
+		{
+			uint32_t humidity = read_raw_humidity();
+			data[0] = (humidity >> 24) & 0xFF;
+			data[1] = (humidity >> 16) & 0xFF;
+			data[2] = (humidity >> 8) & 0xFF;
+			data[3] = humidity & 0xFF;
+			break;
+		}
+		case PAY_MF_TEMP_1:
+			// TODO talk with Dylan and implement
+			break;
+		case PAY_MF_TEMP_2:
+			// TODO talk with Dylan and implement
+			break;
+		case PAY_MF_TEMP_3:
+			// TODO talk with Dylan and implement
+			break;
+		default:
+		return 1;
+	}
+
+	return 0;
+}
 
 /*
 void tx_callback_1(uint8_t* data, uint8_t* len) {
@@ -87,17 +196,3 @@ void rx_callback(uint8_t* data, uint8_t len) {
     }
     print("\n");
 }*/
-
-
-int main (void){
-	init_uart();
-	print("\n\nUART Initialized\n");
-	pay_can_init();
-	// cmd_queue = initQueue();
-    init_can();
-
-	// Testing bi-directional CAN transfers
-    while(1){};
-}
-
-// currently just sending "Hello!"
