@@ -118,6 +118,7 @@ uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data){
 			uint16_t temp = read_raw_temperature();
 			data[0] = (temp >> 8);
 			data[1] = (temp && 0x00FF);
+			data[2], data[3], data[4], data[5], data[6], data[7] = 0;
 			break;
 		}
 		case PAY_PRES_1:
@@ -146,6 +147,7 @@ uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data){
 			data[1] = (humidity >> 16) & 0xFF;
 			data[2] = (humidity >> 8) & 0xFF;
 			data[3] = humidity & 0xFF;
+			data[4], data[5], data[6], data[7] = 0;
 			break;
 		}
 		case PAY_MF_TEMP_1:
