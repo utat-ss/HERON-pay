@@ -1,74 +1,15 @@
 /*
 
-	FILENAME: 			main.c
-	DEPENDENCIES:		pex, uart, can, queue, freq_measure, stdint, delay
-
 	DESCRIPTION:		Main functions to be implemented on the PAY 32M1
-	AUTHORS:			Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-	DATE MODIFIED:		2017-12-28
+	MAINTAINERS:		Dylan Vogel, Bruno Almeida, Shimi Smith
+	DATE MODIFIED:		2018-02-24
 	NOTE:
 						PLEASE DON'T COMMIT YOUR TESTING CODE
 						ONLY COMMIT ACTUAL CHANGES TO MAIN.C
-
-	REVISION HISTORY:
-
-		2017-11-20:		SS: Added testing for PAY command queue
-		2017-11-17: 	Added "sensor_led_sequence()" as a sanity check
-		2017-11-16: 	Created header. Implemented 'separate function for testing' rule
-
 */
 
 #include "main.h"
 
-// RX and TX mob now declared in main.h
-
 int main (void){
-	init_uart();
-	print("\n\nUART Initialized\n");
-
-    init_can();
-    init_rx_mob(&rx_mob);
-
-    Queue temp_queue = initQueue();
-    cmd_queue = &temp_queue;
-
-    while(1){
-        if(!isEmpty(cmd_queue)){
-            Data cmd = dequeue(cmd_queue);
-            run_cmd(cmd);
-        }
-    }
-
-    // This is how we send can messages
-	// init_tx_mob(&tx_mob);
-	// resume_tx_mob(&tx_mob);
-	// while(1){}*/
-}
-
-// currently just sending "Hello!"
-void tx_callback(uint8_t* data, uint8_t* len) {
-    *len = 7;
-
-    char str[] = "Hello!";
-
-    for(uint8_t i = 0; i < *len; i++) {
-        data[i] = str[i];
-    }
-}
-void pay_rx_callback(uint8_t* data, uint8_t len) {
-
-	// create a Data struct from the recieved data
-    Data cmd;
-    for (uint8_t i = 0; i < len; i++){
-    	cmd.array[i] = data[i];
-    }
-
-    enqueue(cmd_queue, cmd);  // add command into queue
-}
-
-
-void run_cmd(Data cmd){
-	// Should implement a large switch-case statement to handle different commands
-
-	print("%s\n", (char *) cmd.array);
+    while(1){}
 }
