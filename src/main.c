@@ -24,7 +24,7 @@
 // function prototypes for functions used only in main.c
 void pay_can_init(void);
 uint8_t handle_cmd(uint8_t*);
-uint8_t handle_hk_req(uint8_t*);
+uint8_t handle_hk_req(uint8_t page, uint8_t* data);
 uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data);
 
 
@@ -78,8 +78,7 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len){
 
 // this is for recieving commands
 void cmd_rx_callback(uint8_t* data, uint8_t len){
-	// TODO is it always 8 bytes of data?
-	// TODO will the queue ever be full? probably not
+	// TODO is it always be 8 bytes of data?
 	enqueue(cmd_queue, data);
 }
 
@@ -93,7 +92,7 @@ uint8_t handle_cmd(uint8_t* data){
 
 	switch (data[0]){
 		case PAY_HK_REQ:
-			handle_hk_req(result);  // NOTE can't send this all in one shot
+			handle_hk_req(data[1], result);  // NOTE can't send this all in one CAN frame
 			break;
 		case PAY_HK_SENSOR_REQ:
 			handle_hk_sensor_req(data[1], result);
@@ -105,9 +104,21 @@ uint8_t handle_cmd(uint8_t* data){
 	return 0;
 }
 
-uint8_t handle_hk_req(uint8_t* data){
-		// TODO make calls to handle_hk_sensor_req
-		// get temp, humidity and pressure
+// get temp, humidity and pressure
+uint8_t handle_hk_req(uint8_t page, uint8_t* data){
+		switch (page){
+			case 0:
+				return handle_hk_sensor_req(PAY_TEMP_1, data);
+				break;
+			case 1:
+				return handle_hk_sensor_req(PAY_HUMID_1, data);
+				break;
+			case 2:
+				return handle_hk_sensor_req(PAY_PRES_1, data);
+				break;
+			default:
+				return 1;
+		}
 }
 
 // loads the sensor data of the sensor with id sensor_id into the array data
