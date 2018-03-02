@@ -64,27 +64,56 @@ void pay_can_init(void){
 	init_tx_mob(&data_tx_mob);
 }
 
-void status_rx_callback(uint8_t* data, uint8_t len){
 
+// When resume_mob(mob name) is called,
+// it will start the MOB and trigger an interrupt (callback function) to get the data to transmit.
+// If the length of the new data is 0, it will pause the mob.
+// New data must already be available to send instead of waiting for it
+// (use a global/static variable or similar)
+
+// MOB 0
+// For heartbeat
+void status_rx_callback(uint8_t* data, uint8_t len){
 	// Resume the MOb to send the status back
 	resume_mob(&status_tx_mob);
 }
+
+// MOB 1
+// For heartbeat
 void status_tx_callback(uint8_t* data, uint8_t* len){
 
 }
+
+// MOB 2
+// For later science requests?
 void cmd_tx_callback(uint8_t* data, uint8_t* len){
 
 }
 
+// MOB 3
 // this is for recieving commands
 void cmd_rx_callback(uint8_t* data, uint8_t len){
-	// TODO is it always be 8 bytes of data?
+	// TODO is it always 8 bytes of data?
 	enqueue(cmd_queue, data);
+
+	// Example
+	print("RX received!\n");
+    print("%s\n", (char *) data);
 }
 
+// MOB 5
 void data_tx_callback(uint8_t* data, uint8_t* len){
 	// Callback specifically for sending housekeeping/sensor data
 
+	// Example
+	*len = 7;
+    char str[] = "Hello!";
+
+    for(uint8_t i = 0; i < *len; i++) {
+        data[i] = str[i];
+    }
+	print("TX transmitted!\n");
+	print("%s\n",data);
 }
 
 uint8_t handle_cmd(uint8_t* data){
