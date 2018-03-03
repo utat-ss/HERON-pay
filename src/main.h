@@ -28,6 +28,7 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len);
 void cmd_rx_callback(uint8_t* data, uint8_t len);
 void data_tx_callback(uint8_t* data, uint8_t* len);
 
+/*
 mob_t status_rx_mob = {
 	.mob_num = 0,
 	.mob_type = RX_MOB,
@@ -56,6 +57,7 @@ mob_t cmd_tx_mob = {
 
 	.tx_data_cb = cmd_tx_callback
 };
+*/
 
 mob_t cmd_rx_mob = {
 	.mob_num = 3,
