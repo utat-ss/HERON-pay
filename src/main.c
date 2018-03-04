@@ -181,7 +181,7 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
 
     switch (rx_data[1]){
         case PAY_TEMP_1:
-			// uint16_t temp = read_raw_temperature();
+			// temp = read_raw_temperature();
 			temp = rand() % ((uint32_t) 1 << 14);	// dummy value
             print("PAY_TEMP_1: %x\n",temp);
 
@@ -198,7 +198,7 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
 			// uint32_t temp = read_raw_pressure_temp();
 
 			// 24 bit value
-            // uint32_t pressure = read_raw_pressure();
+            // pressure = read_raw_pressure();
 			pressure = rand() % ((uint32_t) 1 << 24);
 			print("PAY_PRES_1: %x\n", pressure);
 
@@ -217,7 +217,7 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
         case PAY_HUMID_1:
 			// read_raw_humidity() gives 16 bits of humidity followed by 16 bits of temperature,
 			// but humidity is a 14 bit value
-			// uint32_t humidity = (read_raw_humidity() >> 16) & 0x3FFF;
+			// humidity = (read_raw_humidity() >> 16) & 0x3FFF;
 			humidity = rand() % (1 << 14);	// dummy value
 			print("PAY_HUMID_1: %x\n", humidity);
 
@@ -232,12 +232,37 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
             break;
 
 
-		// TODO talk with Dylan and implement
 		case PAY_MF_TEMP_1:
-	        break;
+            // temp = read_thermistor_adc(0); // channel 0
+            temp = rand() % ((uint32_t) 1 << 12);	// dummy value
+            print("PAY_MF_TEMP_1: %x\n",temp);
+
+            tx_data[2] = 0;	// zero padded
+            tx_data[3] = (temp >> 8);
+            tx_data[4] = (temp && 0x00FF);
+
+            break;
+
 	    case PAY_MF_TEMP_2:
+            // temp = read_thermistor_adc(1); // channel 1
+            temp = rand() % ((uint32_t) 1 << 12);	// dummy value
+            print("PAY_MF_TEMP_2: %x\n",temp);
+
+            tx_data[2] = 0;	// zero padded
+            tx_data[3] = (temp >> 8);
+            tx_data[4] = (temp && 0x00FF);
+
 	        break;
+
 	    case PAY_MF_TEMP_3:
+            // temp = read_thermistor_adc(2); // channel 2
+            temp = rand() % ((uint32_t) 1 << 12);	// dummy value
+            print("PAY_MF_TEMP_3: %x\n",temp);
+
+            tx_data[2] = 0;	// zero padded
+            tx_data[3] = (temp >> 8);
+            tx_data[4] = (temp && 0x00FF);
+
 	        break;
 
         default:
@@ -256,11 +281,25 @@ uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data){
 
 	uint8_t well_num = rx_data[1] & 0x3F;
 
-	// Check 6 bytes for well number
-	// TODO - poll appropriate sensor
-	// switch (well_num) {
-	// }
-	// uint32_t reading = read_ADC_channel(well_num);
+    int channel;
+    int LED;
+
+	// Check 6 bytes for well number, poll appropriate sensor
+	// TODO - add more sensors
+	switch (well_num) {
+        // TEMD
+        case 0:
+        	channel = 5;
+        	LED = LED_2;
+
+        // SFH
+        case 1:
+        	channel = 6;
+        	LED = LED_3;
+	}
+
+    // TODO - activate LED
+	// uint32_t reading = read_ADC_channel(channel);
 
 	uint32_t reading = rand() % ((uint32_t) 1 << 24);
 	print("Well #%d: %x\n", well_num, reading);
