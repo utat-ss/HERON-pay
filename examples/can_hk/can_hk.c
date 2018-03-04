@@ -6,6 +6,7 @@
 #include <uart/log.h>
 #include <can/can.h>
 #include <can/packets.h>
+#include <can/can_ids.h>
 
 #include <util/delay.h>
 #include <stdint.h>
@@ -16,7 +17,7 @@ void rx_callback(uint8_t*, uint8_t);
 mob_t tx_mob = {
     .mob_num = 0,
     .mob_type = TX_MOB,
-    .id_tag = { PAY_CMD_RX_MOB_ID },
+    .id_tag = PAY_CMD_RX_MOB_ID,
     .ctrl = default_tx_ctrl,
     .tx_data_cb = tx_callback
 };
@@ -32,15 +33,25 @@ mob_t rx_mob = {
 };
 
 void tx_callback(uint8_t* data, uint8_t* len) {
+    print("-------------------------------\n");
+    print("tx_callback()\n");
+
     uint8_t req[8] = { PAY_HK_REQ, PAY_TEMP_1 };
-    for (int i = 0; i < 2; i++) {
+    print("Sending packet: ");
+
+    *len = 8;
+    for (int i = 0; i < *len; i++) {
         data[i] = req[i];
+        print("%x ", data[i]);
     }
-    *len = 2;
+
+    print("\n");
+    print("-------------------------------\n");
 }
 
 void rx_callback(uint8_t* data, uint8_t len) {
     print("-------------------------------\n");
+    print("rx_callback()\n");
     print("Packet received: \n");
     print("Packet type 0x%02x\n", data[0]); // should be HK_REQ
     print("Packet field 0x%02x\n", data[1]); // should be TEMP

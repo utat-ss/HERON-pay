@@ -243,7 +243,7 @@ uint8_t convert_gain_bits(uint8_t gain) {
 }
 
 void calibrate_adc(uint8_t mode_select_bits) {
-    // NOT TESTED YET
+    // TODO - NOT TESTED YET
 
     // Read from mode register
     uint32_t mode_data = read_ADC_register(MODE_ADDR);

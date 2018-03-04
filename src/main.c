@@ -21,13 +21,16 @@
 
 #include "main.h"
 #include <can/packets.h>
+#include <stdlib.h>
 
 // function prototypes for functions used only in main.c
 void pay_can_init(void);
 uint8_t handle_cmd(uint8_t*);
-uint8_t handle_hk_req(uint8_t page, uint8_t* data);
-uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data);
+uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data);
+uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data);
 
+// TODO - might need some other queue to store the length of each data array
+// Currently, just send 8 bytes even though we only use the first 5
 queue_t *cmd_queue;
 queue_t *data_tx_queue;
 
@@ -36,6 +39,7 @@ int main (void){
     print("\n\nUART Initialized\n");
     pay_can_init();
     init_can();
+	print("CAN Initialized\n");
 
     sensor_setup();
 
@@ -57,7 +61,7 @@ int main (void){
             resume_mob(&data_tx_mob); // resuming the mob attempts
             // to dequeue from the data_tx_queue
         }
-    };
+    }
 }
 
 void pay_can_init(void){
@@ -100,127 +104,170 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len){
 // this is for recieving commands
 // Receives commands and puts them in cmd_queue
 void cmd_rx_callback(uint8_t* data, uint8_t len){
-    // TODO is it always 8 bytes of data?
-    enqueue(cmd_queue, data);
-
-    // Example
-    print("RX received!\n");
+	print("cmd_rx_callback()\n");
+	print("RX received!\n");
 	for (int i = 0; i < len; i++) {
 		print("0x%02x ", data[i]);
 	}
 	print("\n");
+
+    // TODO is it always 8 bytes of data?
+    enqueue(cmd_queue, data);
+
+	print("Enqueued RX data\n");
 }
 
 // MOB 5
 void data_tx_callback(uint8_t* data, uint8_t* len) {
+	print("data_tx_callback()\n");
+
     if (!is_empty(data_tx_queue)) {
-        uint8_t data_to_send[8] = {0};
-        dequeue(data_tx_queue, data_to_send);
+        uint8_t tx_data[8] = {0};
+        dequeue(data_tx_queue, tx_data);
         *len = 8;
 
         for (int i = 0; i < 8; i++) {
-            data[i] = data_to_send[i];
+            data[i] = tx_data[i];
         }
+
+		print("Sending data: %x", data);
     } else {
         // otherwise, set len to zero, because we have no data to send
         *len = 0;
+
+		print("No data to send\n");
     }
 }
 
-uint8_t handle_cmd(uint8_t* data){
-    uint8_t result[8];  // data we are sending back
+// TODO - what is the return value?
+uint8_t handle_cmd(uint8_t* rx_data){
+	print("handle_cmd()\n");
 
-	result[0] = data[0];
-	result[1] = data[1];
+	// Data to send
+    uint8_t tx_data[8];
 
-    switch (data[0]){
+	// Repeat the identification bytes
+	tx_data[0] = rx_data[0];
+	tx_data[1] = rx_data[1];
+
+    switch (rx_data[0]){
         case PAY_HK_REQ:
-            handle_hk_req(data[1], result);  // NOTE can't send this all in one CAN frame
+            handle_hk_req(rx_data, tx_data);
             break;
-        case PAY_HK_SENSOR_REQ:
-            handle_hk_sensor_req(data[1], result);
+        case PAY_SCI_REQ:
+            handle_sci_req(rx_data, tx_data);
             break;
         default:
-            return 1;
+            break;
     }
 
-	enqueue(data_tx_queue, result);
+	enqueue(data_tx_queue, tx_data);
 
     return 0;
 }
 
-// get temp, humidity and pressure
-uint8_t handle_hk_req(uint8_t page, uint8_t* data){
-    switch (page){
-        case PAY_TEMP_1:
-            return handle_hk_sensor_req(PAY_TEMP_1, data);
-            break;
-        case PAY_HUMID_1:
-            return handle_hk_sensor_req(PAY_HUMID_1, data);
-            break;
-        case PAY_PRES_1:
-            return handle_hk_sensor_req(PAY_PRES_1, data);
-            break;
-        default:
-            return 1;
-    }
-}
+// Handles a housekeeping request - temperature, humidity, or pressure
+// Loads the sensor data onto tx_data
+// TODO - what is this supposed to return?
+uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
+	print("handle_hk_req()\n");
 
-// loads the sensor data of the sensor with id sensor_id into the array data
-uint8_t handle_hk_sensor_req(uint8_t sensor_id, uint8_t* data){
-    switch (sensor_id) {
-        case PAY_TEMP_1:
-        {
-            uint16_t temp = read_raw_temperature();
-            print("%x",temp);
+	// Need to declare this here because of the error
+	// "a label can only be part of a statement and a declaration is not a statement"
+	// (happens when a variable is declared inside the case statement)
+	uint16_t temp;
+	uint32_t pressure;
+	uint32_t humidity;
 
-            data[3] = (temp >> 8);
-            data[4] = (temp && 0x00FF);
-            data[2], data[5], data[6], data[7] = 0;
+    switch (rx_data[1]){
+        case PAY_TEMP_1:
+			// uint16_t temp = read_raw_temperature();
+			temp = rand() % ((uint32_t) 1 << 14);	// dummy value
+            print("PAY_TEMP_1: %x\n",temp);
+
+			tx_data[2] = 0;	// zero padded
+            tx_data[3] = (temp >> 8);
+            tx_data[4] = (temp && 0x00FF);
             break;
-        }
-        case PAY_PRES_1:
-        {
-            // have to send both the pressure and the temperature of the sensor
+
+
+		case PAY_PRES_1:
+			// TODO - why does this need temperature?
+			// have to send both the pressure and the temperature of the sensor
             // put data as <PRESSURE><TEMPERATURE>
-            uint32_t pressure = read_raw_pressure();
-            uint32_t temp = read_raw_pressure_temp();
+			// uint32_t temp = read_raw_pressure_temp();
 
-            data[0] = (pressure >> 24) & 0xFF;
-            data[1] = (pressure >> 16) & 0xFF;
-            data[2] = (pressure >> 8) & 0xFF;
-            data[3] = pressure & 0xFF;
+			// 24 bit value
+            // uint32_t pressure = read_raw_pressure();
+			pressure = rand() % ((uint32_t) 1 << 24);
+			print("PAY_PRES_1: %x\n", pressure);
 
-            data[4] = (temp >> 24) & 0xFF;
-            data[5] = (temp >> 16) & 0xFF;
-            data[6] = (temp >> 8) & 0xFF;
-            data[7] = temp & 0xFF;
+            tx_data[2] = (pressure >> 16) & 0xFF;
+            tx_data[3] = (pressure >> 8) & 0xFF;
+            tx_data[4] = pressure & 0xFF;
+
+            // data[4] = (temp >> 24) & 0xFF;
+            // data[5] = (temp >> 16) & 0xFF;
+            // data[6] = (temp >> 8) & 0xFF;
+            // data[7] = temp & 0xFF;
+
             break;
-        }
-    case PAY_HUMID_1:
-        {
-            uint32_t humidity = read_raw_humidity();
-            data[0] = (humidity >> 24) & 0xFF;
-            data[1] = (humidity >> 16) & 0xFF;
-            data[2] = (humidity >> 8) & 0xFF;
-            data[3] = humidity & 0xFF;
-            data[4], data[5], data[6], data[7] = 0;
+
+
+        case PAY_HUMID_1:
+			// read_raw_humidity() gives 16 bits of humidity followed by 16 bits of temperature,
+			// but humidity is a 14 bit value
+			// uint32_t humidity = (read_raw_humidity() >> 16) & 0x3FFF;
+			humidity = rand() % (1 << 14);	// dummy value
+			print("PAY_HUMID_1: %x\n", humidity);
+
+			tx_data[2] = 0;	// zero padded
+			tx_data[3] = (humidity >> 8) & 0xFF;
+			tx_data[4] = humidity & 0xFF;
+
+            // data[0] = (humidity >> 24) & 0xFF;
+            // data[1] = (humidity >> 16) & 0xFF;
+            // data[2] = (humidity >> 8) & 0xFF;
+            // data[3] = humidity & 0xFF;
             break;
-        }
-    case PAY_MF_TEMP_1:
-        // TODO talk with Dylan and implement
-        break;
-    case PAY_MF_TEMP_2:
-        // TODO talk with Dylan and implement
-        break;
-    case PAY_MF_TEMP_3:
-        // TODO talk with Dylan and implement
-        break;
-    default:
-        return 1;
+
+
+		// TODO talk with Dylan and implement
+		case PAY_MF_TEMP_1:
+	        break;
+	    case PAY_MF_TEMP_2:
+	        break;
+	    case PAY_MF_TEMP_3:
+	        break;
+
+        default:
+            return 1;
     }
 
+	return 0;
+}
 
+// Handles a science request - optical density or fluorescence
+// Loads the sensor data onto tx_data
+// TODO - what is this supposed to return?
+uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data){
+	print("handle_sci_req()\n");
+	// TODO - differentiate OD and FL measurements
 
-    return 0;
+	uint8_t well_num = rx_data[1] & 0x3F;
+
+	// Check 6 bytes for well number
+	// TODO - poll appropriate sensor
+	// switch (well_num) {
+	// }
+	// uint32_t reading = read_ADC_channel(well_num);
+
+	uint32_t reading = rand() % ((uint32_t) 1 << 24);
+	print("Well #%d: %x\n", well_num, reading);
+
+	tx_data[2] = (reading >> 16) & 0xFF;
+	tx_data[3] = (reading >> 8) & 0xFF;
+	tx_data[4] = reading & 0xFF;
+
+	return 0;
 }
