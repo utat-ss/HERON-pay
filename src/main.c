@@ -36,12 +36,14 @@ queue_t *data_tx_queue;
 
 int main (void){
     init_uart();
-    print("\n\nUART Initialized\n");
+    print("\nUART Initialized\n");
     pay_can_init();
+    print("CAN MOBs Initialized\n");
     init_can();
 	print("CAN Initialized\n");
 
     sensor_setup();
+    print("Sensors Initialized\n");
 
     // initialize the command queue
     init_queue(cmd_queue);
@@ -104,44 +106,63 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len){
 // this is for recieving commands
 // Receives commands and puts them in cmd_queue
 void cmd_rx_callback(uint8_t* data, uint8_t len){
-	print("cmd_rx_callback()\n");
-	print("RX received!\n");
+	print("\ncmd_rx_callback()\n");
+	print("Received CAN Message: ");
 	for (int i = 0; i < len; i++) {
 		print("0x%02x ", data[i]);
 	}
 	print("\n");
 
+    print("Packet: 0x%02x\n", data[0]);
+    print("Field: 0x%02x\n", data[1]);
+
     // TODO is it always 8 bytes of data?
     enqueue(cmd_queue, data);
 
-	print("Enqueued RX data\n");
+	print("Enqueued RX Message\n");
 }
 
 // MOB 5
 void data_tx_callback(uint8_t* data, uint8_t* len) {
-	print("data_tx_callback()\n");
+	print("\ndata_tx_callback()\n");
 
     if (!is_empty(data_tx_queue)) {
         uint8_t tx_data[8] = {0};
         dequeue(data_tx_queue, tx_data);
-        *len = 8;
+        *len = 8;   // TODO - check length
 
+        // TODO - can the intermediate variable tx_data be eliminated?
         for (int i = 0; i < 8; i++) {
             data[i] = tx_data[i];
         }
 
-		print("Sending data: %x", data);
+		print("Transmitting CAN Message: ");
+        for (int i = 0; i < *len; i++) {
+            print("0x%02x ", data[i]);
+        }
+        print("\n");
+
+        print("Packet: 0x%02x\n", data[0]);
+        print("Field: 0x%02x\n", data[1]);
+        print("Data: ");
+        for (int i = 2; i < *len; i++) {
+            print("0x%02x ", data[i]);
+        }
+        print("\n");
     } else {
         // otherwise, set len to zero, because we have no data to send
         *len = 0;
 
-		print("No data to send\n");
+		print("No CAN message to send\n");
     }
 }
 
 // TODO - what is the return value?
+// Answer: returns 1 for success, 0 for failure
 uint8_t handle_cmd(uint8_t* rx_data){
-	print("handle_cmd()\n");
+    uint8_t len = 8;    // TODO check
+
+	print("\nhandle_cmd()\n");
 
 	// Data to send
     uint8_t tx_data[8];
@@ -163,6 +184,20 @@ uint8_t handle_cmd(uint8_t* rx_data){
 
 	enqueue(data_tx_queue, tx_data);
 
+    print("Enqueued TX data\n");
+    for (int i = 0; i < len; i++) {
+        print("0x%02x ", tx_data[i]);
+    }
+    print("\n");
+
+    print("Packet: 0x%02x\n", tx_data[0]);
+    print("Field: 0x%02x\n", tx_data[1]);
+    print("Data: ");
+    for (int i = 2; i < len; i++) {
+        print("0x%02x ", tx_data[i]);
+    }
+    print("\n");
+
     return 0;
 }
 
@@ -170,7 +205,7 @@ uint8_t handle_cmd(uint8_t* rx_data){
 // Loads the sensor data onto tx_data
 // TODO - what is this supposed to return?
 uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
-	print("handle_hk_req()\n");
+	print("\nhandle_hk_req()\n");
 
 	// Need to declare this here because of the error
 	// "a label can only be part of a statement and a declaration is not a statement"
@@ -193,6 +228,7 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
 
 		case PAY_PRES_1:
 			// TODO - why does this need temperature?
+            // TODO - temperature needed for pressure calculation
 			// have to send both the pressure and the temperature of the sensor
             // put data as <PRESSURE><TEMPERATURE>
 			// uint32_t temp = read_raw_pressure_temp();
@@ -276,9 +312,10 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
 // Loads the sensor data onto tx_data
 // TODO - what is this supposed to return?
 uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data){
-	print("handle_sci_req()\n");
+	print("\nhandle_sci_req()\n");
 	// TODO - differentiate OD and FL measurements
 
+    // Isolate last 6 bits
 	uint8_t well_num = rx_data[1] & 0x3F;
 
     int channel;

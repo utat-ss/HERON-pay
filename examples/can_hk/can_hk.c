@@ -14,6 +14,8 @@
 void tx_callback(uint8_t*, uint8_t*);
 void rx_callback(uint8_t*, uint8_t);
 
+
+// TODO - might need to modify these MOBs to match the OBC MOBs
 mob_t tx_mob = {
     .mob_num = 0,
     .mob_type = TX_MOB,
@@ -37,13 +39,17 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     print("tx_callback()\n");
 
     uint8_t req[8] = { PAY_HK_REQ, PAY_TEMP_1 };
-    print("Sending packet: ");
-
     *len = 8;
+
+    print("Transmitting CAN Message: ");
     for (int i = 0; i < *len; i++) {
         data[i] = req[i];
-        print("%x ", data[i]);
+        print("0x%02x ", data[i]);
     }
+    print("\n");
+
+    print("Packet: 0x%02x\n", data[0]); // should be HK_REQ
+    print("Field: 0x%02x\n", data[1]); // should be TEMP_1
 
     print("\n");
     print("-------------------------------\n");
@@ -52,13 +58,20 @@ void tx_callback(uint8_t* data, uint8_t* len) {
 void rx_callback(uint8_t* data, uint8_t len) {
     print("-------------------------------\n");
     print("rx_callback()\n");
-    print("Packet received: \n");
-    print("Packet type 0x%02x\n", data[0]); // should be HK_REQ
-    print("Packet field 0x%02x\n", data[1]); // should be TEMP
-    print("Packet contents:\n");
-    for (int i = 2; i < len; i++) {
-        print("0x%02x\n", data[i]);
+
+    print("Received CAN Message: ");
+    for (int i = 0; i < len; i++) {
+        print("0x%02x ", data[i]);
     }
+    print("\n");
+
+    print("Packet: 0x%02x\n", data[0]); // should be HK_REQ
+    print("Field: 0x%02x\n", data[1]); // should be TEMP_1
+    print("Data: ");
+    for (int i = 2; i < len; i++) {
+        print("0x%02x ", data[i]);
+    }
+    print("\n");
     print("-------------------------------\n");
 }
 
