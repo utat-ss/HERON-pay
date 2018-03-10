@@ -34,25 +34,86 @@ mob_t rx_mob = {
     .rx_cb = rx_callback
 };
 
+uint8_t sensor_to_poll = 0;
+
 void tx_callback(uint8_t* data, uint8_t* len) {
-    print("-------------------------------\n");
-    print("tx_callback()\n");
+    if (sensor_to_poll == 0) {
+        print("-------------------------------\n");
+        print("tx_callback()\n");
 
-    uint8_t req[8] = { PAY_HK_REQ, PAY_TEMP_1 };
-    *len = 8;
+        uint8_t req[8] = { PAY_HK_REQ, PAY_TEMP_1 };
+        *len = 8;
 
-    print("Transmitting CAN Message: ");
-    for (int i = 0; i < *len; i++) {
-        data[i] = req[i];
-        print("0x%02x ", data[i]);
+        print("Transmitting CAN Message: ");
+        for (int i = 0; i < *len; i++) {
+            data[i] = req[i];
+            print("0x%02x ", data[i]);
+        }
+        print("\n");
+
+        print("Packet: 0x%02x\n", data[0]); // should be HK_REQ
+        print("Field: 0x%02x\n", data[1]); // should be TEMP_1
+
+        print("\n");
+        print("-------------------------------\n");
     }
-    print("\n");
 
-    print("Packet: 0x%02x\n", data[0]); // should be HK_REQ
-    print("Field: 0x%02x\n", data[1]); // should be TEMP_1
+    else {
+        print("-------------------------------\n");
+        print("tx_callback()\n");
+        print("Sensor to poll: %d\n", sensor_to_poll);
 
-    print("\n");
-    print("-------------------------------\n");
+        *len = 8;
+
+        switch (sensor_to_poll) {
+            case 1:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_TEMP_1;
+                break;
+            case 2:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_PRES_1;
+                break;
+            case 3:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_HUMID_1;
+                break;
+            case 4:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_MF_TEMP_1;
+                break;
+            case 5:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_MF_TEMP_2;
+                break;
+            case 6:
+                data[0] = PAY_HK_REQ;
+                data[1] = PAY_MF_TEMP_3;
+                break;
+            case 7:
+                data[0] = PAY_SCI_REQ;
+                data[1] = 0b0;
+                break;
+            case 8:
+                data[0] = PAY_SCI_REQ;
+                data[1] = 0b1;
+                break;
+            default:
+                break;
+        }
+
+        print("Transmitting CAN Message: ");
+        for (int i = 0; i < *len; i++) {
+            print("0x%02x ", data[i]);
+        }
+        print("\n");
+
+        print("Packet: 0x%02x\n", data[0]);
+        print("Field: 0x%02x\n", data[1]);
+
+        print("\n");
+        print("-------------------------------\n");
+    }
 }
 
 void rx_callback(uint8_t* data, uint8_t len) {
@@ -75,6 +136,32 @@ void rx_callback(uint8_t* data, uint8_t len) {
     print("-------------------------------\n");
 }
 
+void print_sensor_list() {
+    print("\nPoll Sensor:\n");
+    print("1. Temperature 1\n");
+    print("2. Pressure 1\n");
+    print("3. Humidity 1\n");
+    print("4. MF Temperature 1\n");
+    print("5. MF Temperature 2\n");
+    print("6. MF Temperature 3\n");
+    print("7. Optical 1 (TEMD)\n");
+    print("8. Optical 2 (SFH)\n");
+}
+
+void uart_read_callback(uint8_t *buf, uint8_t len) {
+    print("uart_read_callback()\n");
+
+    for (int i = 0; i < len; i++) {
+        print("UART: Received %c\n", buf[i]);
+        sensor_to_poll = (int) (buf[i] - '0');
+    }
+    resume_mob(&tx_mob);
+
+    clear_rx_buffer();
+    print_sensor_list();
+}
+
+
 int main(void) {
     init_uart();
     init_can();
@@ -84,7 +171,11 @@ int main(void) {
 
     while (1) {
         resume_mob(&tx_mob);
+        _delay_ms(10000);
     }
+
+    register_callback(uart_read_callback);
+    print_sensor_list();
 
     return 0;
 }

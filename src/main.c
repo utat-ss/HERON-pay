@@ -235,7 +235,7 @@ uint8_t handle_hk_req(uint8_t* rx_data, uint8_t* tx_data){
 
 			// 24 bit value
             // pressure = read_raw_pressure();
-			pressure = rand() % ((uint32_t) 1 << 24);
+			pressure = rand() % ((uint32_t) 1 << 24);    // dummy value
 			print("PAY_PRES_1: %x\n", pressure);
 
             tx_data[2] = (pressure >> 16) & 0xFF;
@@ -338,9 +338,11 @@ uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data){
     // TODO - activate LED
 	// uint32_t reading = read_ADC_channel(channel);
 
-	uint32_t reading = rand() % ((uint32_t) 1 << 24);
-	print("Well #%d: %x\n", well_num, reading);
-
+	uint32_t reading = rand() % ((uint32_t) 1 << 24);  // dummy value
+    print("Channel: %d\n", channel);
+    print("LED: %d\n", LED);
+	print("Well #%d: 0x%x\n", well_num, reading);
+    
 	tx_data[2] = (reading >> 16) & 0xFF;
 	tx_data[3] = (reading >> 8) & 0xFF;
 	tx_data[4] = reading & 0xFF;
