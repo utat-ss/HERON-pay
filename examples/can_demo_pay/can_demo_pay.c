@@ -18,9 +18,19 @@ mob_t rx_mob = {
     .rx_cb = rx_callback
 };
 
+void print_bytes(uint8_t *data, uint8_t len) {
+    for (uint8_t i = 0; i < len; i++) {
+        print("0x%02x ", data[i]);
+    }
+    print("\n");
+}
+
 void rx_callback(uint8_t* data, uint8_t len) {
     print("RX received!\n");
     print("%s\n", (char *) data);
+
+    print("Received Data:\n");
+    print_bytes(data, len);
 }
 
 int main(void) {

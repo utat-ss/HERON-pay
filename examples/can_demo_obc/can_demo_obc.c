@@ -17,6 +17,13 @@ mob_t tx_mob = {
     .tx_data_cb = tx_callback
 };
 
+void print_bytes(uint8_t *data, uint8_t len) {
+    for (uint8_t i = 0; i < len; i++) {
+        print("0x%02x ", data[i]);
+    }
+    print("\n");
+}
+
 void tx_callback(uint8_t* data, uint8_t* len) {
     *len = 8;
     char str[] = "Working";
@@ -24,6 +31,9 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     for(uint8_t i = 0; i < *len; i++) {
         data[i] = str[i];
     }
+
+    print("Transmitting Data:\n");
+    print_bytes(data, *len);
 }
 
 int main(void) {
