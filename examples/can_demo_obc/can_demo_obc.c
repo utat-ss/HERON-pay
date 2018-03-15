@@ -9,7 +9,7 @@
 #include <util/delay.h>
 #include "../../src/sensors.h"
 
-int req_num = 0;    // 0-4
+int req_num = 0;    // 0-4 -> 0-1
 
 void tx_callback(uint8_t*, uint8_t*);
 void rx_callback(uint8_t*, uint8_t);
@@ -45,6 +45,31 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     *len = 8;
 
     switch (req_num) {
+        // case 0:
+        //     data[0] = PAY_HK_REQ;
+        //     data[1] = PAY_TEMP_1;
+        //     break;
+        //
+        // case 1:
+        //     data[0] = PAY_HK_REQ;
+        //     data[1] = PAY_PRES_1;
+        //     break;
+        //
+        // case 2:
+        //     data[0] = PAY_HK_REQ;
+        //     data[1] = PAY_HUMID_1;
+        //     break;
+        //
+        // case 3:
+        //     data[0] = PAY_SCI_REQ;
+        //     data[1] = 0b0;
+        //     break;
+        //
+        // case 4:
+        //     data[0] = PAY_SCI_REQ;
+        //     data[1] = 0b1;
+        //     break;
+
         case 0:
             data[0] = PAY_HK_REQ;
             data[1] = PAY_TEMP_1;
@@ -52,22 +77,7 @@ void tx_callback(uint8_t* data, uint8_t* len) {
 
         case 1:
             data[0] = PAY_HK_REQ;
-            data[1] = PAY_PRES_1;
-            break;
-
-        case 2:
-            data[0] = PAY_HK_REQ;
             data[1] = PAY_HUMID_1;
-            break;
-
-        case 3:
-            data[0] = PAY_SCI_REQ;
-            data[1] = 0b0;
-            break;
-
-        case 4:
-            data[0] = PAY_SCI_REQ;
-            data[1] = 0b1;
             break;
 
         default:
@@ -76,7 +86,7 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     }
 
     req_num++;
-    if (req_num > 4) {
+    if (req_num > 1) {
         req_num = 0;
     }
 
