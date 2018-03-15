@@ -7,6 +7,7 @@
 #include <can/can.h>
 #include <can/packets.h>
 #include <util/delay.h>
+#include "../../src/sensors.h"
 
 int req_num = 0;    // 0-4
 
@@ -89,6 +90,10 @@ void rx_callback(uint8_t* data, uint8_t len) {
 
     print("Received Data:\n");
     print_bytes(data, len);
+    uint32_t raw_humidity = 0;
+    raw_humidity = (uint32_t)data[3] << 24 | (uint32_t)data[4] << 16;
+    double converted = convert_humidity(raw_humidity);
+    print("%d\n",(int)converted);
 }
 
 
@@ -100,12 +105,13 @@ int main(void) {
     init_tx_mob(&tx_mob);
     init_rx_mob(&rx_mob);
 
-    while (1) {
+    while(1) {
         resume_mob(&tx_mob);
         while (!is_paused(&tx_mob)) {};
         _delay_ms(2000);
-
-        print("Status: %#02x\n", mob_status(&tx_mob));
-        print("Tx error count: %d\n", CANTEC);
     }
+
+    print("Status: %#02x\n", mob_status(&tx_mob));
+    print("Tx error count: %d\n", CANTEC);
+
 }
