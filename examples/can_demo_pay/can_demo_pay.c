@@ -72,6 +72,14 @@ void tx_callback_hk(uint8_t* data, uint8_t *len) {
 
         case PAY_HUMID_1:
             print("PAY_HUMID_1\n");
+
+            print("GETTING HUMIDITY\n");
+            uint32_t raw_humidity = read_raw_humidity();
+            print("DONE GETTING HUMIDITY\n");
+            data[2] = 0x00;
+            data[3] = (raw_humidity >> 24) & 0xFF;
+            data[4] = (raw_humidity >> 16) & 0xFF;
+
             break;
     }
 }
@@ -131,13 +139,6 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     data[5] = 0;
     data[6] = 0;
     data[7] = 0;
-
-    print("GETTING HUMIDITY\n");
-    uint32_t raw_humidity = read_raw_humidity();
-    print("DONE GETTING HUMIDITY\n");
-    data[2] = 0x00;
-    data[3] = (raw_humidity >> 24) & 0xFF;
-    data[4] = (raw_humidity >> 16) & 0xFF;
 
     response_counter += ((uint32_t) 1 << 16) - 1;
 
