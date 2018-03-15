@@ -31,6 +31,7 @@ mob_t tx_mob = {
 
 uint8_t rx_data[8];
 volatile bool respond = false;
+uint32_t response_counter = 0;
 
 
 void print_bytes(uint8_t *data, uint8_t len) {
@@ -95,7 +96,15 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     data[1] = rx_data[1];
 
     // TODO remove
-    data[2] = 0x09;
+    // data[2] = 0x09;
+    data[2] = (response_counter >> 16) & 0xFF;
+    data[3] = (response_counter >> 8) & 0xFF;
+    data[4] = (response_counter >> 0) & 0xFF;
+    data[5] = 0;
+    data[6] = 0;
+    data[7] = 0;
+
+    response_counter += 2500;
 
     switch (rx_data[0]) {
         case PAY_HK_REQ:
