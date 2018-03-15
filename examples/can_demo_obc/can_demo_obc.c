@@ -11,6 +11,7 @@
 int req_num = 0;    // 0-4
 
 void tx_callback(uint8_t*, uint8_t*);
+void rx_callback(uint8_t*, uint8_t);
 
 mob_t tx_mob = {
     .mob_num = 0,
@@ -18,6 +19,16 @@ mob_t tx_mob = {
     .id_tag = { 0x0000 },
     .ctrl = default_tx_ctrl,
     .tx_data_cb = tx_callback
+};
+
+mob_t rx_mob = {
+    .mob_num = 3,
+    .mob_type = RX_MOB,
+    .dlc = 8,
+    .id_tag = { 0x0000 },
+    .id_mask = { 0x0000 },
+    .ctrl = default_rx_ctrl,
+    .rx_cb = rx_callback
 };
 
 void print_bytes(uint8_t *data, uint8_t len) {
@@ -28,12 +39,7 @@ void print_bytes(uint8_t *data, uint8_t len) {
 }
 
 void tx_callback(uint8_t* data, uint8_t* len) {
-    // *len = 8;
-    // char str[] = "Working";
-    //
-    // for(uint8_t i = 0; i < *len; i++) {
-    //     data[i] = str[i];
-    // }
+    print("\nTX Callback\n");
 
     *len = 8;
 
@@ -77,12 +83,22 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     print_bytes(data, *len);
 }
 
+
+void rx_callback(uint8_t* data, uint8_t len) {
+    print("RX callback!\n");
+
+    print("Received Data:\n");
+    print_bytes(data, len);
+}
+
+
 int main(void) {
     init_uart();
-    print("UART initialized\n");
+    print("\n\nUART initialized\n");
 
     init_can();
     init_tx_mob(&tx_mob);
+    init_rx_mob(&rx_mob);
 
     while (1) {
         resume_mob(&tx_mob);
