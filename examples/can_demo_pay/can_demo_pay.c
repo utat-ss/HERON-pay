@@ -64,6 +64,20 @@ void tx_callback_hk(uint8_t* data, uint8_t *len) {
     switch (rx_data[1]) {
         case PAY_TEMP_1:
             print("PAY_TEMP_1\n");
+
+
+            // TODO - fix issues with temperature sometimes getting 0
+            print("GETTING TEMPERATURE\n");
+            uint16_t raw_temperature = 0;
+            int attempts = 0;
+            for (attempts = 0; raw_temperature == 0; attempts++) {
+                raw_temperature = read_raw_temperature();
+            }
+            print("DONE GETTING TEMPERATURE: %d attempts\n", attempts);
+            data[2] = 0x00;
+            data[3] = (raw_temperature >> 8) & 0xFF;
+            data[4] = raw_temperature & 0xFF;
+
             break;
 
         case PAY_PRES_1:

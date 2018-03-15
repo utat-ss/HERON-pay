@@ -100,10 +100,33 @@ void rx_callback(uint8_t* data, uint8_t len) {
 
     print("Received Data:\n");
     print_bytes(data, len);
-    uint32_t raw_humidity = 0;
-    raw_humidity = ((uint32_t)data[3] << 24) | ((uint32_t)data[4] << 16);
-    double converted = convert_humidity(raw_humidity);
-    print("%d\n",(int)converted);
+
+    if (data[0] == PAY_HK_REQ) {
+        uint16_t raw_temperature = 0;
+        uint32_t raw_humidity = 0;
+        double converted;
+
+        switch (data[1]) {
+            case PAY_TEMP_1:
+                raw_temperature = ((uint16_t)data[3] << 8) | (uint16_t)data[4];
+                converted = convert_temperature(raw_temperature);
+                print("--------\n");
+                print("Temperature: %d C\n",(int)converted);
+                print("--------\n");
+                break;
+
+            case PAY_HUMID_1:
+                raw_humidity = ((uint32_t)data[3] << 24) | ((uint32_t)data[4] << 16);
+                converted = convert_humidity(raw_humidity);
+                print("--------\n");
+                print("Humidity: %d percent\n",(int)converted);
+                print("--------\n");
+                break;
+
+            default:
+                break;
+        }
+    }
 }
 
 
