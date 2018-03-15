@@ -132,6 +132,13 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     data[6] = 0;
     data[7] = 0;
 
+    print("GETTING HUMIDITY\n");
+    uint32_t raw_humidity = read_raw_humidity();
+    print("DONE GETTING HUMIDITY\n");
+    data[2] = 0x00;
+    data[3] = (raw_humidity >> 24) & 0xFF;
+    data[4] = (raw_humidity >> 16) & 0xFF;
+
     response_counter += ((uint32_t) 1 << 16) - 1;
 
     switch (rx_data[0]) {
@@ -157,9 +164,14 @@ int main(void) {
     init_uart();
     print("\n\nUART initialized\n");
 
+    init_spi();
+    sensor_setup();
+
     init_can();
     init_rx_mob(&rx_mob);
     init_tx_mob(&tx_mob);
+
+
 
     print("Waiting for RX\n");
     while (1) {
