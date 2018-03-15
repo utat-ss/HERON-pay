@@ -7,6 +7,8 @@
 #include <can/can.h>
 #include <can/packets.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include "../../src/sensors.h"
 
 void rx_callback(uint8_t*, uint8_t);
 void tx_callback(uint8_t*, uint8_t*);
@@ -75,16 +77,42 @@ void tx_callback_hk(uint8_t* data, uint8_t *len) {
 }
 
 void tx_callback_sci(uint8_t* data, uint8_t *len) {
-    // Last 6 bits
-    switch (rx_data[1] & 0b111111) {
+	uint8_t well_num = rx_data[1] & 0x3F;
+
+    int channel = 0;
+    int LED = 0;
+
+	// Check 6 bytes for well number, poll appropriate sensor
+	// TODO - add more sensors
+	switch (well_num) {
+        // TEMD
         case 0:
             print("Optical 0\n");
+        	channel = 5;
+        	LED = LED_2;
             break;
 
+        // SFH
         case 1:
             print("Optical 1\n");
+        	channel = 6;
+        	LED = LED_3;
             break;
-    }
+	}
+
+    // TODO - activate LED
+
+    print("Well %d, Channel %d, LED %d\n", well_num, channel, LED);
+
+    // Get random dummy value
+    // uint32_t reading = read_ADC_channel(channel);
+    uint32_t reading = rand() % ((uint32_t) 1 << 16);  // dummy value
+    reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
+	// print("0x%02x%02x%02x\n", (reading >> 16) & 0xFF, (reading >> 8) & 0xFF, reading & 0xFF);
+
+	data[2] = (reading >> 16) & 0xFF;
+	data[3] = (reading >> 8) & 0xFF;
+	data[4] = reading & 0xFF;
 }
 
 void tx_callback(uint8_t* data, uint8_t* len) {
@@ -104,7 +132,7 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     data[6] = 0;
     data[7] = 0;
 
-    response_counter += 2500;
+    response_counter += ((uint32_t) 1 << 16) - 1;
 
     switch (rx_data[0]) {
         case PAY_HK_REQ:
