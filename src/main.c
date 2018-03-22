@@ -5,7 +5,7 @@
 
     DESCRIPTION:        Main functions to be implemented on the PAY 32M1
     AUTHORS:            Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-    DATE MODIFIED:      2017-12-28
+    DATE MODIFIED:      2018-02-24
     NOTE:
     PLEASE DON'T COMMIT YOUR TESTING CODE
     ONLY COMMIT ACTUAL CHANGES TO MAIN.C
@@ -342,7 +342,7 @@ uint8_t handle_sci_req(uint8_t* rx_data, uint8_t* tx_data){
     print("Channel: %d\n", channel);
     print("LED: %d\n", LED);
 	print("Well #%d: 0x%x\n", well_num, reading);
-    
+
 	tx_data[2] = (reading >> 16) & 0xFF;
 	tx_data[3] = (reading >> 8) & 0xFF;
 	tx_data[4] = reading & 0xFF;

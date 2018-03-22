@@ -19,11 +19,13 @@ int main(void){
     init_thermistor();
 
     while(1){
-        data = read_thermistor_adc(0);        // change to desired channel
+        int i = 0;
+        data = read_thermistor_adc(i);        // FIXME: change to desired channel
         print("Raw ADC value: %lX\n", (uint32_t)(data));
 
-        resistance = convert_thermistor_reading(data);
+        resistance = convert_thermistor_reading(data, i);
         print("Resistance (Ohm): %u\n", (int)(resistance * 1000));
+        print("Reference Channel: %u\n", (int)(R_REF[i]));
 
         temp = resistance_to_temp(resistance);
         print("Temperature (mC): %u\n", (int)(temp * 1000));

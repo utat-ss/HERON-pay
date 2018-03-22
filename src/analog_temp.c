@@ -62,7 +62,7 @@ uint16_t read_thermistor_adc(int channel){
     return data;
 }
 
-double convert_thermistor_reading(uint16_t adc_reading){
+double convert_thermistor_reading(uint16_t adc_reading, int channel){
     // Converts the ADC reading into a thermistor resistance
     // Assumes the thermistor is wired in series with a resistor of resistance
     // R_REF, using the 2.5V ADC reference voltage
@@ -74,7 +74,7 @@ double convert_thermistor_reading(uint16_t adc_reading){
     double res;
 
     res = (double)(1<<12) / adc_reading;
-    res = R_REF * (res - 1.0);
+    res = (double)(R_REF[channel]) / 1000.0 * (res - 1.0);
 
     return res;
 }
