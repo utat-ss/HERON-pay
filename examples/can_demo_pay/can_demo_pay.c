@@ -5,6 +5,7 @@
 #include <uart/uart.h>
 #include <uart/log.h>
 #include <can/can.h>
+#include <can/can_ids.h>
 #include <can/packets.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -17,8 +18,10 @@ mob_t rx_mob = {
     .mob_num = 1,
     .mob_type = RX_MOB,
     .dlc = 8,
-    .id_tag = { 0x0000 },
-    .id_mask = { 0x0001 },
+    // .id_tag = { 0x0000 },
+    // .id_mask = { 0x0001 },
+    .id_tag = PAY_CMD_RX_MOB_ID,
+    .id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
     .rx_cb = rx_callback
 };
@@ -26,7 +29,8 @@ mob_t rx_mob = {
 mob_t tx_mob = {
     .mob_num = 2,
     .mob_type = TX_MOB,
-    .id_tag = { 0x0001 },
+    // .id_tag = { 0x0001 },
+    .id_tag = PAY_DATA_TX_MOB_ID,
     .ctrl = default_tx_ctrl,
     .tx_data_cb = tx_callback
 };
