@@ -19,12 +19,24 @@ uint16_t PROM_data[8];
 
 void sensor_setup(void);
 
+// temp
 float read_temperature(void);
-uint32_t get_raw_humidity(void);
-double read_humidity(void);
-double read_humidity_temp(void);
+uint16_t read_raw_temperature(void);
+float convert_temperature(uint16_t raw_temp_data);
 
+// humidity
+uint32_t read_raw_humidity(void);
+double read_humidity(void);
+double convert_humidity(uint32_t);
+double read_humidity_temp(void);
+uint16_t read_raw_humidity_temp(void);
+double convert_humidity_temp(uint16_t raw_humidity_temp);
+
+// pressure
+void init_pressure_sensor(void);
 void pressure_sensor_reset(void);
-uint16_t read_PROM(uint8_t address);
+uint16_t read_PROM(uint8_t);
 uint32_t pressure_sensor_read(uint8_t);
-float read_pressure(uint16_t*);
+uint32_t read_raw_pressure(void);
+uint32_t read_raw_pressure_temp(void);
+float convert_pressure(uint16_t*, uint32_t, uint32_t);

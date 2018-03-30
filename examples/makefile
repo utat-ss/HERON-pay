@@ -6,6 +6,7 @@ CFLAGS = -Wall -g -mmcu=atmega32m1 -Os -mcall-prologues
 PGMR = stk500
 MCU = m32m1
 PORT = /dev/tty.usbmodem00187462
+#PORT = /dev/tty.usbmodem00208212
 
 # SRC is defined in the example-specific makefile
 OBJ = $(SRC:../../src%.c=..%.o)
