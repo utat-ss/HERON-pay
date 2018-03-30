@@ -27,7 +27,7 @@
 // void status_rx_callback(uint8_t* data, uint8_t len);
 // void status_tx_callback(uint8_t* data, uint8_t* len);
 // void cmd_tx_callback(uint8_t* data, uint8_t* len);
-void cmd_rx_callback(uint8_t* data, uint8_t len);
+void cmd_rx_callback(const uint8_t* data, uint8_t len);
 void data_tx_callback(uint8_t* data, uint8_t* len);
 
 // /*

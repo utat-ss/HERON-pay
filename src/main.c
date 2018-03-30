@@ -392,13 +392,19 @@
 void rx_callback(uint8_t*, uint8_t);
 void tx_callback(uint8_t*, uint8_t*);
 
+// CAN messages received but not processed yet
+queue_t rx_message_queue;
+// CAN messages to transmit
+queue_t tx_message_queue;
 
-
-uint8_t rx_data[8];
-volatile bool respond = false;
+// uint8_t rx_data[8];
+// volatile bool respond = false;
 uint32_t response_counter = 0;
 
 
+
+
+// Prints the given data, with each byte separate and in hex format
 void print_bytes(uint8_t *data, uint8_t len) {
     for (uint8_t i = 0; i < len; i++) {
         print("0x%02x ", data[i]);
@@ -407,42 +413,60 @@ void print_bytes(uint8_t *data, uint8_t len) {
 }
 
 
-void cmd_rx_callback(uint8_t* data, uint8_t len) {
-    print("\nRX callback!\n");
-    // print("%s\n", (char *) data);
+// Gets the raw 24 bit optical measurement using the given ADC channel and LED
+// (quickly pulses the LED and reads the optical measurement)
+uint32_t read_optical_raw(int channel, int LED) {
+    print("Getting optical data: channel %d, LED %d\n", channel, LED);
 
-    print("Received Data:\n");
-    print_bytes(data, len);
+    // Turn LED on
+    set_gpio_a(SENSOR_PCB, LED);
+    _delay_ms(10);
 
-    // Store RX data
-    for (int i = 0; i < 8; i++) {
-        rx_data[i] = data[i];
-    }
+    // Read sensor
+    uint32_t read_data = read_ADC_channel(channel);
+    // print("%d:  %lu  %lX\t  %lu\n",
+    //             // i, read_data * ((uint32_t)1000) / ((uint32_t)0xFFFFFF), read_data, read_data);
+    //             i, (uint32_t)(((double)read_data / (double)0xFFFFFF) * 1000.0) , read_data, read_data);
 
-    respond = true;
+    // Turn LED off
+    // BUG: Shouldn't 'hard reset' the PEX in final implementation
+    clear_gpio_a(SENSOR_PCB, LED);
+    adc_pex_hard_rst();
+
+    print("Done getting optical data\n");
+
+    return read_data;
 }
 
 
-void tx_callback_hk(uint8_t* data, uint8_t *len) {
-    switch (rx_data[1]) {
+
+
+// Assuming a housekeeping request was received,
+// retrieves and places the appropriate data in the tx_data buffer
+void handle_rx_hk(uint8_t* tx_data) {
+    // Check field number
+    switch (tx_data[1]) {
         case PAY_TEMP_1:
             print("PAY_TEMP_1\n");
 
+            // TODO - fix issues with temperature sometimes reading 0
+            print("Getting temperature\n");
 
-            // TODO - fix issues with temperature sometimes getting 0
-            print("GETTING TEMPERATURE\n");
             uint16_t raw_temperature = 0;
             int attempts = 0;
             for (attempts = 0; raw_temperature == 0; attempts++) {
                 raw_temperature = read_raw_temperature();
             }
-            print("DONE GETTING TEMPERATURE: %d attempts\n", attempts);
-            data[2] = 0x00;
-            data[3] = (raw_temperature >> 8) & 0xFF;
-            data[4] = raw_temperature & 0xFF;
+
+            print("Done getting temperature: %d attempts\n", attempts);
+
+            tx_data[2] = 0x00;
+            tx_data[3] = (raw_temperature >> 8) & 0xFF;
+            tx_data[4] = raw_temperature & 0xFF;
 
             break;
 
+        // TODO
         case PAY_PRES_1:
             print("PAY_PRES_1\n");
             break;
@@ -450,113 +474,223 @@ void tx_callback_hk(uint8_t* data, uint8_t *len) {
         case PAY_HUMID_1:
             print("PAY_HUMID_1\n");
 
-            print("GETTING HUMIDITY\n");
+            print("Getting humidity\n");
             uint32_t raw_humidity = read_raw_humidity();
-            print("DONE GETTING HUMIDITY\n");
-            data[2] = 0x00;
-            data[3] = (raw_humidity >> 24) & 0xFF;
-            data[4] = (raw_humidity >> 16) & 0xFF;
+            print("Done getting humidity\n");
 
+            // Use the most significant (left-most) 16 bits, which are humidity
+            tx_data[2] = 0x00;
+            tx_data[3] = (raw_humidity >> 24) & 0xFF;
+            tx_data[4] = (raw_humidity >> 16) & 0xFF;
+
+            break;
+
+        // TODO
+        case PAY_MF_TEMP_1:
+            print("PAY_MF_TEMP_1\n");
+            break;
+        case PAY_MF_TEMP_2:
+            print("PAY_MF_TEMP_2\n");
+            break;
+        case PAY_MF_TEMP_3:
+            print("PAY_MF_TEMP_3\n");
+            break;
+
+        default:
+            print("Unknown housekeeping field number\n");
             break;
     }
 }
 
-void tx_callback_sci(uint8_t* data, uint8_t *len) {
-	uint8_t well_num = rx_data[1] & 0x3F;
 
+// Assuming a science request was received,
+// retrieves and places the appropriate data in the tx_data buffer
+void handle_rx_sci(uint8_t* tx_data) {
+    // For sensor to poll
     int channel = 0;
     int LED = 0;
 
-	// Check 6 bytes for well number, poll appropriate sensor
-	// TODO - add more sensors
-	switch (well_num) {
-        // TEMD
-        case 0:
-            print("Optical 0\n");
+	// Check field number
+	switch (tx_data[1]) {
+        case PAY_SCI_TEMD:
+            print("PAY_SCI_TEMD\n");
         	channel = 5;
         	LED = LED_2;
             break;
 
-        // SFH
-        case 1:
-            print("Optical 1\n");
+        case PAY_SCI_SFH:
+            print("PAY_SCI_SFH\n");
         	channel = 6;
         	LED = LED_3;
             break;
+
+        default:
+            print ("Unknown science field number\n");
+            return;
 	}
 
-    // TODO - activate LED
+    // random dummy value
+    // uint32_t reading = rand() % ((uint32_t) 1 << 16);
+    // reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
 
-    print("Well %d, Channel %d, LED %d\n", well_num, channel, LED);
+    // Actual value
+    uint32_t optical_reading = read_optical_raw(channel, LED);
 
-    // Get random dummy value
-    // uint32_t reading = read_ADC_channel(channel);
-    uint32_t reading = rand() % ((uint32_t) 1 << 16);  // dummy value
-    reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
-	// print("0x%02x%02x%02x\n", (reading >> 16) & 0xFF, (reading >> 8) & 0xFF, reading & 0xFF);
-
-	data[2] = (reading >> 16) & 0xFF;
-	data[3] = (reading >> 8) & 0xFF;
-	data[4] = reading & 0xFF;
+	tx_data[2] = (optical_reading >> 16) & 0xFF;
+	tx_data[3] = (optical_reading >> 8) & 0xFF;
+	tx_data[4] = optical_reading & 0xFF;
 }
 
-void data_tx_callback(uint8_t* data, uint8_t* len) {
-    print("TX callback\n");
 
-    *len = 8;
+void handle_rx() {
+    if (is_empty(&rx_message_queue)) {
+        print("No data in RX message queue\n");
+        return;
+    }
 
-    data[0] = rx_data[0];
-    data[1] = rx_data[1];
+    // Received message
+    uint8_t rx_data[8];
+    dequeue(&rx_message_queue, rx_data);
+    print("Dequeued RX Message\n");
+    print_bytes(rx_data, 8);
 
-    // TODO remove
-    // data[2] = 0x09;
-    data[2] = (response_counter >> 16) & 0xFF;
-    data[3] = (response_counter >> 8) & 0xFF;
-    data[4] = (response_counter >> 0) & 0xFF;
-    data[5] = 0;
-    data[6] = 0;
-    data[7] = 0;
+    // Message to transmit
+    uint8_t tx_data[8];
 
-    response_counter += ((uint32_t) 1 << 16) - 1;
+    // Send back the message type and field number
+    tx_data[0] = rx_data[0];
+    tx_data[1] = rx_data[1];
 
+    // Fill the rest with zeros just in case
+    for (uint8_t i = 2; i < 8; i++) {
+        tx_data[i] = 0;
+    }
+
+    // Check message type
     switch (rx_data[0]) {
         case PAY_HK_REQ:
             print("PAY_HK_REQ\n");
-            tx_callback_hk(data, len);
+            handle_rx_hk(tx_data);
             break;
 
         case PAY_SCI_REQ:
             print("PAY_SCI_REQ\n");
-            tx_callback_sci(data, len);
+            handle_rx_sci(tx_data);
+            break;
+
+        // TODO
+        case PAY_HEATER_REQ:
+            print("PAY_HEATER_REQ\n");
+            break;
+
+        default:
+            print("Unknown message type\n");
             break;
     }
 
-    print("Transmitting Data:\n");
-    print_bytes(data, *len);
-
-    respond = false;
+    // Enqueue TX data to transmit
+    enqueue(&tx_message_queue, tx_data);
+    print("Enqueued TX Message\n");
+    print_bytes(tx_data, 8);
 }
 
 
+
+
+// CAN RX interrupt for received commands
+void cmd_rx_callback(const uint8_t* data, uint8_t len) {
+    print("CMD RX Callback\n");
+    print_bytes((uint8_t *) data, len);
+
+    // TODO - would this ever happen?
+    if (len == 0) {
+        print("Received empty message\n");
+    }
+
+    // If the RX message exists, add it to the queue of received messages to process
+    else {
+        enqueue(&rx_message_queue, (uint8_t *) data);
+        print("Enqueued RX message");
+    }
+}
+
+
+// CAN TX interrupt for sending data
+void data_tx_callback(uint8_t* data, uint8_t* len) {
+    print("Data TX Callback\n");
+
+    // TODO - would this ever happen?
+    if (is_empty(&tx_message_queue)) {
+        *len = 0;
+
+        print("No message to transmit\n");
+    }
+
+    // If there is a message in the TX queue, transmit it
+    else {
+        dequeue(&tx_message_queue, data);
+        *len = 8;
+
+        print("Dequeued TX Message\n");
+        print("Transmitting Message:\n");
+        print_bytes(data, *len);
+    }
+}
+
+
+
+
+void setup_adc(void){
+	init_port_expander();
+	init_adc();
+	print("ADC Setup Completed\n");
+
+	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
+    uint32_t config_data = read_ADC_register(CONFIG_ADDR);
+	print("ADC Configuration Register: %lX\n", config_data);
+
+    int pga_gain = 1;
+	set_PGA(pga_gain);
+	print("PGA gain: %d", pga_gain);
+}
+
+
+
+
 int main(void) {
+    // Initialize UART
     init_uart();
     print("\n\nUART initialized\n");
 
+    // Initialize SPI and sensors
     init_spi();
     sensor_setup();
 
+    // Initialize ADC
+    setup_adc();
+
+    // Initialize CAN and MOBs
     init_can();
     init_rx_mob(&cmd_rx_mob);
     init_tx_mob(&data_tx_mob);
 
+    // Initialize queues
+    init_queue(&rx_message_queue);
+    init_queue(&tx_message_queue);
 
 
-    print("Waiting for RX\n");
+    print("Main Loop\n");
+
+    // Main loop
     while (1) {
-        if (respond) {
-            print("Before Resume\n");
+        // If there is an RX messsage in the queue, handle it
+        if (!is_empty(&rx_message_queue)) {
+            handle_rx();
+        }
+
+        // If there is a TX message in the queue, send it
+        if (!is_empty(&tx_message_queue)) {
             resume_mob(&data_tx_mob);
-            print("After Resume\n");
         }
     }
 }
