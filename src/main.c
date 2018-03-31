@@ -106,6 +106,15 @@ void handle_rx_hk(uint8_t* tx_data) {
         // TODO - temperature needed for pressure calculation
         case PAY_PRES_1:
             print("PAY_PRES_1\n");
+
+            uint32_t d1 = read_raw_pressure();
+            uint32_t d2 = read_raw_pressure_temp();
+            int32_t pressure = convert_pressure_to24bits(PROM_data, d1, d2);
+
+            tx_data[2] = (pressure >> 16) & 0xFF;
+            tx_data[3] = (pressure >> 8) & 0xFF;
+            tx_data[4] = pressure & 0xFF;
+
             break;
 
         case PAY_HUMID_1:
@@ -173,7 +182,8 @@ void handle_rx_sci(uint8_t* tx_data) {
     // reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
 
     // Actual value
-    uint32_t optical_reading = read_optical_raw(channel, LED);
+    // uint32_t optical_reading = read_optical_raw(channel, LED);
+    uint32_t optical_reading = 0x00010203;
 
 	tx_data[2] = (optical_reading >> 16) & 0xFF;
 	tx_data[3] = (optical_reading >> 8) & 0xFF;

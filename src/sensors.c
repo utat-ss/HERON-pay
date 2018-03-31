@@ -220,3 +220,49 @@ float convert_pressure(uint16_t *PROM_data, uint32_t D1, uint32_t D2){
 
   return press;
 }
+
+//Returns pressure as an integer, if divided by 1000 the value is given in Pa
+
+int32_t convert_pressure_to24bits(uint16_t *PROM_data, uint32_t D1, uint32_t D2){
+
+  int32_t dT = (int32_t)D2 - ((int32_t)PROM_data[5] * 256);  // difference between actual and reference temperature
+  int32_t TEMP = 2000 + ((int64_t)dT * PROM_data[6]) / 8388608LL;  // actual temperature
+  TEMP = (int32_t)TEMP;
+
+  int64_t OFF = ((int64_t)PROM_data[2] * 65536) + (PROM_data[4] * (int64_t)dT / 128);  // offset at actual temperature
+  int64_t SENS = ((int64_t)PROM_data[1] * 32768) + (PROM_data[3] * (int64_t)dT) / 256;  // sensetivity at actual temperature
+
+  int64_t T2;
+  int64_t OFF2;
+  int64_t SENS2;
+
+  if(TEMP < 2000){  // low temperature
+    T2 = ((int64_t)dT * dT) / 2147483648ULL;
+    T2 = (int32_t)T2;
+    OFF2 = 3 * ((TEMP - 2000) * (TEMP - 2000));
+    SENS2 = 7 * ((TEMP - 2000) * (TEMP - 2000)) / 8;
+
+    if(TEMP < -1500){  // very low temperature
+      SENS2 += 2 * ((TEMP + 1500) * (TEMP + 1500));
+    }
+  }
+  else{  // high temperature
+    T2 = 0;
+    OFF2 = 0;
+    SENS2 = 0;
+
+    if(TEMP >= 4500){  // very high temperature
+      SENS2 -= ((TEMP - 4500) * (TEMP - 4500)) / 8;
+    }
+  }
+
+  TEMP -= T2;
+  OFF -= OFF2;
+  SENS -= SENS2;
+
+  int32_t pressure = (D1 * (SENS / 2097152) - OFF) / 32768;
+  //float press = ((float)(pressure))/1000.0;  // in kPa
+  //float temp = (float)(TEMP) / 100.0;  // in ˚C
+
+  return pressure;
+}
