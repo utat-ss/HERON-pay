@@ -120,7 +120,7 @@ void rx_callback(const uint8_t* data, uint8_t len) {
         }
     }
 
-    if (data[1] == PAY_SCI_REQ) {
+    if (data[0] == PAY_SCI_REQ) {
         switch (data[1]) {
             case PAY_SCI_TEMD:
                 print("TEMD\n");
