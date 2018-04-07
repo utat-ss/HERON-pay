@@ -237,6 +237,8 @@ void handle_rx(void) {
             break;
     }
 
+    // TODO - should it not transmit if the received message is not recognized?
+    
     // Enqueue TX data to transmit
     enqueue(&tx_message_queue, tx_data);
     print("Enqueued TX Message\n");

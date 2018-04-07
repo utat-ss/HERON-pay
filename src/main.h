@@ -73,7 +73,8 @@ mob_t cmd_rx_mob = {
 	.mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = PAY_CMD_RX_MOB_ID,
-	.id_mask = CAN_RX_MASK_ID,
+	.id_mask = { 0x0000 },
+	// .id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
 
     .rx_cb = cmd_rx_callback

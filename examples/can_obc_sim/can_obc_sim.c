@@ -11,8 +11,8 @@
 #include "../../src/sensors.h"
 
 // Counter for which request to send (0-3)
-uint8_t req_num = 0;
-uint8_t num_req_nums = 4;
+uint8_t req_num = 0;            // current
+const uint8_t NUM_REQ_NUMS = 4; // total number (count)
 
 void tx_callback(uint8_t*, uint8_t*);
 void rx_callback(const uint8_t*, uint8_t);
@@ -31,7 +31,8 @@ mob_t rx_mob = {
     .mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = OBC_DATA_RX_MOB_ID,
-    .id_mask = CAN_RX_MASK_ID,
+    // .id_mask = CAN_RX_MASK_ID,
+    id_mask = { 0x0000 },
     .ctrl = default_rx_ctrl,
 
     .rx_cb = rx_callback
@@ -52,6 +53,9 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     print("\nTX Callback\n");
 
     *len = 8;
+    for (uint8_t i = 0; i < 8; ++i) {
+        data[i] = 0;
+    }
 
     switch (req_num) {
         case 0:
@@ -79,7 +83,7 @@ void tx_callback(uint8_t* data, uint8_t* len) {
             break;
     }
 
-    req_num = (req_num + 1) % num_req_nums;
+    req_num = (req_num + 1) % NUM_REQ_NUMS;
 
     print("Transmitting Message:\n");
     print_bytes(data, *len);
