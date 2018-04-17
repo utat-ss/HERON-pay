@@ -12,7 +12,7 @@
 
 // Counter for which request to send (0-3)
 uint8_t req_num = 0;            // current
-const uint8_t NUM_REQ_NUMS = 4; // total number (count)
+const uint8_t NUM_REQ_NUMS = 2; // total number (count)
 
 void tx_callback(uint8_t*, uint8_t*);
 void rx_callback(const uint8_t*, uint8_t);
@@ -31,8 +31,8 @@ mob_t rx_mob = {
     .mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = OBC_DATA_RX_MOB_ID,
-    // .id_mask = CAN_RX_MASK_ID,
-    id_mask = { 0x0000 },
+    .id_mask = CAN_RX_MASK_ID,
+    // .id_mask = { 0x0000 },
     .ctrl = default_rx_ctrl,
 
     .rx_cb = rx_callback
@@ -58,22 +58,24 @@ void tx_callback(uint8_t* data, uint8_t* len) {
     }
 
     switch (req_num) {
+        // case 0:
+        //     data[0] = PAY_HK_REQ;
+        //     data[1] = PAY_TEMP_1;
+        //     break;
+        //
+        // case 1:
+        //     data[0] = PAY_HK_REQ;
+        //     data[1] = PAY_HUMID_1;
+        //     break;
+
+        // case 2:
         case 0:
-            data[0] = PAY_HK_REQ;
-            data[1] = PAY_TEMP_1;
-            break;
-
-        case 1:
-            data[0] = PAY_HK_REQ;
-            data[1] = PAY_HUMID_1;
-            break;
-
-        case 2:
             data[0] = PAY_SCI_REQ;
             data[1] = PAY_SCI_TEMD;
             break;
 
-        case 3:
+        // case 3:
+        case 1:
             data[0] = PAY_SCI_REQ;
             data[1] = PAY_SCI_SFH;
             break;

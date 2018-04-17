@@ -177,13 +177,15 @@ void handle_rx_sci(uint8_t* tx_data) {
             return;
 	}
 
-    // random dummy value
+    // Random dummy value
     // uint32_t reading = rand() % ((uint32_t) 1 << 16);
     // reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
 
     // Actual value
-    // uint32_t optical_reading = read_optical_raw(channel, LED);
-    uint32_t optical_reading = 0x00010203;
+    uint32_t optical_reading = read_optical_raw(channel, LED);
+
+    // Constant value
+    // uint32_t optical_reading = 0x00010203;
 
 	tx_data[2] = (optical_reading >> 16) & 0xFF;
 	tx_data[3] = (optical_reading >> 8) & 0xFF;
@@ -238,7 +240,7 @@ void handle_rx(void) {
     }
 
     // TODO - should it not transmit if the received message is not recognized?
-    
+
     // Enqueue TX data to transmit
     enqueue(&tx_message_queue, tx_data);
     print("Enqueued TX Message\n");
@@ -277,7 +279,7 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
 // MOB 3
 // CAN RX interrupt for received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
-    print("MOB 3: CMD RX Callback\n");
+    print("\n\n\n\nMOB 3: CMD RX Callback\n");
     print("Received Message:\n");
     print_bytes((uint8_t *) data, len);
 
@@ -297,7 +299,7 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 // MOB 5
 // CAN TX interrupt for sending data
 void data_tx_callback(uint8_t* data, uint8_t* len) {
-    print("Data TX Callback\n");
+    print("\nData TX Callback\n");
 
     // TODO - would this ever happen?
     if (is_empty(&tx_message_queue)) {

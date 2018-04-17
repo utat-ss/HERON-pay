@@ -183,9 +183,10 @@ uint32_t read_ADC_channel(uint8_t channel_num) {
   select_ADC_channel(channel_num);
 
   // Wait until the conversion finishes, signalled by MISO going high
+  // BUG: conversion is finished when MISO goes *LOW* - fixed
   // TODO: add a timeout
-  while (!bit_is_set(PINB, PB0)){
-    continue;
+  while (bit_is_set(PINB, PB0)){
+      continue;
   }
 
   // Read back the conversion result
