@@ -3,33 +3,42 @@
 #define F_CPU 8000000UL
 #endif
 
+// AVR
 #include <util/delay.h>
+
+// Standard libraries
+#include <stdbool.h>
 #include <stdint.h>
 
-// Core libraries from lib-common
-#include <uart/uart.h>
-#include <uart/log.h>
+// lib-common libraries
 #include <can/can.h>
 #include <can/can_ids.h>
+#include <can/packets.h>
 #include <queue/queue.h>
 #include <spi/spi.h>
+#include <uart/uart.h>
+#include <uart/log.h>
 
-// Pay-specific libraries
-#include "sensors.h"
+// PAY libraries
 #include "adc.h"
-#include "pex.h"
-#include "freq_measure.h"
 #include "analog_temp.h"
+#include "freq_measure.h"
+#include "pex.h"
+#include "sensors.h"
 
 
-// CAN ID ALLOCATION FOR PAYLOAD
-void status_rx_callback(uint8_t* data, uint8_t len);
+
+
+// CAN interrupts
+void status_rx_callback(const uint8_t* data, uint8_t len);
 void status_tx_callback(uint8_t* data, uint8_t* len);
 void cmd_tx_callback(uint8_t* data, uint8_t* len);
-void cmd_rx_callback(uint8_t* data, uint8_t len);
+void cmd_rx_callback(const uint8_t* data, uint8_t len);
 void data_tx_callback(uint8_t* data, uint8_t* len);
 
-/*
+
+// CAN MOBs
+
 mob_t status_rx_mob = {
 	.mob_num = 0,
 	.mob_type = RX_MOB,
@@ -58,13 +67,13 @@ mob_t cmd_tx_mob = {
 
 	.tx_data_cb = cmd_tx_callback
 };
-*/
 
 mob_t cmd_rx_mob = {
 	.mob_num = 3,
 	.mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = PAY_CMD_RX_MOB_ID,
+	// .id_mask = { 0x0000 },
 	.id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
 
