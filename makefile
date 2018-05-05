@@ -2,7 +2,7 @@
 
 # Don't change these
 CC = avr-gcc
-CFLAGS = -g -mmcu=atmega32m1 -Os -mcall-prologues
+CFLAGS = -std=gnu99 -g -mmcu=atmega32m1 -Os -mcall-prologues
 PROG = stk500
 MCU = m32m1
 INCLUDES = -I./lib-common/include/
