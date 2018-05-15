@@ -1,24 +1,3 @@
-/*
-
-	FILENAME: 			main.c
-	DEPENDENCIES:		pex, uart, can, queue, freq_measure, stdint, delay
-
-	DESCRIPTION:		Main functions to be implemented on the PAY 32M1
-	AUTHORS:			Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-	DATE MODIFIED:		2017-12-28
-	NOTE:
-						PLEASE DON'T COMMIT YOUR TESTING CODE
-						ONLY COMMIT ACTUAL CHANGES TO MAIN.C
-
-	REVISION HISTORY:
-
-		2017-11-20:		SS: Added testing for PAY command queue
-		2017-11-17: 	Added "sensor_led_sequence()" as a sanity check
-		2017-11-16: 	Created header. Implemented 'separate function for testing' rule
-
-*/
-
-
 /* -------------------- UTAT Space Systems -------------------- */
 
 /* -------------------------- Payload ------------------------- */
@@ -26,10 +5,10 @@
 /*
 
 	FILENAME: 		heater_temp_read.c
-	DEPENDENCIES:	main.h
+	DEPENDENCIES:		analog_temp.h, pex.h
 
 	DESCRIPTION:	Payload Heater PID Temperature Control
-	AUTHORS:		Charlotte Moraldo
+	AUTHORS:		Charlotte Moraldo, Joanna Hon, Dylan Vogel
 	DATE MODIFIED:	2018-01-27
 
 */
@@ -74,7 +53,7 @@ int main (void){
 	clear_gpio_a(SSM,5); 	//turn GPA5 off
 
 	while(1) {
-		curr_temp = print_and_read_temps(); //function from analog_temp_read.c
+		curr_temp = print_and_read_temps();
 		// print("Current temperature: %d\n", (int)(curr_temp));
 		print ("\n\n");
 		run_PID();
@@ -155,16 +134,15 @@ double print_and_read_temps() {
  	int i = 0;
  	double out_data;
  	for ( i = 0; i < 4; i++) {
-		data = read_thermistor_adc(i);        // FIXME: change to desired channel
+		data = read_thermistor_adc(i);
     //print("Raw ADC value: %lX\n", (uint32_t)(data));
-
-    	resistance = convert_thermistor_reading(data, i);
+    		resistance = convert_thermistor_reading(data, i);
     // print("Resistance (Ohm): %u\n", (double)(resistance));
     // print("Reference Channel: %u\n", (int)(R_REF[i]));
 
-    	temp = resistance_to_temp(resistance);
-    	print("Temperature (10 mC): %d\n", (int)(temp * 100));
-    	if (i==0) {out_data = temp;}
+    		temp = resistance_to_temp(resistance);
+    		print("Temperature (10 mC): %d\n", (int)(temp * 100));
+    		if (i==0) {out_data = temp;}
  	}
  	return out_data;
 }
