@@ -1,5 +1,4 @@
 [submodule "lib-common"]
 	path = lib-common
 	url = https://github.com/HeronMkII/lib-common.git
-	ignore = dirty
 	branch = master

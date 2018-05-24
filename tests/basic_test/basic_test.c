@@ -1,10 +1,14 @@
 #include <uart/log.h>
 #include <uart/uart.h>
+
+// #define ASSERT_DISABLE
 #include <assert/assert.h>
 
 int main(void){
     init_uart();
-    print("UART initialized\n");
+    print("\n\nUART initialized\n");
+
+    // assert_print_on_pass = true;
 
     ASSERT(1 == 2);
     ASSERT(3 > 2);
