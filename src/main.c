@@ -1,25 +1,15 @@
 /*
+Main functions to be implemented on the PAY 32M1
 
-    FILENAME:            main.c
-    DEPENDENCIES:        pex, uart, can, queue, freq_measure, stdint, delay
+AUTHORS: Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
 
-    DESCRIPTION:        Main functions to be implemented on the PAY 32M1
-    AUTHORS:            Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
-    DATE MODIFIED:      2018-02-24
-    NOTE:
-    PLEASE DON'T COMMIT YOUR TESTING CODE
-    ONLY COMMIT ACTUAL CHANGES TO MAIN.C
+NOTE:
+PLEASE DON'T COMMIT YOUR TESTING CODE
+ONLY COMMIT ACTUAL CHANGES TO MAIN.C
 
-    REVISION HISTORY:
-
-    2018-01-08:     DV: Added CAN id definitions to the header file
-    2017-11-20:     SS: Added testing for PAY command queue
-    2017-11-17:     Added "sensor_led_sequence()" as a sanity check
-    2017-11-16:     Created header. Implemented 'separate function for testing' rule
-
+TODO - consider implementing function error checking
+(e.g. return 1 for success, 0 for failure)
 */
-
-// TODO - consider implementing function error checking (e.g. return 1 for success, 0 for failure)
 
 #include "main.h"
 

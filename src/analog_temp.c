@@ -1,23 +1,12 @@
 /*
+Functions for measuring thermistor temperature
 
-	FILENAME: 			analog_temp.c
-	DEPENDENCIES:		spi, pgmspace, delay, stdint
+AUTHORS: Dylan Vogel, James Sheridan
 
-	DESCRIPTION:		Functions for measuring thermistor temperature
-	AUTHORS:			Dylan Vogel, James Sheridan
-	DATE MODIFIED:	    2017-12-29
-
-	NOTE:               TODO: Implement more efficient channel reading algorithm,
-                        instead of having to waste SPI frames from waiting for
-                        next message
-                        TODO: Test edge cases
-
-	REVISION HISTORY:
-
-        2017-12-29      DV: Implemented lookup table with flash memory
-        2017-12-28      DV: Created file, implemented lookup table, resistance
-                        calculation.
-
+TODO: Implement more efficient channel reading algorithm,
+      instead of having to waste SPI frames from waiting for
+      next message
+TODO: Test edge cases
 */
 
 #include "analog_temp.h"

@@ -1,20 +1,7 @@
 /*
+Temperature, pressure, and humidity reading on the PAY-SSM.
 
-	FILENAME: 			sensors.c
-	DEPENDENCIES:		spi, pex
-
-	DESCRIPTION:		Temperature, pressure, and humidity reading on the PAY-SSM.
-	AUTHORS:				Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
-	DATE MODIFIED:	2017-09-19
-	NOTES:          Currently compatible with PAY-SSM v2 designed for FlatSat 1
-
-                  If the PCB is updated, the location of TEMP_CS in temperature.h
-                  may need to be changed.
-
-  REVISION HISTORY:
-
-    2017-09-19:   Created, added sensor code for temp, humidity, and pressure.
-
+AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 */
 
 #include "sensors.h"

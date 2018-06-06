@@ -1,7 +1,3 @@
-/*
-Author: Shimi Smith
-*/
-
 #include <stdint.h>
 #include <avr/io.h>
 

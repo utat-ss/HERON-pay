@@ -1,7 +1,7 @@
-/* 
+/*
+Functions to read from, write to, and toggle I/O pins
+
 Author: Shimi Smith
--------------------
-- This is code to read from, write to and toggle io pins
 */
 
 #include "port.h"

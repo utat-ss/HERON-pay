@@ -1,27 +1,9 @@
 /*
+Port expander functions.
 
-	FILENAME: 			pex.c
-	DEPENDENCIES:		spi
+AUTHORS: Dylan Vogel, Shimi Smith
 
-	DESCRIPTION:		Port expander functions.
-	AUTHORS:				Dylan Vogel, Shimi Smith
-	DATE MODIFIED:	2017-09-19
-	NOTES:
-									TODO:
-									* Change the macro name for the PEX CS in case another program wants to use it
-
-	REVISION HISTORY:
-
-
-		2017-10-27: 	Added comments. Changed port_expander_init to init_port_expander
-									to match convention elsewhere
-	`	2017-09-22:		Fixed the switch-case statements in set_gpio_x`
-		2017-09-19: 	Added "clear_gpio_x" functions to clear a GPIO register bit.
-									"set_gpio_x" now sets a GPIO register bit.
-									Changed the behaviour of "set_gpio_x" to work on a pin-by-pin basis,
-									rather than through writing to the entire register.
-		2017-09-01: 	Created initial set of functions.
-
+TODO: Change the macro name for the PEX CS in case another program wants to use it
 */
 
 #include "pex.h"
