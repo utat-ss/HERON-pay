@@ -11,17 +11,17 @@ TODO: Test edge cases
 
 #include "analog_temp.h"
 
+// Initializes COM_RST pin on 32M1 as ADC CS
 void init_thermistor(void){
-    // Initialize COM_RST pin on 32M1 as ADC CS
     init_spi();
 
     init_cs(COM_RST, &COM_RST_DDR);
     set_cs_high(COM_RST, &COM_RST_PORT);
 }
 
+// Returns the raw ADC value for the specified channel
+// Assumes channel is one of 0-6
 uint16_t read_thermistor_adc(int channel){
-    // Returns the raw ADC value for the specified channel
-    // Assumes channel is one of 0-6
     uint16_t data;
     uint8_t ADC_cmd, channel_bits;
 
@@ -51,12 +51,11 @@ uint16_t read_thermistor_adc(int channel){
     return data;
 }
 
+// Converts the ADC reading into a thermistor resistance
+// Assumes the thermistor is wired in series with a resistor of resistance
+// R_REF, using the 2.5V ADC reference voltage
+// See: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
 double convert_thermistor_reading(uint16_t adc_reading, int channel){
-    // Converts the ADC reading into a thermistor resistance
-    // Assumes the thermistor is wired in series with a resistor of resistance
-    // R_REF, using the 2.5V ADC reference voltage
-    // See: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
-    //
     // Equation is as follows, after rearringing the voltage divider equation:
     // R = R0 [(ADC_max_value / ADC_read_value) - 1]
 
@@ -68,9 +67,8 @@ double convert_thermistor_reading(uint16_t adc_reading, int channel){
     return res;
 }
 
-
+// Convert the measured thermistor (NXRT15XH103FA1B040) resistance to temperature
 double resistance_to_temp(double res){
-    // Convert the measured thermistor (NXRT15XH103FA1B040) resistance to temperature
     // Lookup table from manufacturer datasheet (pg 31)
 
     int i;
