@@ -40,11 +40,11 @@ void data_tx_callback(uint8_t* data, uint8_t* len);
 // CAN MOBs
 
 mob_t status_rx_mob = {
-	.mob_num = 0,
-	.mob_type = RX_MOB,
+    .mob_num = 0,
+    .mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = PAY_STATUS_RX_MOB_ID,
-	.id_mask = CAN_RX_MASK_ID,
+    .id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
 
     .rx_cb = status_rx_callback
@@ -52,7 +52,7 @@ mob_t status_rx_mob = {
 
 mob_t status_tx_mob = {
     .mob_num = 1,
-	.mob_type = TX_MOB,
+    .mob_type = TX_MOB,
     .id_tag = PAY_STATUS_TX_MOB_ID,
     .ctrl = default_tx_ctrl,
 
@@ -60,21 +60,21 @@ mob_t status_tx_mob = {
 };
 
 mob_t cmd_tx_mob = {
-	.mob_num = 2,
-	.mob_type = TX_MOB,
-	.id_tag = PAY_CMD_TX_MOB_ID,
-	.ctrl = default_tx_ctrl,
+    .mob_num = 2,
+    .mob_type = TX_MOB,
+    .id_tag = PAY_CMD_TX_MOB_ID,
+    .ctrl = default_tx_ctrl,
 
-	.tx_data_cb = cmd_tx_callback
+    .tx_data_cb = cmd_tx_callback
 };
 
 mob_t cmd_rx_mob = {
-	.mob_num = 3,
-	.mob_type = RX_MOB,
+    .mob_num = 3,
+    .mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = PAY_CMD_RX_MOB_ID,
-	// .id_mask = { 0x0000 },
-	.id_mask = CAN_RX_MASK_ID,
+    // .id_mask = { 0x0000 },
+    .id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
 
     .rx_cb = cmd_rx_callback
@@ -82,7 +82,7 @@ mob_t cmd_rx_mob = {
 
 mob_t data_tx_mob = {
     .mob_num = 5,
-	.mob_type = TX_MOB,
+    .mob_type = TX_MOB,
     .id_tag = PAY_DATA_TX_MOB_ID,
     .ctrl = default_tx_ctrl,
 

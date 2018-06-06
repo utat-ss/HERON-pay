@@ -111,7 +111,7 @@ void handle_rx_hk(uint8_t* tx_data) {
             print("PAY_HUMID_1\n");
 
             // read_raw_humidity() gives 16 bits of humidity followed by 16 bits of temperature,
-			// but humidity is a 14 bit value
+            // but humidity is a 14 bit value
             print("Getting humidity\n");
             uint32_t raw_humidity = read_raw_humidity();
             print("Done getting humidity\n");
@@ -148,24 +148,24 @@ void handle_rx_sci(uint8_t* tx_data) {
     int channel = 0;
     int LED = 0;
 
-	// Check field number
-	switch (tx_data[1]) {
+    // Check field number
+    switch (tx_data[1]) {
         case PAY_SCI_TEMD:
             print("PAY_SCI_TEMD\n");
-        	channel = 5;
-        	LED = LED_2;
+            channel = 5;
+            LED = LED_2;
             break;
 
         case PAY_SCI_SFH:
             print("PAY_SCI_SFH\n");
-        	channel = 6;
-        	LED = LED_3;
+            channel = 6;
+            LED = LED_3;
             break;
 
         default:
             print ("Unknown science field number\n");
             return;
-	}
+    }
 
     // Random dummy value
     // uint32_t reading = rand() % ((uint32_t) 1 << 16);
@@ -177,9 +177,9 @@ void handle_rx_sci(uint8_t* tx_data) {
     // Constant value
     // uint32_t optical_reading = 0x00010203;
 
-	tx_data[2] = (optical_reading >> 16) & 0xFF;
-	tx_data[3] = (optical_reading >> 8) & 0xFF;
-	tx_data[4] = optical_reading & 0xFF;
+    tx_data[2] = (optical_reading >> 16) & 0xFF;
+    tx_data[3] = (optical_reading >> 8) & 0xFF;
+    tx_data[4] = optical_reading & 0xFF;
 }
 
 
@@ -313,17 +313,17 @@ void data_tx_callback(uint8_t* data, uint8_t* len) {
 
 
 void setup_adc(void) {
-	init_port_expander();
-	init_adc();
-	print("ADC Setup Completed\n");
+    init_port_expander();
+    init_adc();
+    print("ADC Setup Completed\n");
 
-	write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
+    write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
     uint32_t config_data = read_ADC_register(CONFIG_ADDR);
-	print("ADC Configuration Register: %lX\n", config_data);
+    print("ADC Configuration Register: %lX\n", config_data);
 
     int pga_gain = 1;
-	set_PGA(pga_gain);
-	print("PGA gain: %d\n", pga_gain);
+    set_PGA(pga_gain);
+    print("PGA gain: %d\n", pga_gain);
 }
 
 
