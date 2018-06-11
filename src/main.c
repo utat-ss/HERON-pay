@@ -71,7 +71,7 @@ uint32_t read_optical_raw(int channel, int LED) {
 // retrieves and places the appropriate data in the tx_data buffer
 void handle_rx_hk(uint8_t* tx_data) {
     // Check field number
-    switch (tx_data[1]) {
+    switch (tx_data[2]) {
         case PAY_TEMP_1:
             print("PAY_TEMP_1\n");
 
@@ -86,9 +86,9 @@ void handle_rx_hk(uint8_t* tx_data) {
 
             print("Done getting temperature: %d attempts\n", attempts);
 
-            tx_data[2] = 0x00;
-            tx_data[3] = (raw_temperature >> 8) & 0xFF;
-            tx_data[4] = raw_temperature & 0xFF;
+            tx_data[3] = 0x00;
+            tx_data[4] = (raw_temperature >> 8) & 0xFF;
+            tx_data[5] = raw_temperature & 0xFF;
 
             break;
 
@@ -101,9 +101,9 @@ void handle_rx_hk(uint8_t* tx_data) {
             uint32_t d2 = read_raw_pressure_temp();
             int32_t pressure = convert_pressure_to24bits(PROM_data, d1, d2);
 
-            tx_data[2] = (pressure >> 16) & 0xFF;
-            tx_data[3] = (pressure >> 8) & 0xFF;
-            tx_data[4] = pressure & 0xFF;
+            tx_data[3] = (pressure >> 16) & 0xFF;
+            tx_data[4] = (pressure >> 8) & 0xFF;
+            tx_data[5] = pressure & 0xFF;
 
             break;
 
@@ -117,9 +117,9 @@ void handle_rx_hk(uint8_t* tx_data) {
             print("Done getting humidity\n");
 
             // Use the most significant (left-most) 16 bits, which are humidity
-            tx_data[2] = 0x00;
-            tx_data[3] = (raw_humidity >> 24) & 0xFF;
-            tx_data[4] = (raw_humidity >> 16) & 0xFF;
+            tx_data[3] = 0x00;
+            tx_data[4] = (raw_humidity >> 24) & 0xFF;
+            tx_data[5] = (raw_humidity >> 16) & 0xFF;
 
             break;
 
@@ -149,7 +149,7 @@ void handle_rx_sci(uint8_t* tx_data) {
     int LED = 0;
 
     // Check field number
-    switch (tx_data[1]) {
+    switch (tx_data[2]) {
         case PAY_SCI_TEMD:
             print("PAY_SCI_TEMD\n");
             channel = 5;
@@ -177,9 +177,9 @@ void handle_rx_sci(uint8_t* tx_data) {
     // Constant value
     // uint32_t optical_reading = 0x00010203;
 
-    tx_data[2] = (optical_reading >> 16) & 0xFF;
-    tx_data[3] = (optical_reading >> 8) & 0xFF;
-    tx_data[4] = optical_reading & 0xFF;
+    tx_data[3] = (optical_reading >> 16) & 0xFF;
+    tx_data[4] = (optical_reading >> 8) & 0xFF;
+    tx_data[5] = optical_reading & 0xFF;
 }
 
 
@@ -201,14 +201,15 @@ void handle_rx(void) {
     // Send back the message type and field number
     tx_data[0] = rx_data[0];
     tx_data[1] = rx_data[1];
+    tx_data[2] = rx_data[2];
 
     // Fill the rest with zeros just in case
-    for (uint8_t i = 2; i < 8; i++) {
+    for (uint8_t i = 3; i < 8; i++) {
         tx_data[i] = 0;
     }
 
     // Check message type
-    switch (rx_data[0]) {
+    switch (rx_data[1]) {
         case PAY_HK_REQ:
             print("PAY_HK_REQ\n");
             handle_rx_hk(tx_data);
