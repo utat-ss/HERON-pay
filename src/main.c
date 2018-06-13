@@ -13,7 +13,6 @@ TODO - consider implementing function error checking
 
 #include "main.h"
 
-void print_bytes(uint8_t *data, uint8_t len);
 uint32_t read_optical_raw(int channel, int LED);
 void handle_rx_hk(uint8_t* tx_data);
 void handle_rx_sci(uint8_t* tx_data);
@@ -28,15 +27,6 @@ queue_t rx_message_queue;
 queue_t tx_message_queue;
 
 
-
-
-// Prints the given data in hex format, with a space between bytes
-void print_bytes(uint8_t *data, uint8_t len) {
-    for (uint8_t i = 0; i < len; i++) {
-        print("0x%02x ", data[i]);
-    }
-    print("\n");
-}
 
 
 // Gets the raw 24 bit optical measurement using the given ADC channel and LED
@@ -191,7 +181,7 @@ void handle_rx(void) {
     uint8_t rx_data[8];
     dequeue(&rx_message_queue, rx_data);
     print("Dequeued RX Message\n");
-    print_bytes(rx_data, 8);
+    print_hex_bytes(rx_data, 8);
 
     // Message to transmit
     uint8_t tx_data[8];
@@ -229,7 +219,7 @@ void handle_rx(void) {
     // Enqueue TX data to transmit
     enqueue(&tx_message_queue, tx_data);
     print("Enqueued TX Message\n");
-    print_bytes(tx_data, 8);
+    print_hex_bytes(tx_data, 8);
 }
 
 
@@ -243,7 +233,7 @@ void handle_rx(void) {
 void status_rx_callback(const uint8_t* data, uint8_t len) {
     print("MOB 0: Status RX Callback\n");
     print("Received Message:\n");
-    print_bytes((uint8_t *) data, len);
+    print_hex_bytes((uint8_t *) data, len);
 }
 
 
@@ -266,7 +256,7 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
     print("\n\n\n\nMOB 3: CMD RX Callback\n");
     print("Received Message:\n");
-    print_bytes((uint8_t *) data, len);
+    print_hex_bytes((uint8_t *) data, len);
 
     // TODO - would this ever happen?
     if (len == 0) {
@@ -300,7 +290,7 @@ void data_tx_callback(uint8_t* data, uint8_t* len) {
 
         print("Dequeued TX Message\n");
         print("Transmitting Message:\n");
-        print_bytes(data, *len);
+        print_hex_bytes(data, *len);
     }
 }
 

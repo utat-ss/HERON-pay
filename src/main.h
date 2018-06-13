@@ -17,10 +17,10 @@
 #include <queue/queue.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
-#include <uart/log.h>
 #include <adc/adc.h>
 #include <pex/pex.h>
 #include <pay_sensors/pay_sensors.h>
+#include <utilities/utilities.h>
 
 // PAY libraries
 
