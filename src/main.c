@@ -13,18 +13,6 @@ TODO - consider implementing function error checking
 
 #include "main.h"
 
-uint32_t read_optical_raw(int channel, int LED);
-void handle_rx_hk(uint8_t* tx_data);
-void handle_rx_sci(uint8_t* tx_data);
-void handle_rx(void);
-void setup_adc(void);
-void init_pay(void);
-
-
-
-
-
-
 
 // Gets the raw 24 bit optical measurement using the given ADC channel and LED
 // (quickly pulses the LED and reads the optical measurement)
@@ -54,66 +42,41 @@ uint32_t read_optical_raw(int channel, int LED) {
 }
 
 
-
-
 // Assuming a housekeeping request was received,
 // retrieves and places the appropriate data in the tx_data buffer
 void handle_rx_hk(uint8_t* tx_data) {
     // Check field number
     switch (tx_data[2]) {
         case CAN_PAY_HK_TEMP:
-          print("CAN_PAY_HK_TEMP\n");
+            print("CAN_PAY_HK_TEMP\n");
 
-
-            // TODO - fix issues with temperature sometimes reading 0
-            print("Getting temperature\n");
-
-            uint16_t raw_temperature = 0;
-            // TODO
-            // int attempts = 0;
-            // for (attempts = 0; raw_temperature == 0; attempts++) {
-            //     raw_temperature = read_raw_temperature();
-            // }
-            // print("Done getting temperature: %d attempts\n", attempts);
-
+            uint16_t temp_raw_data = temp_read_raw_data();
             tx_data[3] = 0x00;
-            tx_data[4] = (raw_temperature >> 8) & 0xFF;
-            tx_data[5] = raw_temperature & 0xFF;
-
-            break;
-
-        // TODO
-        // TODO - temperature needed for pressure calculation
-        case CAN_PAY_HK_PRES:
-            print("CAN_PAY_HK_PRES\n");
-
-            // TODO
-            // uint32_t d1 = read_raw_pressure();
-            // uint32_t d2 = read_raw_pressure_temp();
-            // int32_t pressure = convert_pressure_to24bits(PROM_data, d1, d2);
-            int32_t pressure = 0;
-
-            tx_data[3] = (pressure >> 16) & 0xFF;
-            tx_data[4] = (pressure >> 8) & 0xFF;
-            tx_data[5] = pressure & 0xFF;
+            tx_data[4] = (temp_raw_data >> 8) & 0xFF;
+            tx_data[5] = temp_raw_data & 0xFF;
 
             break;
 
         case CAN_PAY_HK_HUMID:
             print("CAN_PAY_HK_HUMID\n");
 
-            // read_raw_humidity() gives 16 bits of humidity followed by 16 bits of temperature,
-            // but humidity is a 14 bit value
-            // TODO
-            // print("Getting humidity\n");
-            // uint32_t raw_humidity = read_raw_humidity();
-            // print("Done getting humidity\n");
-            uint32_t raw_humidity = 0;
-
-            // Use the most significant (left-most) 16 bits, which are humidity
+            uint16_t raw_humidity = hum_read_raw_humidity();
             tx_data[3] = 0x00;
-            tx_data[4] = (raw_humidity >> 24) & 0xFF;
-            tx_data[5] = (raw_humidity >> 16) & 0xFF;
+            tx_data[4] = (raw_humidity >> 8) & 0xFF;
+            tx_data[5] = raw_humidity & 0xFF;
+
+            break;
+
+        case CAN_PAY_HK_PRES:
+            print("CAN_PAY_HK_PRES\n");
+
+            uint32_t D1 = pres_read_raw_uncompensated_pressure();
+            uint32_t D2 = pres_read_raw_uncompensated_temperature();
+            uint32_t raw_pressure = pres_convert_raw_uncompensated_data_to_raw_pressure(D1, D2, NULL);
+
+            tx_data[3] = (raw_pressure >> 16) & 0xFF;
+            tx_data[4] = (raw_pressure >> 8) & 0xFF;
+            tx_data[5] = raw_pressure & 0xFF;
 
             break;
 
@@ -177,14 +140,14 @@ void handle_rx(void) {
     // Received message
     uint8_t rx_data[8];
     dequeue(&rx_message_queue, rx_data);
-    print("Dequeued RX Message\n");
+    print("Dequeued RX message:\n");
     print_hex_bytes(rx_data, 8);
 
     // Message to transmit
     uint8_t tx_data[8];
 
-    // Send back the message type and field number
-    tx_data[0] = rx_data[0];
+    // Send back the same message type and field number
+    tx_data[0] = 0; // TODO
     tx_data[1] = rx_data[1];
     tx_data[2] = rx_data[2];
 
@@ -197,7 +160,6 @@ void handle_rx(void) {
     switch (rx_data[1]) {
         case CAN_PAY_HK:
             print("CAN_PAY_HK\n");
-
             handle_rx_hk(tx_data);
             break;
 
@@ -211,16 +173,11 @@ void handle_rx(void) {
             break;
     }
 
-    // TODO - should it not transmit if the received message is not recognized?
-
     // Enqueue TX data to transmit
     enqueue(&tx_message_queue, tx_data);
-    print("Enqueued TX Message\n");
+    print("Enqueued TX message:\n");
     print_hex_bytes(tx_data, 8);
 }
-
-
-
 
 
 void setup_adc(void) {
@@ -266,8 +223,6 @@ void init_pay(void) {
     init_queue(&tx_message_queue);
     print("Queues Initialized\n");
 }
-
-
 
 
 int main(void) {

@@ -91,11 +91,10 @@ mob_t data_tx_mob = {
 // MOB 3
 // CMD RX - received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
-    print("\n\n\n\nMOB 3: CMD RX Callback\n");
-    print("Received Message:\n");
+    print("\nMOB 3: CMD RX Callback\n");
+    print("Received message:\n");
     print_hex_bytes((uint8_t *) data, len);
 
-    // TODO - would this ever happen?
     if (len == 0) {
         print("Received empty message\n");
     }
@@ -111,12 +110,10 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 // MOB 5
 // Data TX - transmitting data
 void data_tx_callback(uint8_t* data, uint8_t* len) {
-    print("\nData TX Callback\n");
+    print("\nMOB 5: Data TX Callback\n");
 
-    // TODO - would this ever happen?
     if (is_empty(&tx_message_queue)) {
         *len = 0;
-
         print("No message to transmit\n");
     }
 
@@ -125,8 +122,8 @@ void data_tx_callback(uint8_t* data, uint8_t* len) {
         dequeue(&tx_message_queue, data);
         *len = 8;
 
-        print("Dequeued TX Message\n");
-        print("Transmitting Message:\n");
+        print("Dequeued TX message\n");
+        print("Transmitting message:\n");
         print_hex_bytes(data, *len);
     }
 }
