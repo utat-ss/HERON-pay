@@ -14,12 +14,8 @@ void init_motors(void) {
     // Set M1 = 1, M1 = 1 (16 microsteps/step, p. 16)
     pex_set_dir_a(PEX_M1, PEX_DIR_OUTPUT);
     pex_set_gpio_a_high(PEX_M1);
-    pex_set_dir_b(PEX_M1, PEX_DIR_OUTPUT);
-    pex_set_gpio_b_high(PEX_M1);
     pex_set_dir_a(PEX_M0, PEX_DIR_OUTPUT);
     pex_set_gpio_a_high(PEX_M0);
-    pex_set_dir_b(PEX_M0, PEX_DIR_OUTPUT);
-    pex_set_gpio_b_high(PEX_M0);
 
     // Set _EN_ high (disabled)
     pex_set_dir_a(PEX_EN, PEX_DIR_OUTPUT);
@@ -42,8 +38,6 @@ void init_motors(void) {
     // Set DECAY to 0V (0% of PWM cycle is fast decay, p.14)
     pex_set_dir_a(PEX_DECAY, PEX_DIR_OUTPUT);
     pex_set_gpio_a_low(PEX_DECAY);
-    pex_set_dir_b(PEX_DECAY, PEX_DIR_OUTPUT);
-    pex_set_gpio_b_low(PEX_DECAY);
 
     // Set STEP low
     // (same STEP output for both motors A/B)
