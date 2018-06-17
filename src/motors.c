@@ -23,11 +23,11 @@ void init_motors(void) {
     pex_set_dir_b(PEX_EN, PEX_DIR_OUTPUT);
     pex_set_gpio_b_high(PEX_EN);
 
-    // Set _SLP_ (sleep) high (disabled)
+    // Set _SLP_ (sleep) low (enter sleep state)
     pex_set_dir_a(PEX_SLP, PEX_DIR_OUTPUT);
-    pex_set_gpio_a_high(PEX_SLP);
+    pex_set_gpio_a_low(PEX_SLP);
     pex_set_dir_b(PEX_SLP, PEX_DIR_OUTPUT);
-    pex_set_gpio_b_high(PEX_SLP);
+    pex_set_gpio_b_low(PEX_SLP);
 
     // Set DIR (direction) high (normal sequence of steps in Table 4, p. 16-17)
     pex_set_dir_a(PEX_DIR, PEX_DIR_OUTPUT);
@@ -48,6 +48,12 @@ void init_motors(void) {
 void actuate_motors(void) {
     print("Starting motor actuation\n");
 
+    // Enable motor and disable sleep
+    pex_set_gpio_a_low(PEX_EN);
+    pex_set_gpio_b_low(PEX_EN);
+    pex_set_gpio_a_high(PEX_SLP);
+    pex_set_gpio_b_high(PEX_SLP);
+
     // Pulse STEP 8 times to move 45 deg (45 to 90, p. 17)
     // The motor should step on every rising edge of STEP
     for (uint8_t i = 0; i < 8; i++) {
@@ -59,6 +65,12 @@ void actuate_motors(void) {
         _delay_ms(1000);
         print("Step done\n");
     }
+
+    // Disable motor and enable sleep
+    pex_set_gpio_a_high(PEX_EN);
+    pex_set_gpio_b_high(PEX_EN);
+    pex_set_gpio_a_low(PEX_SLP);
+    pex_set_gpio_b_low(PEX_SLP);
 
     print("Done motor actuation\n");
 }
