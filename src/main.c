@@ -168,6 +168,13 @@ void handle_rx(void) {
             handle_rx_sci(tx_data);
             break;
 
+        case CAN_PAY_MOTOR:
+            print("CAN_PAY_MOTOR\n");
+            if (rx_data[2] == CAN_PAY_MOTOR_ACTUATE) {
+                actuate_motors();
+            }
+            break;
+
         default:
             print("Unknown message type\n");
             break;
@@ -207,6 +214,9 @@ void init_pay(void) {
     // TODO
     // sensor_setup();
     print("SPI and Sensors Initialized\n");
+
+    init_motors();
+    print("Motors Initialized\n");
 
     // ADC
     setup_adc();
@@ -253,4 +263,8 @@ int main(void) {
             resume_mob(&data_tx_mob);
         }
     }
+}
+
+ISR(PCINT2_vect) {
+    print("PCINT2 (Pin change interrupt 2, INTA from PEX) interrupt!\n");
 }
