@@ -187,20 +187,7 @@ void handle_rx(void) {
 }
 
 
-void setup_adc(void) {
-    // TODO
-    // init_port_expander();
-    // init_adc();
-    // print("ADC Setup Completed\n");
-    //
-    // write_ADC_register(CONFIG_ADDR, CONFIG_DEFAULT);
-    // uint32_t config_data = read_ADC_register(CONFIG_ADDR);
-    // print("ADC Configuration Register: %lX\n", config_data);
-    //
-    // int pga_gain = 1;
-    // set_PGA(pga_gain);
-    // print("PGA gain: %d\n", pga_gain);
-}
+
 
 
 // Initializes everything in PAY
@@ -209,18 +196,29 @@ void init_pay(void) {
     init_uart();
     print("\n\nUART Initialized\n");
 
-    // SPI and sensors
+    // SPI
     init_spi();
-    // TODO
-    // sensor_setup();
-    print("SPI and Sensors Initialized\n");
+    print("SPI Initialized\n");
 
+    // PEX
+    pex_init_constants(PEX_PAY);
+    pex_init();
+    print("PEX Initialized\n");
+
+    // ADC
+    adc_init_constants(ADC_PAY);
+    adc_init();
+    print("ADC Initialized\n");
+
+    // Motors
     init_motors();
     print("Motors Initialized\n");
 
-    // ADC
-    setup_adc();
-    print("ADC Initialized\n");
+    // Environmental sensors
+    temp_init();
+    hum_init();
+    pres_init();
+    print("Environmental Sensors Initialized\n");
 
     // CAN and MOBs
     init_can();
@@ -240,7 +238,9 @@ int main(void) {
     print("---------------\n\n");
     print("PAY Initialized\n\n");
 
+
     // Main loop
+    print("Starting main loop");
     while (1) {
         // TODO - control system(s)?
 
