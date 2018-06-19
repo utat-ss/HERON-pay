@@ -13,32 +13,55 @@ TODO - consider implementing function error checking
 
 #include "main.h"
 
+uint8_t spi_rx_data_field_number = 0;
+uint32_t spi_rx_data = 0;
+bool spi_rx_data_in_progress = false;
+uint8_t spi_rx_data_num_bytes_received = 0; // number of bytes already received from PAY-Optical
+bool spi_rx_data_valid = false;
 
-// Gets the raw 24 bit optical measurement using the given ADC channel and LED
-// (quickly pulses the LED and reads the optical measurement)
-uint32_t read_optical_raw(int channel, int LED) {
-    // TODO
-    // print("Getting optical data: channel %d, LED %d\n", channel, LED);
-    //
-    // // Turn LED on
-    // set_gpio_a(SENSOR_PCB, LED);
-    // _delay_ms(10);
-    //
-    // // Read sensor
-    // uint32_t read_data = read_ADC_channel(channel);
-    // // print("%d:  %lu  %lX\t  %lu\n",
-    // //             // i, read_data * ((uint32_t)1000) / ((uint32_t)0xFFFFFF), read_data, read_data);
-    // //             i, (uint32_t)(((double)read_data / (double)0xFFFFFF) * 1000.0) , read_data, read_data);
-    //
-    // // Turn LED off
-    // // BUG: Shouldn't 'hard reset' the PEX in final implementation
-    // clear_gpio_a(SENSOR_PCB, LED);
-    // adc_pex_hard_rst();
-    //
-    // print("Done getting optical data\n");
 
-    uint32_t read_data;
-    return read_data;
+void send_read_sensor_command(uint8_t field_number) {
+    // Send the command to PAY-Optical to start reading data
+    send_spi((0b11 << 6) | field_number);
+
+    spi_rx_data_field_number = field_number;
+    spi_rx_data = 0;
+    spi_rx_data_in_progress = true;
+    spi_rx_data_num_bytes_received = 0;
+    spi_rx_data_valid = false;
+}
+
+// PB2/INT1 interrupt
+ISR(INT1_vect) {
+    print("Interrupt - INT1 (interrupt 1, PB2, from PAY-Optical)!\n");
+
+    // TODO - is it possible to send SPI inside an interrupt?
+
+    if (spi_rx_data_in_progress) {
+        spi_rx_data = spi_rx_data << 8;
+        spi_rx_data = spi_rx_data | send_spi(0x00);
+        spi_rx_data_num_bytes_received++;
+
+        if (spi_rx_data_num_bytes_received >= 3) {
+            spi_rx_data_in_progress = false;
+            spi_rx_data_num_bytes_received = 0;
+            spi_rx_data_valid = true;
+
+            uint8_t tx_data[8];
+            tx_data[0] = 0; // TODO
+            tx_data[1] = CAN_PAY_SCI;
+            tx_data[2] = spi_rx_data_field_number;
+
+            tx_data[3] = (spi_rx_data >> 16) & 0xFF;
+            tx_data[4] = (spi_rx_data >> 8) & 0xFF;
+            tx_data[5] = spi_rx_data & 0xFF;
+
+            // Enqueue CAN message to be sent with data
+            enqueue(&tx_message_queue, tx_data);
+            print("Enqueued TX message:\n");
+            print_hex_bytes(tx_data, 8);
+        }
+    }
 }
 
 
@@ -87,50 +110,6 @@ void handle_rx_hk(uint8_t* tx_data) {
 }
 
 
-// Assuming a science request was received,
-// retrieves and places the appropriate data in the tx_data buffer
-void handle_rx_sci(uint8_t* tx_data) {
-    // For sensor to poll
-    int channel = 0;
-    int LED = 0;
-
-
-    // TODO
-    // // Check field number
-    // switch (tx_data[1]) {
-    //     case CAN_PAY_SCI_TEMD:
-    //         print("CAN_PAY_SCI_TEMD\n");
-    //         channel = 5;
-    //         LED = LED_2;
-    //         break;
-    //
-    //     case CAN_PAY_SCI_SFH:
-    //         print("CAN_PAY_SCI_SFH\n");
-    //         channel = 6;
-    //         LED = LED_3;
-    //         break;
-    //
-    //     default:
-    //         print ("Unknown science field number\n");
-    //         return;
-    // }
-
-    // Random dummy value
-    // uint32_t reading = rand() % ((uint32_t) 1 << 16);
-    // reading |= (rand() % ((uint32_t) 1 << 8)) << 16;
-
-    // Actual value
-    uint32_t optical_reading = read_optical_raw(channel, LED);
-
-    // Constant value
-    // uint32_t optical_reading = 0x00010203;
-
-    tx_data[3] = (optical_reading >> 16) & 0xFF;
-    tx_data[4] = (optical_reading >> 8) & 0xFF;
-    tx_data[5] = optical_reading & 0xFF;
-}
-
-
 void handle_rx(void) {
     if (is_empty(&rx_message_queue)) {
         print("No data in RX message queue\n");
@@ -165,8 +144,8 @@ void handle_rx(void) {
 
         case CAN_PAY_SCI:
             print("CAN_PAY_SCI\n");
-            handle_rx_sci(tx_data);
-            break;
+            send_read_sensor_command(rx_data[2]);
+            return;
 
         case CAN_PAY_MOTOR:
             print("CAN_PAY_MOTOR\n");
@@ -185,7 +164,6 @@ void handle_rx(void) {
     print("Enqueued TX message:\n");
     print_hex_bytes(tx_data, 8);
 }
-
 
 
 
@@ -235,12 +213,12 @@ void init_pay(void) {
 
 int main(void) {
     init_pay();
-    print("---------------\n\n");
+    print("---------------\n");
     print("PAY Initialized\n\n");
 
 
     // Main loop
-    print("Starting main loop");
+    print("Starting main loop\n\n");
     while (1) {
         // TODO - control system(s)?
 

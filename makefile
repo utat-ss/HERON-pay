@@ -8,11 +8,11 @@ MCU = m32m1
 INCLUDES = -I./lib-common/include/
 
 # Change this line depending on what you're using
-LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lutilities -lpay_sensors -lpex
+LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lutilities -lpay_sensors -lpex -ladc
 
 # Change this line based on your OS and port
-# PORT = /dev/tty.usbmodem00187462
-PORT = /dev/tty.usbmodem00208212
+PORT = /dev/tty.usbmodem00187462
+#PORT = /dev/tty.usbmodem00208212
 # PORT = /dev/tty.usbmodem00100511
 
 SRC = $(wildcard ./src/*.c)
