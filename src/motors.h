@@ -1,6 +1,7 @@
 #ifndef MOTORS_H
 #define MOTORS_H
 
+#include <stdbool.h>
 #include <avr/io.h>
 #include <pex/pex.h>
 
@@ -17,7 +18,11 @@
 #define STEP_PORT   PORTC
 #define STEP_DDR    DDRC
 
+extern bool motor_fault;
+
 void init_motors(void);
+void enable_motors(void);
+void disable_motors(void);
 void actuate_motors(void);
 
 #endif

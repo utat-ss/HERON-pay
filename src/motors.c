@@ -8,6 +8,10 @@ Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 
 #include "motors.h"
 
+// true if there is a fault detected in one or both of the motors
+bool motor_fault = false;
+
+
 // TODO - check how to read port expander pins for (FLT/FAULT)
 
 void init_motors(void) {
@@ -45,32 +49,53 @@ void init_motors(void) {
     set_cs_low(STEP_PIN, &STEP_PORT);
 }
 
-void actuate_motors(void) {
-    print("Starting motor actuation\n");
-
-    // Enable motor and disable sleep
+void enable_motors(void) {
+    // Enable motors and disable sleep
     pex_set_gpio_a_low(PEX_EN);
     pex_set_gpio_b_low(PEX_EN);
     pex_set_gpio_a_high(PEX_SLP);
     pex_set_gpio_b_high(PEX_SLP);
+}
+
+void disable_motors(void) {
+    // Disable motors and enable sleep
+    pex_set_gpio_a_high(PEX_EN);
+    pex_set_gpio_b_high(PEX_EN);
+    pex_set_gpio_a_low(PEX_SLP);
+    pex_set_gpio_b_low(PEX_SLP);
+}
+
+void actuate_motors(void) {
+    print("Starting motor actuation\n");
+
+    if (motor_fault) {
+        return;
+    }
+
+    enable_motors();
 
     // Pulse STEP 8 times to move 45 deg (45 to 90, p. 17)
     // The motor should step on every rising edge of STEP
     for (uint8_t i = 0; i < 8; i++) {
+        if (motor_fault) {
+            break;
+        }
+
         set_cs_low(STEP_PIN, &STEP_PORT);
         _delay_ms(1);
         set_cs_high(STEP_PIN, &STEP_PORT);
         _delay_ms(1);
         set_cs_low(STEP_PIN, &STEP_PORT);
+
+        if (motor_fault) {
+            break;
+        }
+
         _delay_ms(1000);
         print("Step done\n");
     }
 
-    // Disable motor and enable sleep
-    pex_set_gpio_a_high(PEX_EN);
-    pex_set_gpio_b_high(PEX_EN);
-    pex_set_gpio_a_low(PEX_SLP);
-    pex_set_gpio_b_low(PEX_SLP);
+    disable_motors();
 
     print("Done motor actuation\n");
 }
