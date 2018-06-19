@@ -12,8 +12,6 @@ Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 bool motor_fault = false;
 
 
-// TODO - check how to read port expander pins for (FLT/FAULT)
-
 void init_motors(void) {
     // Set M1 = 1, M1 = 1 (16 microsteps/step, p. 16)
     pex_set_dir_a(PEX_M1, PEX_DIR_OUTPUT);

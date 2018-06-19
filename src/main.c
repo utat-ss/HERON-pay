@@ -6,9 +6,6 @@ AUTHORS: Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
 NOTE:
 PLEASE DON'T COMMIT YOUR TESTING CODE
 ONLY COMMIT ACTUAL CHANGES TO MAIN.C
-
-TODO - consider implementing function error checking
-(e.g. return 1 for success, 0 for failure)
 */
 
 #include "main.h"
@@ -220,8 +217,6 @@ int main(void) {
     // Main loop
     print("Starting main loop\n\n");
     while (1) {
-        // TODO - control system(s)?
-
         // If there is an RX messsage in the queue, handle it
         if (!is_empty(&rx_message_queue)) {
             handle_rx();
@@ -229,7 +224,6 @@ int main(void) {
 
         /*
         If there is a TX message in the queue, send it
-        TODO - should new data already be available to send instead of waiting for it?
 
         When resume_mob(mob name) is called, it:
         1) resumes the MOB
