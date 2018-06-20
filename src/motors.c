@@ -102,7 +102,7 @@ void actuate_motors(void) {
 
 // TODO - should this be INT2 or PCINT2?
 ISR(PCINT2_vect) {
-    print("Interrupt - PCINT2 (Pin change interrupt 2, INTA from PEX) interrupt!\n");
+    print("Interrupt - Motor Fault - PCINT2 (Pin change interrupt 2, PEX INTA)\n");
 
     // GPA0 = _FLT_A_
     // GPA1 = _FLT_B_
