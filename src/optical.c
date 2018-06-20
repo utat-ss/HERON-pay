@@ -25,7 +25,7 @@ ISR(INT1_vect) {
             spi_rx_data_in_progress = false;
             spi_rx_data_num_bytes_received = 0;
 
-            print("Received 3 byte data from PAY-Optical: %06x\n", spi_rx_data);
+            print("Received data from PAY-Optical: %06x = %lf %%\n", spi_rx_data, (double) spi_rx_data / (double) 0xFFFFFF * 100.0);
 
 #ifndef DISABLE_CAN
             uint8_t tx_data[8];
