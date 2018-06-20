@@ -18,8 +18,6 @@
 #define STEP_PORT   PORTC
 #define STEP_DDR    DDRC
 
-extern bool motor_fault;
-
 void init_motors(void);
 void enable_motors(void);
 void disable_motors(void);

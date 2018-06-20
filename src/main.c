@@ -185,26 +185,3 @@ int main(void) {
         }
     }
 }
-
-// TODO - should this be INT2 or PCINT2?
-ISR(PCINT2_vect) {
-    print("Interrupt - PCINT2 (Pin change interrupt 2, INTA from PEX) interrupt!\n");
-
-    // GPA0 = _FLT_A_
-    // GPA1 = _FLT_B_
-
-    // Check if either of the motor _FLT_ (fault) pins is low
-    uint8_t gpioa = pex_read(PEX_GPIO_BASE);
-    if ((gpioa & _BV(0)) == 0) {
-        motor_fault = true;
-        print("MOTOR A FAULT DETECTED!\n");
-    }
-    if ((gpioa & _BV(1)) == 0) {
-        motor_fault = true;
-        print("MOTOR B FAULT DETECTED!\n");
-    }
-
-    if (motor_fault) {
-        disable_motors();
-    }
-}
