@@ -29,6 +29,7 @@
 #include "analog_temp.h"
 #include "can_callbacks.h"
 #include "motors.h"
+#include "optical.h"
 
 uint32_t read_optical_raw(int channel, int LED);
 void handle_rx_hk(uint8_t* tx_data);
