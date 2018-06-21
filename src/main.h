@@ -22,7 +22,7 @@
 #include <uart/uart.h>
 #include <adc/adc.h>
 #include <pex/pex.h>
-#include <pay_sensors/pay_sensors.h>
+#include <conversions/conversions.h>
 #include <utilities/utilities.h>
 
 // PAY libraries
