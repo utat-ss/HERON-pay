@@ -81,29 +81,29 @@ void handle_rx(void) {
         tx_data[i] = 0;
     }
 
-    // Check message type
-    switch (rx_data[1]) {
-        case CAN_PAY_HK:
-            print("CAN_PAY_HK\n");
-            handle_rx_hk(tx_data);
-            break;
-
-        case CAN_PAY_SCI:
-            print("CAN_PAY_SCI\n");
-            send_read_sensor_command(rx_data[2]);
-            return;
-
-        case CAN_PAY_MOTOR:
-            print("CAN_PAY_MOTOR\n");
-            if (rx_data[2] == CAN_PAY_MOTOR_ACTUATE) {
-                actuate_motors();
-            }
-            break;
-
-        default:
-            print("Unknown message type\n");
-            break;
-    }
+    // // Check message type
+    // switch (rx_data[1]) {
+    //     case CAN_PAY_HK:
+    //         print("CAN_PAY_HK\n");
+    //         handle_rx_hk(tx_data);
+    //         break;
+    //
+    //     case CAN_PAY_SCI:
+    //         print("CAN_PAY_SCI\n");
+    //         send_read_sensor_command(rx_data[2]);
+    //         return;
+    //
+    //     case CAN_PAY_MOTOR:
+    //         print("CAN_PAY_MOTOR\n");
+    //         if (rx_data[2] == CAN_PAY_MOTOR_ACTUATE) {
+    //             actuate_motors();
+    //         }
+    //         break;
+    //
+    //     default:
+    //         print("Unknown message type\n");
+    //         break;
+    // }
 
     // Enqueue TX data to transmit
     enqueue(&tx_message_queue, tx_data);

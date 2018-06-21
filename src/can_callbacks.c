@@ -101,8 +101,10 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 
     // If the RX message exists, add it to the queue of received messages to process
     else {
-        enqueue(&rx_message_queue, (uint8_t *) data);
-        print("Enqueued RX message");
+        if (data[1] == CAN_PAY_HK || data[1] == CAN_PAY_SCI || data[1] == CAN_PAY_MOTOR) {
+            enqueue(&rx_message_queue, (uint8_t *) data);
+            print("Enqueued RX message");
+        }
     }
 }
 
