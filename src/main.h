@@ -30,6 +30,7 @@
 #include "can_callbacks.h"
 #include "motors.h"
 #include "optical.h"
+#include "sensors.h"
 
 void handle_rx_hk(uint8_t* tx_data);
 void handle_rx_sci(uint8_t* tx_data);
