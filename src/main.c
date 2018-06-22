@@ -144,6 +144,10 @@ void init_pay(void) {
     pres_init();
     print("Environmental Sensors Initialized\n");
 
+    // PAY-Optical
+    init_optical();
+    print("Optical Board Initialized\n");
+
     // CAN and MOBs
     init_can();
     init_rx_mob(&cmd_rx_mob);

@@ -1,21 +1,51 @@
 #include "optical.h"
 
 bool spi_rx_data_in_progress = false;
+uint8_t spi_rx_data_num_bytes_received = 0; // number of bytes already received from PAY-Optical
 uint32_t spi_rx_data = 0;
 uint8_t spi_rx_data_field_number = 0;
-uint8_t spi_rx_data_num_bytes_received = 0; // number of bytes already received from PAY-Optical
+
+
+void init_optical(void) {
+    init_cs(OPTICAL_CS_PIN, &OPTICAL_CS_DDR);
+    set_cs_high(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
+
+    init_cs(OPTICAL_RST_PIN, &OPTICAL_RST_DDR);
+    set_cs_high(OPTICAL_RST_PIN, &OPTICAL_RST_PORT);
+}
+
+
+void rst_optical(void) {
+    // TODO - check how many cycles is necessary
+    set_cs_low(OPTICAL_RST_PIN, &OPTICAL_RST_PORT);
+    _delay_ms(1000);
+    set_cs_high(OPTICAL_RST_PIN, &OPTICAL_RST_PORT);
+}
+
+
+void send_read_optical_command(uint8_t field_number) {
+    spi_rx_data_field_number = field_number;
+    spi_rx_data = 0;
+    spi_rx_data_num_bytes_received = 0;
+    spi_rx_data_in_progress = true;
+
+    // Send the command to PAY-Optical to start reading data
+    send_spi((0b11 << 6) | field_number);
+
+    print("Sent SPI command to PAY-Optical - field %u\n", field_number);
+}
 
 
 // TODO - INT1 or PCINT1?
 // PB2/INT1 interrupt - DATA_RDY pin from PAY-Optical
 ISR(INT1_vect) {
-    print("Interrupt - DATA_RDY - INT1 (interrupt 1, PB2, from PAY-Optical)!\n");
+    print("Interrupt - DATA_RDY - INT1 (PB2, from PAY-Optical)\n");
 
     // TODO - is it possible to send SPI inside an interrupt?
 
     if (spi_rx_data_in_progress) {
         uint8_t new_byte = send_spi(0x00);
-        print("Received byte %02x\n", new_byte);
+        print("Received byte %2x\n", new_byte);
 
         spi_rx_data = spi_rx_data << 8;
         spi_rx_data = spi_rx_data | new_byte;
@@ -25,7 +55,8 @@ ISR(INT1_vect) {
             spi_rx_data_in_progress = false;
             spi_rx_data_num_bytes_received = 0;
 
-            print("Received data from PAY-Optical: %06x = %lf %%\n", spi_rx_data, (double) spi_rx_data / (double) 0xFFFFFF * 100.0);
+            print("Received data from PAY-Optical: %6x = %d %%\n",
+                    spi_rx_data, (int8_t)((double) spi_rx_data / (double) 0xFFFFFF * 100.0));
 
 #ifndef DISABLE_CAN
             uint8_t tx_data[8];
@@ -44,17 +75,4 @@ ISR(INT1_vect) {
 #endif
         }
     }
-}
-
-
-void send_read_sensor_command(uint8_t field_number) {
-    spi_rx_data_field_number = field_number;
-    spi_rx_data = 0;
-    spi_rx_data_num_bytes_received = 0;
-    spi_rx_data_in_progress = true;
-
-    // Send the command to PAY-Optical to start reading data
-    send_spi((0b11 << 6) | field_number);
-
-    print("Sent SPI command to PAY-Optical - read field %u\n", field_number);
 }
