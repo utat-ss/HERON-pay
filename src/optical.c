@@ -30,7 +30,9 @@ void send_read_optical_command(uint8_t field_number) {
     spi_rx_data_in_progress = true;
 
     // Send the command to PAY-Optical to start reading data
+    set_cs_low(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
     send_spi((0b11 << 6) | field_number);
+    set_cs_high(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
 
     print("Sent SPI command to PAY-Optical - field %u\n", field_number);
 }
@@ -44,7 +46,9 @@ ISR(INT1_vect) {
     // TODO - is it possible to send SPI inside an interrupt?
 
     if (spi_rx_data_in_progress) {
+        set_cs_low(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
         uint8_t new_byte = send_spi(0x00);
+        set_cs_high(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
         print("Received byte %2x\n", new_byte);
 
         spi_rx_data = spi_rx_data << 8;
@@ -56,7 +60,7 @@ ISR(INT1_vect) {
             spi_rx_data_num_bytes_received = 0;
 
             print("Received data from PAY-Optical: %6x = %d %%\n",
-                    spi_rx_data, (int8_t)((double) spi_rx_data / (double) 0xFFFFFF * 100.0));
+                    spi_rx_data, (int8_t) ((double) spi_rx_data / (double) 0xFFFFFF * 100.0));
 
 #ifndef DISABLE_CAN
             uint8_t tx_data[8];
