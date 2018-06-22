@@ -27,6 +27,6 @@
 
 void init_optical(void);
 void rst_optical(void);
-void send_read_sensor_command(uint8_t field_number);
+void send_read_optical_command(uint8_t field_number);
 
 #endif
