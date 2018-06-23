@@ -64,7 +64,7 @@ void disable_motors(void) {
 }
 
 void actuate_motors(void) {
-    print("Starting motor actuation\n");
+    print("Actuating motors\n");
 
     if (motor_fault) {
         return;
@@ -90,12 +90,12 @@ void actuate_motors(void) {
         }
 
         _delay_ms(1000);
-        print("Step done\n");
+        print("Step\n");
     }
 
     disable_motors();
 
-    print("Done motor actuation\n");
+    print("Done actuating motors\n");
 }
 
 
@@ -111,11 +111,11 @@ ISR(PCINT2_vect) {
     uint8_t gpioa = pex_read(PEX_GPIO_BASE);
     if ((gpioa & _BV(0)) == 0) {
         motor_fault = true;
-        print("MOTOR A FAULT DETECTED!\n");
+        print("MOTOR A FAULT\n");
     }
     if ((gpioa & _BV(1)) == 0) {
         motor_fault = true;
-        print("MOTOR B FAULT DETECTED!\n");
+        print("MOTOR B FAULT\n");
     }
 
     if (motor_fault) {

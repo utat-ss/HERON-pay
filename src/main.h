@@ -1,10 +1,7 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-// Definition necessary for <util/delay.h>
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
+#include <utilities/utilities.h>
 
 // AVR libraries
 #include <util/delay.h>
@@ -12,6 +9,7 @@
 // Standard libraries
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 // lib-common libraries
 #include <can/can.h>
@@ -23,7 +21,6 @@
 #include <adc/adc.h>
 #include <pex/pex.h>
 #include <conversions/conversions.h>
-#include <utilities/utilities.h>
 
 // PAY libraries
 #include "analog_temp.h"

@@ -49,7 +49,7 @@ ISR(INT1_vect) {
         set_cs_low(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
         uint8_t new_byte = send_spi(0x00);
         set_cs_high(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
-        print("Received byte %2x\n", new_byte);
+        print("Received byte %02x\n", new_byte);
 
         spi_rx_data = spi_rx_data << 8;
         spi_rx_data = spi_rx_data | new_byte;
@@ -59,7 +59,7 @@ ISR(INT1_vect) {
             spi_rx_data_in_progress = false;
             spi_rx_data_num_bytes_received = 0;
 
-            print("Received data from PAY-Optical: %6x = %d %%\n",
+            print("Received data from PAY-Optical: %06x = %d %%\n",
                     spi_rx_data, (int8_t) ((double) spi_rx_data / (double) 0xFFFFFF * 100.0));
 
 #ifndef DISABLE_CAN
@@ -74,7 +74,7 @@ ISR(INT1_vect) {
 
             // Enqueue CAN message to be sent with data
             enqueue(&tx_message_queue, tx_data);
-            print("Enqueued TX message:\n");
+            print("Enqueued TX\n");
             print_hex_bytes(tx_data, 8);
 #endif
         }
