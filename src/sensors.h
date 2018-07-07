@@ -64,7 +64,4 @@ uint32_t pres_convert_raw_uncompensated_data_to_raw_pressure(uint32_t D1, uint32
 uint32_t pres_read_raw_pressure(void);
 float pres_convert_raw_temperature_to_temperature(uint32_t raw_temperature);
 
-// optical ADC
-double adc_optical_convert_raw_data_to_voltage(uint32_t raw_data, uint8_t gain);
-
 #endif

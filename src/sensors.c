@@ -209,19 +209,3 @@ float pres_convert_raw_temperature_to_temperature(uint32_t raw_temperature) {
     int32_t signed_raw_temperature = (int32_t) raw_temperature;
     return ((float) signed_raw_temperature) / 100.0;
 }
-
-
-
-
-double adc_optical_convert_raw_data_to_voltage(uint32_t raw_data, uint8_t gain) {
-    // Convert a raw 24 bit measurement to the input voltage (in V) for the specified
-    // ADC channel, including applying the gain factor.
-
-    // (p.31) Code = (2^N * AIN * Gain) / (V_REF)
-    //     => AIN = (Code * V_REF) / (2^N * Gain)
-    double num = ((double) raw_data) * ADC_OPTICAL_V_REF;
-    double denom = (((uint32_t) 1) << ADC_OPTICAL_N) * gain;
-    double AIN = num / denom;
-
-    return AIN;
-}
