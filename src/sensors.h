@@ -1,3 +1,6 @@
+#ifndef SENSORS_H
+#define SENSORS_H
+
 #ifndef F_CPU
 #define F_CPU 8000000UL
 #endif
@@ -7,36 +10,58 @@
 #include <util/delay.h>
 #include <spi/spi.h>
 
-#include "pex.h"
 
-#define RESET 0x1E
-#define D1_4096 0x48
-#define D2_4096 0x58
-#define ADC_READ 0x00
-#define PROM_BASE 0xA0
+#define PRES_RESET_SPI  0x1E
+#define PRES_D1_4096    0x48
+#define PRES_D2_4096    0x58
+#define PRES_ADC_READ   0x00
+#define PRES_PROM_BASE  0xA0
 
-uint16_t PROM_data[8];
+// Temperature sensor
+#define TEMP_CS_PIN     PC5
+#define TEMP_CS_PORT    PORTC
+#define TEMP_CS_DDR     DDRC
 
-void sensor_setup(void);
+// TODO - what is THM_DIS/TM_DIS??
+// shutdown mode?
 
-// temp
-float read_temperature(void);
-uint16_t read_raw_temperature(void);
-float convert_temperature(uint16_t raw_temp_data);
+// Humidity sensor
+#define HUM_CS_PIN  PC4
+#define HUM_CS_PORT PORTC
+#define HUM_CS_DDR  DDRC
+
+// Pressure sensor
+#define PRES_CS_PIN     PC6
+#define PRES_CS_PORT    PORTC
+#define PRES_CS_DDR     DDRC
+
+// Optical ADC - read conversion (p.31)
+#define ADC_OPTICAL_N       24  // number of bits read
+#define ADC_OPTICAL_V_REF   2.5 // reference voltage
+
+
+
+
+// temperature
+void temp_init(void);
+uint16_t temp_read_raw_data(void);
 
 // humidity
-uint32_t read_raw_humidity(void);
-double read_humidity(void);
-double convert_humidity(uint32_t);
-double read_humidity_temp(void);
-uint16_t read_raw_humidity_temp(void);
-double convert_humidity_temp(uint16_t raw_humidity_temp);
+void hum_init(void);
+uint32_t hum_read_raw_data(void);
+uint16_t hum_read_raw_humidity(void);
+uint16_t hum_read_raw_temperature(void);
+double hum_convert_raw_temperature_to_temperature(uint16_t raw_temperature);
 
 // pressure
-void init_pressure_sensor(void);
-void pressure_sensor_reset(void);
-uint16_t read_PROM(uint8_t);
-uint32_t pressure_sensor_read(uint8_t);
-uint32_t read_raw_pressure(void);
-uint32_t read_raw_pressure_temp(void);
-float convert_pressure(uint16_t*, uint32_t, uint32_t);
+void pres_init(void);
+void pres_reset(void);
+uint16_t pres_read_prom(uint8_t address);
+uint32_t pres_read_raw_uncompensated_data(uint8_t cmd);
+uint32_t pres_read_raw_uncompensated_pressure(void);
+uint32_t pres_read_raw_uncompensated_temperature(void);
+uint32_t pres_convert_raw_uncompensated_data_to_raw_pressure(uint32_t D1, uint32_t D2, uint32_t *raw_temperature);
+uint32_t pres_read_raw_pressure(void);
+float pres_convert_raw_temperature_to_temperature(uint32_t raw_temperature);
+
+#endif

@@ -1,12 +1,9 @@
-/*
-Author: Shimi Smith
-*/
-
 #include <stdint.h>
 #include <avr/io.h>
 
 #define INPUT 0
 #define OUTPUT 1
+
 #define HIGH 1
 #define LOW 0
 

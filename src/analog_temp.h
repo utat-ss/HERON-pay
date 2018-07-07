@@ -15,7 +15,7 @@
 
 // Refer to page 9 of the datasheet for bit configuration
 #define THERMISTOR_BASE 0b10000100
-static const uint16_t R_REF[4] = {9010, 9960, 9980, 9950};             // (Ohm); measured value
+static const uint16_t R_REF[4] = {9010, 9960, 9980, 9950};  // (Ohm); measured value
 
 void init_thermistor(void);
 uint16_t read_thermistor_adc(int channel);
