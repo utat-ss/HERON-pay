@@ -40,23 +40,6 @@ const int THERMIS_TEMPS[THERMIS_LUT_COUNT] PROGMEM = {
 };
 
 
-// TODO
-// // Converts the ADC reading into a thermistor resistance
-// // Assumes the thermistor is wired in series with a resistor of resistance
-// // R_REF, using the 2.5V ADC reference voltage
-// // See: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
-// double convert_thermistor_reading(uint16_t adc_reading, int channel){
-//     // Equation is as follows, after rearringing the voltage divider equation:
-//     // R = R0 [(ADC_max_value / ADC_read_value) - 1]
-//
-//     double res;
-//
-//     res = (double)(1<<12) / adc_reading;
-//     res = (double)(R_REF[channel]) / 1000.0 * (res - 1.0);
-//
-//     return res;
-// }
-
 // Convert the measured thermistor (NXRT15XH103FA1B040) resistance to temperature
 double thermis_resistance_to_temp(double resistance){
     for (uint8_t i = 0; i < THERMIS_LUT_COUNT - 1; i++){
@@ -95,4 +78,11 @@ double thermis_temp_to_resistance(double temp) {
 
     // TODO - this shouldn't happen
     return 0.0;
+}
+
+// Get the voltage at the point between the thermistor and the constant 10k resistor
+// (10k connected to ground)
+// See: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
+double thermis_resistance_to_voltage(double resistance) {
+    return THERMIS_V_REF * THERMIS_R_REF / (resistance + THERMIS_R_REF);
 }
