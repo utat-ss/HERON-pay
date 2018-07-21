@@ -1,6 +1,6 @@
 CC = avr-gcc
 INCLUDES = -I../../lib-common/include
-LIB = -L../../lib-common/lib -luart -lspi -lcan -lassert -lpex -lconversions
+LIB = -L../../lib-common/lib -luart -lspi -lcan
 CFLAGS = -Wall -g -mmcu=atmega32m1 -Os -mcall-prologues
 
 PGMR = stk500
