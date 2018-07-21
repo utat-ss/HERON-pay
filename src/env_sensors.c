@@ -4,7 +4,7 @@ Temperature, pressure, and humidity reading on the PAY-SSM.
 AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 */
 
-#include "sensors.h"
+#include "env_sensors.h"
 
 uint16_t pres_prom_data[8];
 

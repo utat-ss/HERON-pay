@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include <can/can.h>
 #include <can/can_ids.h>
-#include <can/can_data_protocol.h>
+#include <can/packets.h>
 #include <queue/queue.h>
-#include <utilities/utilities.h>
+//#include <utilities/utilities.h>
 
 // CAN messages received but not processed yet
 extern queue_t rx_message_queue;
