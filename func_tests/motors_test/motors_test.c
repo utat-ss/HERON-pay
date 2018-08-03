@@ -14,19 +14,20 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    pex_init();
+    pex_init(PEX_ADDR_PAY, PEX_BOARD_PAY);
     print("PEX Initialized\n");
+
+
+    print("Starting test\n");
 
     init_motors();
     print("Motors Initialized\n");
 
-    print("\nStarting test\n\n");
-
     while (1) {
-        print("Actuating motors...\n");
+        print("Actuating motors for 5 seconds\n");
         actuate_motors();
 
-        print("Waiting...\n");
-        _delay_ms(10000);
+        print("Waiting for 1 seconds\n");
+        _delay_ms(1000);
     }
 }
