@@ -21,8 +21,8 @@ void init_motors(void) {
 
     // Set _EN_ high (disabled)
     pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_EN, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
     pex_set_pin_dir_b(PEX_ADDR_PAY, PEX_EN, PEX_DIR_OUTPUT);
+    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
     pex_set_pin_high_b(PEX_ADDR_PAY, PEX_EN);
 
     // Set _SLP_ (sleep) low (enter sleep state)
@@ -33,10 +33,11 @@ void init_motors(void) {
 
     // Set DIR (direction) high (normal sequence of steps in Table 4, p. 16-17)
     pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_DIR, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
     pex_set_pin_dir_b(PEX_ADDR_PAY, PEX_DIR, PEX_DIR_OUTPUT);
+    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
     pex_set_pin_high_b(PEX_ADDR_PAY, PEX_DIR);
 
+    // Set decay high (fast decay)
     pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_DECAY, PEX_DIR_OUTPUT);
     pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DECAY);
 
@@ -81,26 +82,26 @@ void actuate_motors(void) {
         }
 
         set_cs_low(STEP_PIN, &STEP_PORT);
-        _delay_ms(10);
+        _delay_ms(100);
         set_cs_high(STEP_PIN, &STEP_PORT);
-        _delay_ms(10);
-        set_cs_low(STEP_PIN, &STEP_PORT);
-
-        // Switch direction
-        step_high = !step_high;
-        if (step_high) {
-            pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
-            pex_set_pin_low_b(PEX_ADDR_PAY, PEX_DIR);
-        } else {
-            pex_set_pin_low_a(PEX_ADDR_PAY, PEX_DIR);
-            pex_set_pin_high_b(PEX_ADDR_PAY, PEX_DIR);
-        }
+        _delay_ms(100);
 
         if (motor_fault) {
             break;
         }
 
         print("Step\n");
+    }
+
+    // Switch direction
+    print("Switch\n");
+    step_high = !step_high;
+    if (step_high) {
+        pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
+        pex_set_pin_low_b(PEX_ADDR_PAY, PEX_DIR);
+    } else {
+        pex_set_pin_low_a(PEX_ADDR_PAY, PEX_DIR);
+        pex_set_pin_high_b(PEX_ADDR_PAY, PEX_DIR);
     }
 
     disable_motors();
