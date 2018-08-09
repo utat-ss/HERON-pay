@@ -5,18 +5,30 @@
 #include <avr/io.h>
 #include <pex/pex.h>
 
+// Indexer mode
 // For both GPIOA (GPA) and GPIOB (GPB)
-#define PEX_M1      7
-#define PEX_M0      6
-#define PEX_EN      5
-#define PEX_SLP     4
-#define PEX_DIR     3
-#define PEX_DECAY   2
+// #define PEX_M1      7
+// #define PEX_M0      6
+// #define PEX_EN      5
+// #define PEX_SLP     4
+// #define PEX_DIR     3
+// #define PEX_DECAY   2
+// #define STEP_PIN    PC1
+// #define STEP_PORT   PORTC
+// #define STEP_DDR    DDRC
 
-// Motor step input
-#define STEP_PIN    PC1
-#define STEP_PORT   PORTC
-#define STEP_DDR    DDRC
+
+// Phase/enable mode
+#define MOT_SLP         4
+#define MOT_ADECAY      2
+#define MOT_M1          7
+#define MOT_APHASE      6
+#define MOT_BPHASE      3
+#define MOT_AENBL       5
+#define MOT_BENBL_PIN   PC1
+#define MOT_BENBL_PORT  PORTC
+#define MOT_BENBL_DDR   DDRC
+
 
 void init_motors(void);
 void enable_motors(void);

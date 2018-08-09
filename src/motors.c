@@ -13,98 +13,135 @@ bool motor_fault = false;
 
 
 void init_motors(void) {
-    // Full step
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_M1, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_M0, PEX_DIR_OUTPUT);
-    pex_set_pin_low_a(PEX_ADDR_PAY, PEX_M1);
-    pex_set_pin_low_a(PEX_ADDR_PAY, PEX_M0);
+    // M1, M0, decay tied to both
 
-    // Set _EN_ high (disabled)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_EN, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, PEX_EN, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
-    pex_set_pin_high_b(PEX_ADDR_PAY, PEX_EN);
+    // nSLEEP = 1
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_SLP, PEX_DIR_OUTPUT);
+    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_SLP, PEX_DIR_OUTPUT);
+    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_SLP);
+    pex_set_pin_high_b(PEX_ADDR_PAY, MOT_SLP);
 
-    // Set _SLP_ (sleep) low (enter sleep state)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_SLP, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, PEX_SLP, PEX_DIR_OUTPUT);
-    pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
-    pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
+    // ADECAY = 1 (fast decay)
+    // TODO - might need to connect BDECAY high in hardware
+    // (currently tied to ground)
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_ADECAY, PEX_DIR_OUTPUT);
+    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_ADECAY);
 
-    // Set DIR (direction) high (normal sequence of steps in Table 4, p. 16-17)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_DIR, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, PEX_DIR, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
-    pex_set_pin_high_b(PEX_ADDR_PAY, PEX_DIR);
+    // M1 = 1 (async fast decay)
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_M1, PEX_DIR_OUTPUT);
+    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_M1);
 
-    // Set decay high (fast decay)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, PEX_DECAY, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DECAY);
+    // APHASE = 0
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_APHASE, PEX_DIR_OUTPUT);
+    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
 
-    // Set STEP low
-    // (same STEP output for both motors A/B)
-    init_cs(STEP_PIN, &STEP_DDR);
-    set_cs_low(STEP_PIN, &STEP_PORT);
+    // BPHASE = 0
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_BPHASE, PEX_DIR_OUTPUT);
+    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_BPHASE, PEX_DIR_OUTPUT);
+    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
+    pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+
+    // AENBL = 0
+    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_AENBL, PEX_DIR_OUTPUT);
+    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_AENBL, PEX_DIR_OUTPUT);
+    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_AENBL);
+    pex_set_pin_low_b(PEX_ADDR_PAY, MOT_AENBL);
+
+    // BENBL = 0
+    init_cs(MOT_BENBL_PIN, &MOT_BENBL_DDR);
+    set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
 }
 
-void enable_motors(void) {
-    // Enable motors and disable sleep
-    pex_set_pin_low_a(PEX_ADDR_PAY, PEX_EN);
-    pex_set_pin_low_b(PEX_ADDR_PAY, PEX_EN);
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_SLP);
-    pex_set_pin_high_b(PEX_ADDR_PAY, PEX_SLP);
-}
-
-void disable_motors(void) {
-    // Disable motors and enable sleep
-    pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
-    pex_set_pin_high_b(PEX_ADDR_PAY, PEX_EN);
-    pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
-    pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
-}
-
-bool step_high = true;
+// void enable_motors(void) {
+//     // Enable motors and disable sleep
+//     pex_set_pin_low_a(PEX_ADDR_PAY, PEX_EN);
+//     pex_set_pin_low_b(PEX_ADDR_PAY, PEX_EN);
+//     // pex_set_pin_high_a(PEX_ADDR_PAY, PEX_SLP);
+//     // pex_set_pin_high_b(PEX_ADDR_PAY, PEX_SLP);
+// }
+//
+// void disable_motors(void) {
+//     // Disable motors and enable sleep
+//     pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
+//     pex_set_pin_high_b(PEX_ADDR_PAY, PEX_EN);
+//     // pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
+//     // pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
+// }
+//
+// bool step_high = true;
 
 void actuate_motors(void) {
     print("Actuating motors\n");
 
-    if (motor_fault) {
-        return;
-    }
+    // TODO - faults
+    // if (motor_fault) {
+    //     return;
+    // }
 
-    enable_motors();
+    // enable_motors();
 
-    // Actuate for 5 seconds
-    // The motor should step on every rising edge of STEP
-    for (uint8_t i = 0; i < 25; i++) {
-        if (motor_fault) {
-            break;
+    // AENBL = 1
+    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_AENBL);
+    pex_set_pin_high_b(PEX_ADDR_PAY, MOT_AENBL);
+
+    // BENBL = 1
+    set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+
+    while (1) {
+        for (uint8_t i = 0; i < 20; i++) {
+            // BPHASE = 1
+            _delay_ms(5);
+            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
+
+            // APHASE = 1
+            _delay_ms(5);
+            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
+
+            // BPHASE = 0
+            _delay_ms(5);
+            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+
+            // APHASE = 0
+            _delay_ms(5);
+            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
+
+            print("Loop\n");
         }
 
-        set_cs_low(STEP_PIN, &STEP_PORT);
-        _delay_ms(100);
-        set_cs_high(STEP_PIN, &STEP_PORT);
-        _delay_ms(100);
+        print("Flip\n");
+        print("Waiting 1 second\n");
+        _delay_ms(1000);
 
-        if (motor_fault) {
-            break;
+        for (uint8_t i = 0; i < 20; i++) {
+            // APHASE = 1
+            _delay_ms(5);
+            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
+
+            // BPHASE = 1
+            _delay_ms(5);
+            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
+
+            // APHASE = 0
+            _delay_ms(5);
+            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
+
+            // BPHASE = 0
+            _delay_ms(5);
+            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+
+            print("Loop\n");
         }
 
-        print("Step\n");
+        print("Flip\n");
+        print("Waiting 1 second\n");
+        _delay_ms(1000);
     }
 
-    // Switch direction
-    print("Switch\n");
-    step_high = !step_high;
-    if (step_high) {
-        pex_set_pin_high_a(PEX_ADDR_PAY, PEX_DIR);
-        pex_set_pin_low_b(PEX_ADDR_PAY, PEX_DIR);
-    } else {
-        pex_set_pin_low_a(PEX_ADDR_PAY, PEX_DIR);
-        pex_set_pin_high_b(PEX_ADDR_PAY, PEX_DIR);
-    }
-
-    disable_motors();
+    // disable_motors();
 
     print("Done actuating motors\n");
 }
@@ -130,7 +167,8 @@ ISR(PCINT2_vect) {
     }
 
     if (motor_fault) {
-        disable_motors();
+        // TODO
+        // disable_motors();
     }
 }
 
