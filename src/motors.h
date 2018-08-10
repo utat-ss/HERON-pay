@@ -35,14 +35,12 @@
 #define MOT_BENBL_DDR   DDRC
 
 // PEX properties
-extern pin_info_t pex_cs;
-extern pin_info_t pex_rst;
 extern pex_t pex;
 
 
 void init_motors(void);
 void enable_motors(void);
 void disable_motors(void);
-void actuate_motors(void);
+void actuate_motors(bool forward);
 
 #endif

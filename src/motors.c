@@ -70,33 +70,10 @@ void init_motors(void) {
     set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
 }
 
-// void enable_motors(void) {
-//     // Enable motors and disable sleep
-//     pex_set_pin_low_a(PEX_ADDR_PAY, PEX_EN);
-//     pex_set_pin_low_b(PEX_ADDR_PAY, PEX_EN);
-//     // pex_set_pin_high_a(PEX_ADDR_PAY, PEX_SLP);
-//     // pex_set_pin_high_b(PEX_ADDR_PAY, PEX_SLP);
-// }
-//
-// void disable_motors(void) {
-//     // Disable motors and enable sleep
-//     pex_set_pin_high_a(PEX_ADDR_PAY, PEX_EN);
-//     pex_set_pin_high_b(PEX_ADDR_PAY, PEX_EN);
-//     // pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
-//     // pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
-// }
-//
-// bool step_high = true;
-
-void actuate_motors(void) {
-    print("Actuating motors\n");
-
-    // TODO - faults
-    // if (motor_fault) {
-    //     return;
-    // }
-
-    // enable_motors();
+void enable_motors(void) {
+    // Enable motors and disable sleep
+    // pex_set_pin_high_a(PEX_ADDR_PAY, PEX_SLP);
+    // pex_set_pin_high_b(PEX_ADDR_PAY, PEX_SLP);
 
     // AENBL = 1
     pex_set_pin(&pex, MOT_AENBL, PEX_A, HIGH);
@@ -104,9 +81,33 @@ void actuate_motors(void) {
 
     // BENBL = 1
     set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+}
 
-    while (1) {
-        for (uint8_t i = 0; i < 100; i++) {
+void disable_motors(void) {
+    // Disable motors and enable sleep
+    // pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
+    // pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
+
+    // AENBL = 0
+    pex_set_pin(&pex, MOT_AENBL, PEX_A, LOW);
+    pex_set_pin(&pex, MOT_AENBL, PEX_B, LOW);
+
+    // BENBL = 0
+    set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+}
+
+
+// forward - true to go "forward", false to go "backward"
+// these are arbitrary and just mean opposite directions
+void actuate_motors(bool forward) {
+    print("Actuating motors\n");
+
+    enable_motors();
+
+    for (uint8_t i = 0; i < 20; i++) {
+        print("Loop\n");
+
+        if (forward) {
             // BPHASE = 1
             _delay_ms(50);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
@@ -124,15 +125,9 @@ void actuate_motors(void) {
             // APHASE = 0
             _delay_ms(50);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
-
-            print("Loop\n");
         }
 
-        print("Flip\n");
-        print("Waiting 1 second\n");
-        _delay_ms(1000);
-
-        for (uint8_t i = 0; i < 100; i++) {
+        else {
             // APHASE = 1
             _delay_ms(50);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
@@ -150,24 +145,19 @@ void actuate_motors(void) {
             _delay_ms(50);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
             pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
-
-            print("Loop\n");
         }
-
-        print("Flip\n");
-        print("Waiting 1 second\n");
-        _delay_ms(1000);
     }
 
-    // disable_motors();
+    disable_motors();
 
-    print("Done actuating motors\n");
+    print("Done actuating\n");
 }
 
 
 
 
 // TODO - should this be INT2 or PCINT2?
+// TODO - test faults
 ISR(PCINT2_vect) {
     print("Interrupt - Motor Fault - PCINT2 (Pin change interrupt 2, PEX INTA)\n");
 
