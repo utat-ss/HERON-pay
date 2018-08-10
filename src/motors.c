@@ -88,23 +88,23 @@ void actuate_motors(void) {
     set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
 
     while (1) {
-        for (uint8_t i = 0; i < 20; i++) {
+        for (uint8_t i = 0; i < 100; i++) {
             // BPHASE = 1
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
             pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
 
             // APHASE = 1
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
 
             // BPHASE = 0
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
             pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
 
             // APHASE = 0
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
 
             print("Loop\n");
@@ -114,22 +114,22 @@ void actuate_motors(void) {
         print("Waiting 1 second\n");
         _delay_ms(1000);
 
-        for (uint8_t i = 0; i < 20; i++) {
+        for (uint8_t i = 0; i < 100; i++) {
             // APHASE = 1
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
 
             // BPHASE = 1
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
             pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
 
             // APHASE = 0
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
 
             // BPHASE = 0
-            _delay_ms(5);
+            _delay_ms(50);
             pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
             pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
 
