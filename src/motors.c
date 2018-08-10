@@ -1,9 +1,10 @@
 /*
 Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 
-- indexer mode
-- slow decay (0% of cycle in fast decay)
-- 16 microsteps/step
+- phase/enable mode
+
+TODO - sleep motors
+TODO - test faults
 */
 
 #include "motors.h"
@@ -48,8 +49,7 @@ void init_motors(void) {
     pex_set_pin(&pex, MOT_SLP, PEX_B, HIGH);
 
     // ADECAY = 1 (fast decay)
-    // TODO - might need to connect BDECAY high in hardware
-    // (currently tied to ground)
+    // TODO - might need to connect BDECAY high in hardware (currently tied to ground)
     pex_set_pin_dir(&pex, MOT_ADECAY, PEX_A, OUTPUT);
     pex_set_pin(&pex, MOT_ADECAY, PEX_A, HIGH);
 
@@ -80,8 +80,8 @@ void init_motors(void) {
 
 void enable_motors(void) {
     // Enable motors and disable sleep
-    // pex_set_pin_high_a(PEX_ADDR_PAY, PEX_SLP);
-    // pex_set_pin_high_b(PEX_ADDR_PAY, PEX_SLP);
+
+    // nSLEEP = 1
 
     // AENBL = 1
     pex_set_pin(&pex, MOT_AENBL, PEX_A, HIGH);
@@ -93,8 +93,8 @@ void enable_motors(void) {
 
 void disable_motors(void) {
     // Disable motors and enable sleep
-    // pex_set_pin_low_a(PEX_ADDR_PAY, PEX_SLP);
-    // pex_set_pin_low_b(PEX_ADDR_PAY, PEX_SLP);
+
+    // nSLEEP = 0
 
     // AENBL = 0
     pex_set_pin(&pex, MOT_AENBL, PEX_A, LOW);
@@ -166,9 +166,8 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
 
 
 // TODO - should this be INT2 or PCINT2?
-// TODO - test faults
 ISR(PCINT2_vect) {
-    print("Interrupt - Motor Fault - PCINT2 (Pin change interrupt 2, PEX INTA)\n");
+    print("Interrupt - PCINT2 - Motor Fault (PEX INTA)\n");
 
     // GPA0 = _FLT_A_
     // GPA1 = _FLT_B_
@@ -176,6 +175,7 @@ ISR(PCINT2_vect) {
     // Check if either of the motor _FLT_ (fault) pins is low
     // TODO - make pin constants
     // TODO - should these be combined into a single PEX read?
+
     if (pex_get_pin(&pex, 0, PEX_A) == 0) {
         motor_fault = true;
         print("MOTOR A FAULT\n");
@@ -186,11 +186,10 @@ ISR(PCINT2_vect) {
     }
 
     if (motor_fault) {
-        // TODO
-        // disable_motors();
+        disable_motors();
     }
 }
 
 ISR(INT2_vect) {
-    print("INT2\n");
+    print("Interrupt - INT2\n");
 }

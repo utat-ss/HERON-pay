@@ -22,7 +22,6 @@
 // #define STEP_PORT   PORTC
 // #define STEP_DDR    DDRC
 
-
 // Phase/enable mode
 #define MOT_SLP         4
 #define MOT_ADECAY      2
@@ -34,9 +33,8 @@
 #define MOT_BENBL_PORT  PORTC
 #define MOT_BENBL_DDR   DDRC
 
-// PEX properties
+// PEX device
 extern pex_t pex;
-
 
 void init_motors(void);
 void enable_motors(void);

@@ -25,15 +25,15 @@ int main(void){
     print("Motors Initialized\n");
 
     while (1) {
-        print("Actuating: 100ms, 50 times, forward\n");
-        actuate_motors(100, 50, true);
+        print("Actuating: 100ms, 100 times, forward\n");
+        actuate_motors(100, 100, true);
         print("Done actuating\n");
 
         print("Waiting 2 seconds\n");
         _delay_ms(2000);
 
-        print("Actuating: 16ms, 100 times, backward\n");
-        actuate_motors(16, 100, false);
+        print("Actuating: 16ms, 75 times, backward\n");
+        actuate_motors(16, 75, false);
         print("Done actuating\n");
 
         print("Waiting 2 seconds\n");
