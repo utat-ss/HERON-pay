@@ -4,6 +4,11 @@
 #include <stdbool.h>
 #include <avr/io.h>
 #include <pex/pex.h>
+#include <pex/pay.h>
+#include <uart/uart.h>
+
+#define F_CPU 8000000UL
+#include <util/delay.h>
 
 // Indexer mode
 // For both GPIOA (GPA) and GPIOB (GPB)
@@ -28,6 +33,11 @@
 #define MOT_BENBL_PIN   PC1
 #define MOT_BENBL_PORT  PORTC
 #define MOT_BENBL_DDR   DDRC
+
+// PEX properties
+extern pin_info_t pex_cs;
+extern pin_info_t pex_rst;
+extern pex_t pex;
 
 
 void init_motors(void);

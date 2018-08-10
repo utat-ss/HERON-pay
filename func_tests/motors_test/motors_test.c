@@ -5,6 +5,7 @@
 #include <uart/uart.h>
 #include <spi/spi.h>
 #include <util/delay.h>
+#include <pex/pex.h>
 #include "../../src/motors.h"
 
 int main(void){
@@ -14,7 +15,7 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    pex_init(PEX_ADDR_PAY, PEX_BOARD_PAY);
+    init_pex(&pex);
     print("PEX Initialized\n");
 
 

@@ -12,40 +12,58 @@ Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 bool motor_fault = false;
 
 
+pin_info_t pex_cs = {
+    .port = &PEX_CS_PORT_PAY,
+    .ddr = &PEX_CS_DDR_PAY,
+    .pin = PEX_CS_PIN_PAY
+};
+
+pin_info_t pex_rst = {
+    .port = &PEX_RST_PORT_PAY,
+    .ddr = &PEX_RST_DDR_PAY,
+    .pin = PEX_RST_PIN_PAY
+};
+
+pex_t pex = {
+    .addr = PEX_ADDR_PAY,
+    .cs = &pex_cs,
+    .rst = &pex_rst
+};
+
 void init_motors(void) {
     // M1, M0, decay tied to both
 
     // nSLEEP = 1
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_SLP, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_SLP, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_SLP);
-    pex_set_pin_high_b(PEX_ADDR_PAY, MOT_SLP);
+    pex_set_pin_dir(&pex, MOT_SLP, PEX_A, OUTPUT);
+    pex_set_pin_dir(&pex, MOT_SLP, PEX_B, OUTPUT);
+    pex_set_pin(&pex, MOT_SLP, PEX_A, HIGH);
+    pex_set_pin(&pex, MOT_SLP, PEX_B, HIGH);
 
     // ADECAY = 1 (fast decay)
     // TODO - might need to connect BDECAY high in hardware
     // (currently tied to ground)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_ADECAY, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_ADECAY);
+    pex_set_pin_dir(&pex, MOT_ADECAY, PEX_A, OUTPUT);
+    pex_set_pin(&pex, MOT_ADECAY, PEX_A, HIGH);
 
     // M1 = 1 (async fast decay)
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_M1, PEX_DIR_OUTPUT);
-    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_M1);
+    pex_set_pin_dir(&pex, MOT_M1, PEX_A, OUTPUT);
+    pex_set_pin(&pex, MOT_M1, PEX_A, HIGH);
 
     // APHASE = 0
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_APHASE, PEX_DIR_OUTPUT);
-    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
+    pex_set_pin_dir(&pex, MOT_APHASE, PEX_A, OUTPUT);
+    pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
 
     // BPHASE = 0
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_BPHASE, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_BPHASE, PEX_DIR_OUTPUT);
-    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
-    pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+    pex_set_pin_dir(&pex, MOT_BPHASE, PEX_A, OUTPUT);
+    pex_set_pin_dir(&pex, MOT_BPHASE, PEX_B, OUTPUT);
+    pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
+    pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
 
     // AENBL = 0
-    pex_set_pin_dir_a(PEX_ADDR_PAY, MOT_AENBL, PEX_DIR_OUTPUT);
-    pex_set_pin_dir_b(PEX_ADDR_PAY, MOT_AENBL, PEX_DIR_OUTPUT);
-    pex_set_pin_low_a(PEX_ADDR_PAY, MOT_AENBL);
-    pex_set_pin_low_b(PEX_ADDR_PAY, MOT_AENBL);
+    pex_set_pin_dir(&pex, MOT_AENBL, PEX_A, OUTPUT);
+    pex_set_pin_dir(&pex, MOT_AENBL, PEX_B, OUTPUT);
+    pex_set_pin(&pex, MOT_AENBL, PEX_A, LOW);
+    pex_set_pin(&pex, MOT_AENBL, PEX_B, LOW);
 
     // BENBL = 0
     init_cs(MOT_BENBL_PIN, &MOT_BENBL_DDR);
@@ -81,8 +99,8 @@ void actuate_motors(void) {
     // enable_motors();
 
     // AENBL = 1
-    pex_set_pin_high_a(PEX_ADDR_PAY, MOT_AENBL);
-    pex_set_pin_high_b(PEX_ADDR_PAY, MOT_AENBL);
+    pex_set_pin(&pex, MOT_AENBL, PEX_A, HIGH);
+    pex_set_pin(&pex, MOT_AENBL, PEX_B, HIGH);
 
     // BENBL = 1
     set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
@@ -91,21 +109,21 @@ void actuate_motors(void) {
         for (uint8_t i = 0; i < 100; i++) {
             // BPHASE = 1
             _delay_ms(50);
-            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
-            pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
 
             // APHASE = 1
             _delay_ms(50);
-            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
+            pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
 
             // BPHASE = 0
             _delay_ms(50);
-            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
-            pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
 
             // APHASE = 0
             _delay_ms(50);
-            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
+            pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
 
             print("Loop\n");
         }
@@ -117,21 +135,21 @@ void actuate_motors(void) {
         for (uint8_t i = 0; i < 100; i++) {
             // APHASE = 1
             _delay_ms(50);
-            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_APHASE);
+            pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
 
             // BPHASE = 1
             _delay_ms(50);
-            pex_set_pin_high_a(PEX_ADDR_PAY, MOT_BPHASE);
-            pex_set_pin_high_b(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
 
             // APHASE = 0
             _delay_ms(50);
-            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_APHASE);
+            pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
 
             // BPHASE = 0
             _delay_ms(50);
-            pex_set_pin_low_a(PEX_ADDR_PAY, MOT_BPHASE);
-            pex_set_pin_low_b(PEX_ADDR_PAY, MOT_BPHASE);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
+            pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
 
             print("Loop\n");
         }
@@ -148,6 +166,7 @@ void actuate_motors(void) {
 
 
 
+
 // TODO - should this be INT2 or PCINT2?
 ISR(PCINT2_vect) {
     print("Interrupt - Motor Fault - PCINT2 (Pin change interrupt 2, PEX INTA)\n");
@@ -156,12 +175,13 @@ ISR(PCINT2_vect) {
     // GPA1 = _FLT_B_
 
     // Check if either of the motor _FLT_ (fault) pins is low
-    uint8_t gpioa = pex_read(PEX_ADDR_PAY, PEX_GPIO_BASE);
-    if ((gpioa & _BV(0)) == 0) {
+    // TODO - make pin constants
+    // TODO - should these be combined into a single PEX read?
+    if (pex_get_pin(&pex, 0, PEX_A) == 0) {
         motor_fault = true;
         print("MOTOR A FAULT\n");
     }
-    if ((gpioa & _BV(1)) == 0) {
+    if (pex_get_pin(&pex, 1, PEX_A)  == 0) {
         motor_fault = true;
         print("MOTOR B FAULT\n");
     }
