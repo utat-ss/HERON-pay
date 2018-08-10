@@ -30,6 +30,14 @@ pex_t pex = {
     .rst = &pex_rst
 };
 
+// Define this delay function because the built-in _delay_ms() only works with
+// compile-time constants
+void delay_ms(uint32_t ms) {
+    for (uint32_t i = 0; i < ms; i++) {
+        _delay_ms(1);
+    }
+}
+
 void init_motors(void) {
     // M1, M0, decay tied to both
 
@@ -97,60 +105,61 @@ void disable_motors(void) {
 }
 
 
-// forward - true to go "forward", false to go "backward"
-// these are arbitrary and just mean opposite directions
-void actuate_motors(bool forward) {
-    print("Actuating motors\n");
-
+/*
+period - time for one cycle (in ms)
+       - this is in the ideal case - only considering delays, assuming pin switching is instantaneous
+num_cycles - number of cycles (of `period` ms) to actuate for
+forward - true to go "forward", false to go "backward"
+        - these are arbitrary and just mean opposite directions
+*/
+void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
     enable_motors();
 
-    for (uint8_t i = 0; i < 20; i++) {
-        print("Loop\n");
+    uint16_t delay = period / 4;
 
+    for (uint16_t i = 0; i < num_cycles; i++) {
         if (forward) {
             // BPHASE = 1
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
             pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
 
             // APHASE = 1
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
 
             // BPHASE = 0
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
             pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
 
             // APHASE = 0
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
         }
 
         else {
             // APHASE = 1
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
 
             // BPHASE = 1
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
             pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
 
             // APHASE = 0
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
 
             // BPHASE = 0
-            _delay_ms(50);
+            delay_ms(delay);
             pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
             pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
         }
     }
 
     disable_motors();
-
-    print("Done actuating\n");
 }
 
 

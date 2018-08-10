@@ -41,6 +41,6 @@ extern pex_t pex;
 void init_motors(void);
 void enable_motors(void);
 void disable_motors(void);
-void actuate_motors(bool forward);
+void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward);
 
 #endif

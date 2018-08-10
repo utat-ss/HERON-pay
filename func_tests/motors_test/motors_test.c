@@ -24,14 +24,19 @@ int main(void){
     init_motors();
     print("Motors Initialized\n");
 
-    bool forward = true;
     while (1) {
-        print("Actuating motors\n");
-        actuate_motors(forward);
+        print("Actuating: 100ms, 50 times, forward\n");
+        actuate_motors(100, 50, true);
+        print("Done actuating\n");
 
-        print("Waiting for 1 seconds\n");
-        _delay_ms(1000);
+        print("Waiting 2 seconds\n");
+        _delay_ms(2000);
 
-        forward = !forward;
+        print("Actuating: 16ms, 100 times, backward\n");
+        actuate_motors(16, 100, false);
+        print("Done actuating\n");
+
+        print("Waiting 2 seconds\n");
+        _delay_ms(2000);
     }
 }
