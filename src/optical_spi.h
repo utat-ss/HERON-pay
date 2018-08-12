@@ -1,19 +1,17 @@
 #ifndef OPTICAL_H
 #define OPTICAL_H
 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <spi/spi.h>
-#include <util/delay.h>
-#include <can/can_data_protocol.h>
+#include <uart/uart.h>
+#include <can/data_protocol.h>
 #include "can_callbacks.h"
 
-// Uncomment this to disable the use of CAN
-//#define DISABLE_CAN
+#ifndef F_CPU
+#define F_CPU 8000000UL
+#endif
+#include <util/delay.h>
 
 // SENS_CS on schematic
 #define OPTICAL_CS_PIN PB3
@@ -25,8 +23,8 @@
 #define OPTICAL_RST_PORT PORTB
 #define OPTICAL_RST_DDR DDRB
 
-void init_optical(void);
-void rst_optical(void);
-void send_read_optical_command(uint8_t field_number);
+void opt_spi_init(void);
+void opt_spi_rst(void);
+void opt_spi_send_read_cmd(uint8_t field_number);
 
 #endif
