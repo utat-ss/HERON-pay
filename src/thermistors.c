@@ -9,7 +9,7 @@ TODO: Implement more efficient channel reading algorithm,
 TODO: Test edge cases
 */
 
-#include "analog_temp.h"
+#include "thermistors.h"
 
 // Initializes COM_RST pin on 32M1 as ADC CS
 void init_thermistor(void){
