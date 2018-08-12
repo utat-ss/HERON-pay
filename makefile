@@ -8,17 +8,24 @@ MCU = m32m1
 INCLUDES = -I./lib-common/include/
 
 # Change this line depending on what you're using
-# LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lutilities -lpay_sensors -lpex -ladc
 LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lpex
 
 # Change this line based on your OS and port
-#PORT = /dev/tty.usbmodem00187462
-PORT = /dev/tty.usbmodem00208212
-# PORT = /dev/tty.usbmodem00100511
+ifeq ($(OS),Windows_NT)
+	PORT = COM3
+else
+	# Automatically find the port on macOS (lower number)
+	PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+	#PORT = /dev/tty.usbmodem00187462
+	#PORT = /dev/tty.usbmodem00208212
+endif
 
 SRC = $(wildcard ./src/*.c)
 OBJ = $(SRC:./src/%.c=./build/%.o)
 DEP = $(OBJ:.o=.d)
+
+# Build directory
+DIR = build
 
 pay: $(OBJ)
 	$(CC) $(CFLAGS) -o ./build/$@.elf $(OBJ) $(LIB)
@@ -29,14 +36,20 @@ pay: $(OBJ)
 
 -include $(DEP)
 
-./build/%.d: ./src/%.c
+./build/%.d: ./src/%.c | $(DIR)
 	@$(CC) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
-.PHONY: clean upload debug
+# Create the build directory if it doesn't exist
+$(DIR):
+	mkdir $(DIR)
 
+
+# Special commands
+.PHONY: clean upload debug lib-common help
+
+# Remove all files in the build directory
 clean:
-	rm -f $(OBJ)
-	rm -f $(DEP)
+	rm -f $(DIR)/*
 
 upload: pay
 	avrdude -c $(PROG) -p $(MCU) -P $(PORT) -U flash:w:./build/$^.hex
@@ -47,3 +60,14 @@ debug:
 	@echo ————————————
 	@echo $(OBJ)
 	@echo ————————————
+
+# Update and make lib-common
+lib-common:
+	git submodule update --remote
+	cd lib-common
+	make clean
+	make
+	cd ..
+
+help:
+	@echo "usage: make [clean | upload | debug | lib-common | help]"

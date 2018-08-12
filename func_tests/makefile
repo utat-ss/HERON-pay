@@ -6,12 +6,18 @@ CFLAGS = -Wall -g -mmcu=atmega32m1 -Os -mcall-prologues
 PGMR = stk500
 MCU = m32m1
 
-# PORT = COM8
-# PORT = /dev/tty.usbmodem00208212
-PORT = /dev/tty.usbmodem00187462
+# Change this line based on your OS and port
+ifeq ($(OS),Windows_NT)
+	PORT = COM3
+else
+	# Automatically find the port on macOS (lower number)
+	PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+	#PORT = /dev/tty.usbmodem00187462
+	#PORT = /dev/tty.usbmodem00208212
+endif
 
 # SRC is defined in the example-specific makefile
-OBJ = $(SRC:../../src%.c=..%.o)
+OBJ = $(SRC:../../src/%.c=./%.o)
 
 $(PROG): $(PROG).o $(OBJ)
 	$(CC) $(CFLAGS) -o $@.elf $^ $(LIB)
@@ -20,16 +26,20 @@ $(PROG): $(PROG).o $(OBJ)
 $(PROG).o: $(PROG).c
 	$(CC) $(CFLAGS) -c $(PROG).c $(INCLUDES)
 
-../%.o: ../../src/%.c
+./%.o: ../../src/%.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
-.PHONY: clean upload
+
+# Special commands
+.PHONY: clean upload help
 
 clean:
 	rm -f ./*.o
-	rm -f ../*.o
 	rm -f ./*.elf
 	rm -f ./*.hex
 
 upload: $(PROG)
 	avrdude -p $(MCU) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
+
+help:
+	@echo "usage: make [clean | upload | help]"
