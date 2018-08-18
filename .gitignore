@@ -1,3 +1,6 @@
 *.o
 *.elf
 *.hex
+
+.DS_Store
+xcuserdata
