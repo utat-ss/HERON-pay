@@ -14,13 +14,13 @@
 
 
 
-/* Temperature */
+/* Temperature Sensor */
 
 #define TEMP_CS_PIN     PC5
 #define TEMP_CS_PORT    PORTC
 #define TEMP_CS_DDR     DDRC
 
-// TODO - what is THM_DIS/TM_DIS??
+// TODO - what is THM_DIS/TM_DIS?
 
 void temp_init(void);
 uint16_t temp_read_raw_data(void);
@@ -28,7 +28,7 @@ uint16_t temp_read_raw_data(void);
 
 
 
-/* Humidity */
+/* Humidity Sensor */
 
 #define HUM_CS_PIN  PC4
 #define HUM_CS_PORT PORTC
@@ -40,7 +40,7 @@ uint16_t hum_read_raw_data(void);
 
 
 
-/* Pressure */
+/* Pressure Sensor */
 
 #define PRES_CS_PIN     PC6
 #define PRES_CS_PORT    PORTC
@@ -58,8 +58,8 @@ void pres_reset(void);
 uint16_t pres_read_prom(uint8_t address);
 uint32_t pres_read_raw_uncomp_data(uint8_t cmd);
 uint32_t pres_reg_data_to_raw_data(
-        uint16_t C1, uint16_t C2, uint16_t C3, uint16_t C4, uint16_t C5, uint16_t C6,
-        uint32_t D1, uint32_t D2);
+    uint16_t C1, uint16_t C2, uint16_t C3, uint16_t C4, uint16_t C5, uint16_t C6,
+    uint32_t D1, uint32_t D2);
 uint32_t pres_read_raw_data(void);
 
 #endif
