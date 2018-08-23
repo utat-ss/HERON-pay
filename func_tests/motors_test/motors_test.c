@@ -5,6 +5,7 @@
 #include <uart/uart.h>
 #include <spi/spi.h>
 #include <util/delay.h>
+#include <pex/pex.h>
 #include "../../src/motors.h"
 
 int main(void){
@@ -14,19 +15,28 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    pex_init();
+    init_pex(&pex);
     print("PEX Initialized\n");
+
+
+    print("Starting test\n");
 
     init_motors();
     print("Motors Initialized\n");
 
-    print("\nStarting test\n\n");
-
     while (1) {
-        print("Actuating motors...\n");
-        actuate_motors();
+        print("Actuating: 100ms, 100 times, forward\n");
+        actuate_motors(100, 100, true);
+        print("Done actuating\n");
 
-        print("Waiting...\n");
-        _delay_ms(10000);
+        print("Waiting 2 seconds\n");
+        _delay_ms(2000);
+
+        print("Actuating: 16ms, 75 times, backward\n");
+        actuate_motors(16, 75, false);
+        print("Done actuating\n");
+
+        print("Waiting 2 seconds\n");
+        _delay_ms(2000);
     }
 }
