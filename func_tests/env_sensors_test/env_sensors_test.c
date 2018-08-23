@@ -6,7 +6,7 @@
 #include <spi/spi.h>
 #include <conversions/conversions.h>
 #include <util/delay.h>
-#include "../../src/sensors.h"
+#include "../../src/env_sensors.h"
 
 int main(void){
     init_uart();
@@ -24,18 +24,18 @@ int main(void){
 
     while (1) {
         uint16_t temp_raw = temp_read_raw_data();
-        float temp = temp_convert_raw_data_to_temperature(temp_raw);
-        print("Temperature: %04x = %d C\n", temp_raw, (int8_t) temp);
+        double temp = temp_raw_data_to_temperature(temp_raw);
+        print("Temperature: 0x%04X = %d C\n", temp_raw, (int8_t) temp);
 
-        uint16_t hum_raw = hum_read_raw_humidity();
-        double hum = hum_convert_raw_humidity_to_humidity(hum_raw);
-        print("Humidity: %04x = %d %%RH\n", hum_raw, (int8_t) hum);
+        uint16_t hum_raw = hum_read_raw_data();
+        double hum = hum_raw_data_to_humidity(hum_raw);
+        print("Humidity: 0x%04X = %d %%RH\n", hum_raw, (int8_t) hum);
 
-        uint32_t pres_raw = pres_read_raw_pressure();
-        float pres = pres_convert_raw_pressure_to_pressure(pres_raw);
-        print("Pressure: %08x = %d kPa\n", pres_raw, (int16_t) pres);
+        uint32_t pres_raw = pres_read_raw_data();
+        double pres = pres_raw_data_to_pressure(pres_raw);
+        print("Pressure: 0x%08lX (%lu) = %d kPa\n", pres_raw, pres_raw, (int16_t) pres);
 
         print("\n");
-        _delay_ms(10000);
+        _delay_ms(5000);
     }
 }
