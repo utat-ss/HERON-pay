@@ -34,6 +34,14 @@ uint8_t spi_num_bytes_rcvd = 0; // number of bytes already received from PAY-Opt
 uint32_t spi_data_rcvd = 0;
 uint8_t spi_field_number = 0;
 
+void ssm_spi_init(void) {
+	// set behaviour of INT1 to trigger on rising edge
+	EICRA |= (1 << ISC10) | (1 << ISC11);
+	// enable external interrupt 0
+	EIMSK |= (1 << INT1);
+	// enable global interrupts
+	sei();
+}
 
 void opt_spi_init(void) {
     init_cs(OPTICAL_CS_PIN, &OPTICAL_CS_DDR);
@@ -67,12 +75,8 @@ void opt_spi_send_read_cmd(uint8_t field_number) {
 }
 
 
-// TODO - INT1 or PCINT1?
-// INT1/PB2 interrupt - DATA_RDY pin from PAY-Optical
 ISR(INT1_vect) {
     print("Interrupt - INT1 - DATA_RDY - PB2 from PAY-Optical\n");
-
-    // TODO - is it possible to send SPI inside an interrupt?
 
     if (spi_in_progress) {
         set_cs_low(OPTICAL_CS_PIN, &OPTICAL_CS_PORT);
@@ -82,14 +86,14 @@ ISR(INT1_vect) {
 
         spi_data_rcvd = spi_data_rcvd << 8;
         spi_data_rcvd = spi_data_rcvd | new_byte;
-        spi_num_bytes_rcvd++;
 
+        spi_num_bytes_rcvd++;
         if (spi_num_bytes_rcvd >= 3) {
             spi_in_progress = false;
             spi_num_bytes_rcvd = 0;
 
-            print("Received data from PAY-Optical: %06x = %d %%\n",
-                    spi_data_rcvd, (int8_t) ((double) spi_data_rcvd / (double) 0xFFFFFF * 100.0));
+            print ("Received data from PAY-Optical: %lu\n", spi_data_rcvd);
+            spi_data_rcvd = 0;
 
             // TODO - enable, refactor into function, move to separate CAN file
             // uint8_t tx_data[8];

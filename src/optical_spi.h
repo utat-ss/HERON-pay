@@ -23,6 +23,7 @@
 #define OPTICAL_RST_PORT PORTB
 #define OPTICAL_RST_DDR DDRB
 
+void ssm_spi_init(void);
 void opt_spi_init(void);
 void opt_spi_rst(void);
 void opt_spi_send_read_cmd(uint8_t field_number);
