@@ -1,10 +1,11 @@
 #ifndef PWM_H
 #define PWM_H
 
-#include <uart/uart.h>
 #include <stdint.h>
+#include <avr/io.h>
+#include <util/atomic.h>
 
-
-void OC0A(uint8_t prescaler, uint8_t top);
+void func_OC0A(uint8_t prescaler, uint8_t top);
+void func_OC1B(uint8_t prescaler, uint16_t top);
 
 #endif

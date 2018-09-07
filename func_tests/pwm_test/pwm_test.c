@@ -3,12 +3,10 @@
 #endif
 
 #include "../../src/pwm.h"
-#include <uart/uart.h>
-#include <util/delay.h>
 
 int main(void){
-    init_uart();
 
-    OC0A(0, 200);
+    func_OC0A(4, 255);
+    func_OC1B(0, 1);
 
 }

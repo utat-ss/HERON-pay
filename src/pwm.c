@@ -1,9 +1,8 @@
 #include "pwm.h"
 
-//frequency = 8/(prescaler * top * 2) [Mhz]
+//frequency = 8/(prescaler * (top * 2 + 2)) [Mhz]
 // 0 <= prescaler <= 4 (1, 8, 64, 256, 1024)
-// note that if top == 0, then use 0.5 as the value for top in the formula
-void OC0A(uint8_t prescaler, uint8_t top)
+void func_OC0A(uint8_t prescaler, uint8_t top)
 {
   uint8_t read_TCCR0B = TCCR0B;
   uint8_t write_TCCR0B = ((read_TCCR0B & 0x30) | (0x09)) + prescaler;
@@ -20,9 +19,31 @@ void OC0A(uint8_t prescaler, uint8_t top)
   TIMSK0 = write_TIMSK0;
 
   DDRD |= _BV(0x03);
+
+  PRR &= 0xF7;
 }
 
-// void OC1B(uint8_t prescaler, uint16_t top)
-// {
-//
-// }
+void func_OC1B(uint8_t prescaler, uint16_t top)
+{
+  uint8_t read_TCCR1A = TCCR1A;
+  uint8_t write_TCCR1A = (read_TCCR1A & 0xAA) | 0x22;
+  TCCR1A = write_TCCR1A;
+
+  uint8_t read_TCCR1B = TCCR1B;
+  uint8_t write_TCCR1B = ((read_TCCR1B & 0x40) | 0x99) + prescaler;
+  TCCR1B = write_TCCR1B;
+
+  TCCR1A &= 0x3F;
+
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  {
+    ICR1 = top;
+  }
+
+  TIMSK1 &= 0xD8;
+
+  PRR &= 0xEF;
+
+  DDRC |= _BV(0x01);
+
+}
