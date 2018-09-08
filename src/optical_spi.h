@@ -13,17 +13,18 @@
 #endif
 #include <util/delay.h>
 
-// SENS_CS on schematic
-#define OPTICAL_CS_PIN PB3
-#define OPTICAL_CS_PORT PORTB
-#define OPTICAL_CS_DDR DDRB
+// SENS_CS pin on schematic
+#define OPT_CS_PIN      PB3
+#define OPT_CS_PORT     PORTB
+#define OPT_CS_DDR      DDRB
 
-// SENS_RST on schematic
-#define OPTICAL_RST_PIN PB4
-#define OPTICAL_RST_PORT PORTB
-#define OPTICAL_RST_DDR DDRB
+// SENS_RST pin on schematic
+#define OPT_RST_PIN     PB4
+#define OPT_RST_PORT    PORTB
+#define OPT_RST_DDR     DDRB
 
-void ssm_spi_init(void);
+extern bool opt_spi_enable_can;
+
 void opt_spi_init(void);
 void opt_spi_rst(void);
 void opt_spi_send_read_cmd(uint8_t field_number);
