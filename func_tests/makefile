@@ -6,7 +6,7 @@ CC = avr-gcc
 # Compiler flags
 CFLAGS = -Wall -std=gnu99 -g -mmcu=atmega32m1 -Os -mcall-prologues
 # Includes (header files)
-INCLUDES = -I../../lib-common/include
+INCLUDES = -I ../../lib-common/include
 # Programmer
 PGMR = stk500
 # Microcontroller
@@ -14,7 +14,7 @@ MCU = m32m1
 
 # Libraries from lib-common to link
 # May need to change this line
-LIB = -L../../lib-common/lib -luart -lspi -lcan -lpex -lconversions
+LIB = -L ../../lib-common/lib -luart -lspi -lcan -lpex -lconversions
 
 # Computer port that the programmer is connected to
 # May need to change the PORT definition based on your OS and port
