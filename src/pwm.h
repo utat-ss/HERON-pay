@@ -5,7 +5,7 @@
 #include <avr/io.h>
 #include <util/atomic.h>
 
-void func_OC0A(uint8_t prescaler, uint8_t top);
-void func_OC1B(uint8_t prescaler, uint16_t top);
+void init_pwm_8bit(uint8_t prescaler, uint8_t top);
+void init_pwm_16bit(uint8_t prescaler, uint16_t top, uint16_t duty_cycle);
 
 #endif

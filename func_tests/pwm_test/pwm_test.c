@@ -6,7 +6,7 @@
 
 int main(void){
 
-    func_OC0A(4, 255);
-    func_OC1B(0, 1);
+    init_pwm_8bit(4, 255);
+    init_pwm_16bit(0, 0xFFFF, 0x0FFF);
 
 }
