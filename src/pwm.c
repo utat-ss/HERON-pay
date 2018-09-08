@@ -1,5 +1,15 @@
 #include "pwm.h"
 
+void stop_timer()
+{
+  GTCCR |= 0x81;
+}
+
+void start_timer()
+{
+  GTCCR &= 0x7F;
+}
+
 void init_pwm_8bit(uint8_t prescaler, uint8_t top)
 {
   /*
