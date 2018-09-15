@@ -7,9 +7,8 @@
 #include <util/delay.h>
 #include <adc/adc.h>
 #include <adc/pay.h> //Includes constants
-#include "../../src/thermistors.h"
-
 #include <conversions/conversions.h>
+#include "../../src/thermistors.h"
 
 pin_info_t cs = {
     .port = &ADC_CS_PORT_PAY,
@@ -18,7 +17,7 @@ pin_info_t cs = {
 };
 
 adc_t adc = {
-    .channels = 0x0FFF, // TODO: does this value matter?
+    .channels = 0x0FFF,
     .cs = &cs
 };
 
@@ -29,10 +28,10 @@ double thermis_voltage_to_resistance(double voltage) {
 }
 
 //print temperature results from thermis_temperature array
-int print_thermistor_temperatures(double * thermis_temperature, int count) {
+int print_thermistor_temperatures(double * thermis_temperature, int len) {
     print("\nTemperature results:\n");
-    for (uint8_t i = 0; i < count; i ++) {
-        print("Channel %d: %d", count, thermis_temperature[i]);
+    for (uint8_t i = 0; i < len; i ++) {
+        print("Channel %d: %d\n", len, thermis_temperature[i]);
     }
     return 0;
 }
@@ -49,6 +48,9 @@ int main(void){
 
     print("\nStarting test\n\n");
 
+    //Number of thermistor channels to measure temperature (max 10)
+    uint8_t thermister_channel_num = 3;
+
     //Find the temperature given the voltage output from the adc
     while (1) {
         //Read all of the thermistors' voltage from adc
@@ -59,7 +61,8 @@ int main(void){
         double thermis_temperature[ADC_CHANNELS];
 
         //Find resistance for each channel
-        for (uint8_t i = 0; i < ADC_CHANNELS; i++) {
+        //only calculate it for thermistors (channel 10 and 11 are something else)
+        for (uint8_t i = 0; i < thermister_channel_num; i++) {
             uint16_t raw_data = read_channel(&adc, i);
             double voltage = adc_raw_data_to_raw_voltage(raw_data);
 
@@ -69,8 +72,7 @@ int main(void){
             //Convert resistance to temperature of thermistor
             thermis_temperature[i] = thermis_resistance_to_temp(resistance);
         }
-
-        print_thermistor_temperatures(&thermis_temperature, ADC_CHANNELS);
+        print_thermistor_temperatures(thermis_temperature, thermister_channel_num);
         _delay_ms(10000);
     }
 
