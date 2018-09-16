@@ -1,7 +1,7 @@
 CC = avr-gcc
 INCLUDES = -I../../lib-common/include
-LIB = -L../../lib-common/lib -luart -lspi -lcan -ldac -ladc -lconversions
-CFLAGS = -Wall -g -mmcu=atmega32m1 -Os -mcall-prologues
+LIB = -L../../lib-common/lib -luart -lspi -lcan -ldac -ladc -lconversions -L../../lib -luart -lprintf_flt -lm
+CFLAGS = -std=gnu99 -Wall -Wl,-u,vfprintf -g -mmcu=atmega32m1 -Os -mcall-prologues
 
 PGMR = stk500
 MCU = m32m1

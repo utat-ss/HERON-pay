@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
 
 #define THERMIS_V_REF     2.5
-#define THERMIS_R_REF 10000.0
+#define THERMIS_R_REF 10.0 // when referencing table in thermistors.c, values are in kilo Ohmns
 
 // Resistances are stored in kilo-ohms
 // PROGMEM instructs the compiler to store these values in flash memory

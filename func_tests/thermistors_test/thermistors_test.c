@@ -27,15 +27,6 @@ double thermis_voltage_to_resistance(double voltage) {
     return THERMIS_R_REF * (THERMIS_V_REF / voltage - 1);
 }
 
-//print temperature results from thermis_temperature array
-int print_thermistor_temperatures(double * thermis_temperature, int len) {
-    print("\nTemperature results:\n");
-    for (uint8_t i = 0; i < len; i ++) {
-        print("Channel %d: %d\n", len, thermis_temperature[i]);
-    }
-    return 0;
-}
-
 int main(void){
     init_uart();
     print("\n\nUART initialized\n");
@@ -56,23 +47,26 @@ int main(void){
         //Read all of the thermistors' voltage from adc
         fetch_all(&adc);
 
-        //TODO: ask difference between raw data and raw voltage
         //temperature for each thermistor-channel
         double thermis_temperature[ADC_CHANNELS];
 
         //Find resistance for each channel
         //only calculate it for thermistors (channel 10 and 11 are something else)
         for (uint8_t i = 0; i < thermister_channel_num; i++) {
+            print("Channel %d\n", i);
             uint16_t raw_data = read_channel(&adc, i);
             double voltage = adc_raw_data_to_raw_voltage(raw_data);
+            print("voltage (Volts): %f\n", voltage);
 
             //Convert adc voltage to resistance of thermistor
             double resistance = thermis_voltage_to_resistance(voltage);
+            print("resistance (kilo Ohmns): %f\n", resistance);
 
             //Convert resistance to temperature of thermistor
             thermis_temperature[i] = thermis_resistance_to_temp(resistance);
+            print("thermistor temperature (C): %f\n\n", thermis_temperature[i]);
         }
-        print_thermistor_temperatures(thermis_temperature, thermister_channel_num);
+
         _delay_ms(10000);
     }
 
