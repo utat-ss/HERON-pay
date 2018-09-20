@@ -3,6 +3,13 @@ Functions and data for measuring thermistor temperature
 
 AUTHORS: Dylan Vogel, James Sheridan, Bruno Almeida
 
+// For NTC Thermistor 10k 0603 (1608 Metric) Part # NCU18XH103F60RB
+// Digikey link: https://www.digikey.ca/product-detail/en/murata-electronics-north-america/NCU18XH103F60RB/490-16279-1-ND/7363262
+// Datasheet (page 13. Part # NCU__XH103):
+// https://www.murata.com/~/media/webrenewal/support/library/catalog/products/thermistor/r03e.ashx?la=en-us
+// Datasheet (NCU18XH103F60RB):
+// https://www.murata.com/en-us/api/pdfdownloadapi?cate=luNTCforTempeSenso&partno=NCU18XH103F60RB
+
 TODO: Implement more efficient channel reading algorithm in lib-common ADC library,
       instead of having to waste SPI frames from waiting for
       next message
@@ -13,7 +20,7 @@ TODO: Test edge cases
 
 // TODO - create test to verify PROGMEM values
 
-// Lookup table from manufacturer datasheet (pg 31)
+// Lookup table from manufacturer datasheet (pg 13)
 // TODO - confirm thermistor part number
 
 // Resistances are stored in kilo-ohms
