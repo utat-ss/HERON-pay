@@ -13,6 +13,8 @@ Test the motors where you can press 'w' to move the platform up or 's' to move t
 #include <pex/pex.h>
 #include "../../src/motors.h"
 
+#define PERIOD_MS   40
+#define NUM_CYCLES  15
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     if (len == 0) {
@@ -24,11 +26,11 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     switch (buf[0]) {
         case 'w':
             print("Actuating up\n");
-            actuate_motors(100, 10, true);
+            actuate_motors(PERIOD_MS, NUM_CYCLES, true);
             break;
         case 's':
             print("Actuating down\n");
-            actuate_motors(100, 10, false);
+            actuate_motors(PERIOD_MS, NUM_CYCLES, false);
             break;
         default:
             print("Invalid command\n");
