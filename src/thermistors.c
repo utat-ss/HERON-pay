@@ -70,15 +70,15 @@ double thermis_resistance_to_temp(double resistance){
 // Convert the thermistor temperature to resistance
 double thermis_temp_to_resistance(double temp) {
     for (uint8_t i = 0; i < THERMIS_LUT_COUNT - 1; i++){
-        double temp_next = pgm_read_word(&THERMIS_TEMPS[i + 1]);
+        int16_t temp_next = pgm_read_word(&THERMIS_TEMPS[i + 1]);
 
         if ((temp - temp_next) <= 0){
-            double temp_prev = pgm_read_word(&THERMIS_TEMPS[i]);
-            int16_t resistance_next = pgm_read_float(&THERMIS_RESISTANCES[i + 1]);
-            int16_t resistance_prev = pgm_read_float(&THERMIS_RESISTANCES[i]);
+            int16_t temp_prev = pgm_read_word(&THERMIS_TEMPS[i]);
+            double resistance_next = pgm_read_float(&THERMIS_RESISTANCES[i + 1]);
+            double resistance_prev = pgm_read_float(&THERMIS_RESISTANCES[i]);
 
             double diff = temp - temp_prev;  //should be negative
-            double slope = ((double) (resistance_next - resistance_prev)) / (temp_next - temp_prev);
+            double slope = (resistance_next - resistance_prev) / ((double) (temp_next - temp_prev));
             return resistance_prev + (diff * slope);
         }
     }
