@@ -1,0 +1,1 @@
+This code is just for reference; is not meant to compile (uses outdated PCBs and libraries). The code is from the former `humiditytesting` branch on Git, which was worked on from Jan 20 - Feb 10, 2018.

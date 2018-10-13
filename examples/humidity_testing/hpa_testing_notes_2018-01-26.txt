@@ -1,0 +1,16 @@
+The water-proof testing of the PAY_SSM_v1 on 2018 Jan 26th
+
+coupling seems to present on the area with more uneven/complicated components
+-Hypothesis: MISO line should not have any output/reaction, because of the coating
+and code did not specify any signal changes
+-Observations of signal when pcb was soaked in water:
+-MISO reacted with clock slightly and coupled with MOSI significantly
+solution: put more layers of coating on the area with more ICs
+
+Problems with this solution:
+-Thicker layers are more prone to delamination when scratched
+
+Code testing with the new SSM_v2 PCB board
+- The LEDs are blinking, working
+- for some reason the MF_1 ports have no voltage thus the motor is not running
+- the board is not printing to the serial monitor

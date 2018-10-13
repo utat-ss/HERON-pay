@@ -1,5 +1,16 @@
 /*
-Temperature, pressure, and humidity reading on the PAY-SSM.
+Environmental sensors (temperature, pressure, humidity) on the PAY-SSM.
+
+Temperature sensor - LM95071
+http://www.ti.com/lit/ds/symlink/lm95071.pdf
+
+Humidity sensor - HIH7131
+https://sensing.honeywell.com/honeywell-sensing-humidicon-hih7000-series-product-sheet-009074-6-en.pdf
+TODO - might want to use temperature data?
+
+Pressure sensor - MS5803-05BA
+http://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5803-05BA%7FB3%7Fpdf%7FEnglish%7FENG_DS_MS5803-05BA_B3.pdf%7FCAT-BLPS0011
+TODO - might want to use temperature data?
 
 AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 */
@@ -9,39 +20,32 @@ AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 uint16_t pres_prom_data[8];
 
 
+
+
+/*
+Initializes the temperature sensor.
+*/
 void temp_init(void) {
     init_cs(TEMP_CS_PIN, &TEMP_CS_DDR);
     set_cs_high(TEMP_CS_PIN, &TEMP_CS_PORT);
 
-    // TODO - check this
-//     pex_set_dir_b(TEMP_PEX_B_SHUTDOWN, PEX_DIR_OUTPUT); // Sets chip selects to low.
-//     pex_set_gpio_b_high(TEMP_PEX_B_SHUTDOWN);  // Writes them high to disable CS
-//     pex_set_gpio_b_low(TEMP_PEX_B_SHUTDOWN); // Clears the shutdown bit.
+    // TODO - look into continuous conversion mode and shutdown (p.8)
 }
 
-uint16_t temp_read_raw_data(void){
-    // Read a temperature from the temperature sensor.
-
-    //_delay_ms(50);
-    /*
-    set_cs_low(CS, &CS_PORT);
-    send_spi(0x00);
-    send_spi(0x00);
-    GPIO_PORT &= ~_BV(GPIO);
-    send_spi(0x00);
-    send_spi(0x00);
-    set_cs_high(CS, &CS_PORT);
-    */
-
+/*
+Reads 16 bits of raw data from the temperature sensor
+(INCLUDING the 0b11 on the right that is always there).
+*/
+uint16_t temp_read_raw_data(void) {
+    // Typical temperature conversion time (p.3)
     _delay_ms(130);
+
     uint16_t raw_data = 0;
 
-    set_cs_low(TEMP_CS_PIN, &TEMP_CS_PORT);  //write CS low
+    set_cs_low(TEMP_CS_PIN, &TEMP_CS_PORT);
     raw_data |= send_spi(0x00);
     raw_data <<= 8;
     raw_data |= send_spi(0x00);
-    /*send_spi(0x00);
-    send_spi(0x00);*/
     set_cs_high(TEMP_CS_PIN, &TEMP_CS_PORT);
 
     return raw_data;
@@ -50,13 +54,21 @@ uint16_t temp_read_raw_data(void){
 
 
 
+/*
+Initializes the humidity sensor.
+*/
 void hum_init(void) {
     init_cs(HUM_CS_PIN, &HUM_CS_DDR);
     set_cs_high(HUM_CS_PIN, &HUM_CS_PORT);
 }
 
-// The data is formatted as {0b00, humidity (14 bits), temperature (14 bits), 0b00}
-uint32_t hum_read_raw_data(void) {
+/*
+Reads 14 bits of raw data from the humidity sensor.
+
+The data received over SPI is formatted as
+{0b00, humidity (14 bits), temperature (14 bits), 0b00}
+*/
+uint16_t hum_read_raw_data(void) {
     uint32_t data = 0;
 
     set_cs_low(HUM_CS_PIN, &HUM_CS_PORT);
@@ -69,26 +81,16 @@ uint32_t hum_read_raw_data(void) {
     data |= send_spi(0x00);
     set_cs_high(HUM_CS_PIN, &HUM_CS_PORT);
 
-    return data;
-}
-
-uint16_t hum_read_raw_humidity(void) {
-    uint32_t raw_data = hum_read_raw_data();
-    return ((uint16_t)(raw_data >> 16)) & 0x3FFF;
-}
-
-uint16_t hum_read_raw_temperature(void) {
-    uint32_t raw_data = hum_read_raw_data();
-    return ((uint16_t)(raw_data >> 2)) & 0x3FFF;
-}
-
-double hum_convert_raw_temperature_to_temperature(uint16_t raw_temperature){
-    return ((double) raw_temperature) / ((1 << 14) - 2.0) * 165.0 - 40.0;
+    // Isolate the 14 bits for humidity
+    return (data >> 16) & 0x3FFF;
 }
 
 
 
 
+/*
+Initializes the pressure sensor.
+*/
 void pres_init(void) {
     init_cs(PRES_CS_PIN, &PRES_CS_DDR);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
@@ -96,116 +98,164 @@ void pres_init(void) {
     pres_reset();
 
     // read the calibration PROM
-    for(uint8_t i = 0; i < 8; i++){
+    for (uint8_t i = 0; i < 8; i++){
         pres_prom_data[i] = pres_read_prom(i);
     }
 }
 
-void pres_reset(void){
+/*
+Resets the pressure sensor.
+*/
+void pres_reset(void) {
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
-    send_spi(PRES_RESET_SPI);
+    send_spi(PRES_CMD_RESET);
+    // 2.8ms reload time (p.10)
     _delay_ms(3);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 }
 
-// reads the calibration coefficients from the PROM
-uint16_t pres_read_prom(uint8_t address){
+/*
+Reads the calibration coefficients from the pressure sensor's PROM.
+p.8,11
+*/
+uint16_t pres_read_prom(uint8_t address) {
     uint16_t data = 0;
 
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
-    send_spi((address << 1) | PRES_PROM_BASE);
-    data |= ((uint16_t) send_spi(0x00)) << 8;
-    data |= ((uint16_t) send_spi(0x00));
+    send_spi((address << 1) | PRES_CMD_PROM_READ_BASE);
+    data |= (uint16_t) send_spi(0x00);
+    data <<= 8;
+    data |= (uint16_t) send_spi(0x00);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 
     return data;
 }
 
-// reads the uncompensated pressure or temperature depending on the command given
-uint32_t pres_read_raw_uncompensated_data(uint8_t cmd){
-    uint32_t data = 0;
-
+/*
+Reads 24 bits of raw uncompensated pressure or temperature data from the
+pressure sensor's ADC, depending on the command given.
+*/
+uint32_t pres_read_raw_uncomp_data(uint8_t cmd) {
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
     send_spi(cmd);
-    _delay_ms(10);  // wait for adc conversion to complete  -- note that this doesn't take as long for smaller resolutions
+    // wait for adc conversion to complete
+    // -- note that this doesn't take as long for smaller resolutions
+    // 8.22ms ADC conversion (p.11)
+    _delay_ms(10);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 
+    uint32_t data = 0;
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
-    send_spi(PRES_ADC_READ);
-    data |= ((uint32_t) send_spi(0x00)) << 16;
-    data |= ((uint32_t) send_spi(0x00)) << 8;
-    data |= ((uint32_t) send_spi(0x00));
+    send_spi(PRES_CMD_ADC_READ);
+    data |= (uint32_t) send_spi(0x00);
+    data <<= 8;
+    data |= (uint32_t) send_spi(0x00);
+    data <<= 8;
+    data |= (uint32_t) send_spi(0x00);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 
     return data;
 }
 
-uint32_t pres_read_raw_uncompensated_pressure(void){
-    return pres_read_raw_uncompensated_data(PRES_D1_4096);  // pressure
-}
+/*
+Converts pressure sensor register data (calibration data, digital pressure/temperature)
+to raw data (24 bit result)
+Conversion formulas from p.13
 
-uint32_t pres_read_raw_uncompensated_temperature(void){
-    return pres_read_raw_uncompensated_data(PRES_D2_4096);  // temperature
-}
+Debugging:
+Can't use print() with 64-bit numbers, so need to represent it as a 32-bit number
+(e.g. divide 64-bit number by 1,000,000 and print it as 32-bit, i.e. %ld or %lu)
 
-// Returns - D1 is pressure --- D2 is temperature
-// Returns - raw pressure - need to treat as signed int32_t and divide by 1000 to get the value in kPa
-// raw_temperature - return value (value of TEMP)
-// gives 24 bit result
-// from p.13 of datasheet
-uint32_t pres_convert_raw_uncompensated_data_to_raw_pressure(uint32_t D1, uint32_t D2, uint32_t *raw_temperature){
-    int32_t dT = (int32_t)D2 - ((int32_t)pres_prom_data[5] * 256);  // difference between actual and reference temperature
-    int32_t TEMP = 2000 + ((int64_t)dT * (int64_t)pres_prom_data[6]) / 8388608LL;  // actual temperature
+TODO - test second order temperature compensation (< 20 C)
+*/
+uint32_t pres_reg_data_to_raw_data(
+    uint16_t C1, uint16_t C2, uint16_t C3, uint16_t C4, uint16_t C5, uint16_t C6,
+    uint32_t D1, uint32_t D2) {
 
-    int64_t OFF = ((int64_t)pres_prom_data[2] * 65536) + (pres_prom_data[4] * (int64_t)dT / 128);  // offset at actual temperature
-    int64_t SENS = ((int64_t)pres_prom_data[1] * 32768) + (pres_prom_data[3] * (int64_t)dT) / 256;  // sensetivity at actual temperature
+    // Difference between actual and reference temperature
+    int32_t dT_1 = C5 * (1L << 8);
+    int32_t dT = D2 - dT_1;
 
-    int64_t T2;
+    // Actual temperature
+    int32_t TEMP_1 = (((uint64_t) dT) * C6 / (1LL << 23));
+    int32_t TEMP = 2000 + TEMP_1;
+
+    // Offset at actual temperature
+    int64_t OFF_1 = C2 * (1LL << 18);
+    int64_t OFF_2 = ((int64_t) C4) * dT / (1LL << 5);
+    int64_t OFF = OFF_1 + OFF_2;
+
+    // Sensitivity at actual temperature
+    int64_t SENS_1 = C1 * (1LL << 17);
+    int64_t SENS_2 = ((int64_t) C3) * dT / (1LL << 7);
+    int64_t SENS = SENS_1 + SENS_2;
+
+    // Temperature compensated pressure
+    int64_t P_1 = D1 * SENS / (1LL << 21);
+    int32_t P = (P_1 - OFF) / (1LL << 15);
+
+    // Second order temperature compensation (p.14)
+    // TODO - should this be used? should it go before the other calculation?
+    // TODO - what are those signs on the datasheet diagram?
+    int32_t T2;
     int64_t OFF2;
     int64_t SENS2;
 
-    if(TEMP < 2000){  // low temperature
-        T2 = ((int64_t)dT * dT) / 2147483648ULL;
-        T2 = (int32_t)T2;
-        OFF2 = 3 * ((TEMP - 2000) * (TEMP - 2000));
-        SENS2 = 7 * ((TEMP - 2000) * (TEMP - 2000)) / 8;
+    // Temp < 20 C
+    if (TEMP < 2000) {
+        int64_t T2_1 = ((int64_t) dT) * dT;
+        T2 = 3 * T2_1 / (1LL << 33);
 
-        if(TEMP < -1500){  // very low temperature
-            SENS2 += 2 * ((TEMP + 1500) * (TEMP + 1500));
+        int64_t OFF2_1 = ((int64_t) (TEMP - 2000)) * (TEMP - 2000);
+        OFF2 = 3 * OFF2_1 / (1LL << 3);
+
+        int64_t SENS2_1 = ((int64_t) (TEMP - 2000)) * (TEMP - 2000);
+        SENS2 = 7 * SENS2_1 / (1LL << 3);
+
+        // Temp < -15C ?
+        if (TEMP < -1500){
+            int64_t SENS2_2 = 3 * ((int64_t) (TEMP + 1500)) * (TEMP + 1500);
+            SENS2 = SENS2 + SENS2_2;
         }
+        // No else condition
     }
-    else{  // high temperature
+
+    // Temp >= 20 C
+    else {
         T2 = 0;
         OFF2 = 0;
         SENS2 = 0;
-
-        if(TEMP >= 4500){  // very high temperature
-            SENS2 -= ((TEMP - 4500) * (TEMP - 4500)) / 8;
-        }
     }
 
-    TEMP -= T2;
-    OFF -= OFF2;
-    SENS -= SENS2;
+    TEMP = TEMP - T2;
 
-    int32_t pressure = (D1 * (SENS / 2097152) - OFF) / 32768;
-    if (raw_temperature != NULL) {
-        *raw_temperature = (uint32_t) TEMP;
-    }
+    OFF = OFF - OFF2;
 
-    return (uint32_t) pressure;
+    SENS = SENS - SENS2;
+
+    P_1 = D1 * SENS / (1LL << 21);
+    P = (P_1 - OFF) / (1LL << 15);
+
+    return (uint32_t) P;
 }
 
-uint32_t pres_read_raw_pressure(void) {
-    uint32_t D1 = pres_read_raw_uncompensated_pressure();
-    uint32_t D2 = pres_read_raw_uncompensated_temperature();
-    return pres_convert_raw_uncompensated_data_to_raw_pressure(D1, D2, NULL);
-}
+/*
+Reads 24 bits of raw data from the pressure sensor - 0-6000 mbar with 0.01mbar resolution per bit
+Datasheet says 0.03mbar resolution, but should be 0.01mbar
+*/
+uint32_t pres_read_raw_data(void) {
+    // Calibration data
+    uint16_t C1 = pres_prom_data[1];
+    uint16_t C2 = pres_prom_data[2];
+    uint16_t C3 = pres_prom_data[3];
+    uint16_t C4 = pres_prom_data[4];
+    uint16_t C5 = pres_prom_data[5];
+    uint16_t C6 = pres_prom_data[6];
 
-// Converts the temperature result of `pres_convert_raw_uncompensated_data_to_raw_pressure` to the actual value
-// Returns the value in ˚C
-float pres_convert_raw_temperature_to_temperature(uint32_t raw_temperature) {
-    // TODO - check conversion
-    int32_t signed_raw_temperature = (int32_t) raw_temperature;
-    return ((float) signed_raw_temperature) / 100.0;
+    // Digital pressure
+    uint32_t D1 = pres_read_raw_uncomp_data(PRES_CMD_D1_4096);
+    // Digital temperature
+    uint32_t D2 = pres_read_raw_uncomp_data(PRES_CMD_D2_4096);
+
+    return pres_reg_data_to_raw_data(C1, C2, C3, C4, C5, C6, D1, D2);
 }

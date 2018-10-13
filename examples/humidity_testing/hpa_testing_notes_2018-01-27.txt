@@ -1,0 +1,26 @@
+The testing code is officially finished and tested to be functional. The humidity
+testing will be on the following aspect of the SSM_v2 board:
+1. the humidity and temperature sensor readings
+2. two LEDs blinking, as an indication of the board's functionality
+3. the motor driver (MF_1) functionality under humidity
+
+Notes on applying HPA conformal coating
+
+Datasheet of HPA available here:https://www.electrolube.com/products/conformal-coatings/hpa/acrylic/
+Detailed procedure of applying see the datasheet
+
+FOR ANYONE THAT IS GOING TO APPLY THE HPA COATING ON A PCB BOARD, PLEASE READ
+THE FOLLOWING CAREFULLY AND PROCEED WITH CAUTION!
+1. Get proper protection: safety glasses, gloves, face mask, long-sleeve clothing,
+tie back hair if long hair
+2. After wearing the glove, clean the uncoated PCB board with alcohol and proper
+tissue before applying the coating
+3. Cover the parts that is going to have electrical connections in the future with
+masking tape (anything that is closer to paper) rather than electrical tape (the later
+will react with the coating and curl up, thus cannot serve the purpose of protection)
+4. Apply the more even surface of the PCB board FIRST! (usually the back of the board)
+5. After applying one/two layer (one/two sweep if spraying), wait for ~ten minute to dry
+6. Turn the board over and apply the coating on the relatively uneven surface.
+Note that for area with more ICs and circuits connections, spray one or two more
+layers of coating for better performance.
+7. The complete curing time for the coating is 24 hours under 20 degree Celsius. 

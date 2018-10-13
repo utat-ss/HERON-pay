@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 #include <can/can.h>
-#include <can/can_ids.h>
-#include <can/packets.h>
+#include <can/ids.h>
+#include <can/data_protocol.h>
 #include <queue/queue.h>
 //#include <utilities/utilities.h>
 

@@ -1,7 +1,3 @@
-/*
-Should uncomment `#define DISABLE_CAN` in optical.h  before running this test
-*/
-
 #ifndef F_CPU
 #define F_CPU 8000000UL
 #endif
@@ -9,8 +5,8 @@ Should uncomment `#define DISABLE_CAN` in optical.h  before running this test
 #include <uart/uart.h>
 #include <spi/spi.h>
 #include <util/delay.h>
-#include <can/can_data_protocol.h>
-#include "../../src/optical.h"
+#include <can/data_protocol.h>
+#include "../../src/optical_spi.h"
 
 int main(void){
     init_uart();
@@ -19,12 +15,13 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    init_optical();
-    print("PAY-Optical Initialized\n");
+    opt_spi_enable_can = false;
+    opt_spi_init();
+    print("Optical SPI Initialized\n");
 
     _delay_ms(2000);
     print("Resetting PAY-Optical\n");
-    rst_optical();
+    opt_spi_rst();
     print("Done resetting PAY-Optical");
     _delay_ms(2000);
 
@@ -33,8 +30,9 @@ int main(void){
     while (1) {
         for (uint8_t field_num = 0; field_num < CAN_PAY_SCI_FIELD_COUNT; field_num++) {
             print("Sending command #%u\n", field_num);
-            send_read_optical_command(field_num);
-            _delay_ms(10000);
+            opt_spi_send_read_cmd(field_num);
+            _delay_ms(1000);
+            print("\n");
         }
     }
 }

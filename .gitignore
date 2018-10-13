@@ -1,3 +1,11 @@
+# AVR compiled files
+*.d
 *.o
 *.elf
 *.hex
+
+# Mac files
+.DS_Store
+
+# Xcode files
+xcuserdata
