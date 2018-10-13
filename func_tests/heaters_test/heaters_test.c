@@ -63,12 +63,12 @@ int main(void){
     // Cycle through a high and low set temperature 10 times
     int count = 0;
     while (count < 10){
-      // Heaters turn off
+      // Heaters turn on
       print("Set temperature to 100\n");
       set_temp(100.0);
       _delay_ms(10000);
 
-      // Heaters turn on
+      // Heaters turn off
       print("Set temperature to 0\n");
       set_temp(0.0);
       _delay_ms(10000);
