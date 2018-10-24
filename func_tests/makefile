@@ -1,13 +1,19 @@
-CC = avr-gcc
-INCLUDES = -I../../lib-common/include
-LIB = -L../../lib-common/lib -luart -lspi -lcan -ldac -ladc -lconversions -L../../lib -luart -lprintf_flt -lm
-CFLAGS = -std=gnu99 -Wall -Wl,-u,vfprintf -g -mmcu=atmega32m1 -Os -mcall-prologues
+# Reference: http://www.atmel.com/webdoc/avrlibcreferencemanual/group__demo__project_1demo_project_compile.html
 
+# AVR-GCC compiler
+CC = avr-gcc
+# Compiler flags
+CFLAGS = -std=gnu99 -Wall -Wl,-u,vfprintf -g -mmcu=atmega32m1 -Os -mcall-prologues
+# Includes (header files)
+INCLUDES = -I../../lib-common/include
 # Don't change these
 # Programmer
 PGMR = stk500
 # Microcontroller
 MCU = m32m1
+# Libraries from lib-common to link
+# May need to change this line
+LIB = -L../../lib-common/lib -luart -lspi -lcan -ldac -ladc -lconversions -L../../lib -luart -lprintf_flt -lm
 
 # Computer port that the programmer is connected to
 # May need to change the PORT definition based on your OS and port
