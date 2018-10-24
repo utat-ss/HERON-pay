@@ -18,7 +18,7 @@ PROG = pay
 
 # Libraries from lib-common to link
 # May need to change this line
-LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lpex
+LIB = -L./lib-common/lib -luart -lspi -lcan -ltimer -lqueue -lpex -ldac -ladc
 
 # Computer port that the programmer is connected to
 # May need to change the PORT definition based on your OS and port
