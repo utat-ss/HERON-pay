@@ -60,41 +60,33 @@ void handle_hk(uint8_t* rx_data) {
         case CAN_PAY_HK_TEMP:
             print("PAY_HK_TEMP\n");
 
-            // TODO
-            // uint16_t temp_raw_data = temp_read_raw_data();
-            uint16_t raw_temp = rand() % 32767;
+            uint16_t raw_temp_data = temp_read_raw_data();
 
             tx_data[3] = 0x00;
-            tx_data[4] = (raw_temp >> 8) & 0xFF;
-            tx_data[5] = raw_temp & 0xFF;
+            tx_data[4] = (raw_temp_data >> 8) & 0xFF;
+            tx_data[5] = raw_temp_data & 0xFF;
 
             break;
 
         case CAN_PAY_HK_HUMID:
             print("PAY_HK_HUMID\n");
 
-            // TODO
-            // uint16_t raw_humidity = hum_read_raw_humidity();
-            uint16_t raw_humidity = rand() % 32767;
+            uint16_t raw_hum_data = hum_read_raw_data();
 
             tx_data[3] = 0x00;
-            tx_data[4] = (raw_humidity >> 8) & 0xFF;
-            tx_data[5] = raw_humidity & 0xFF;
+            tx_data[4] = (raw_hum_data >> 8) & 0xFF;
+            tx_data[5] = raw_hum_data & 0xFF;
 
             break;
 
         case CAN_PAY_HK_PRES:
             print("PAY_HK_PRES\n");
 
-            // TODO
-            // uint32_t D1 = pres_read_raw_uncompensated_pressure();
-            // uint32_t D2 = pres_read_raw_uncompensated_temperature();
-            // uint32_t raw_pressure = pres_convert_raw_uncompensated_data_to_raw_pressure(D1, D2, NULL);
-            uint32_t raw_pressure = rand() % 32767;
+            uint32_t raw_pres_data = pres_read_raw_data();
 
-            tx_data[3] = (raw_pressure >> 16) & 0xFF;
-            tx_data[4] = (raw_pressure >> 8) & 0xFF;
-            tx_data[5] = raw_pressure & 0xFF;
+            tx_data[3] = (raw_pres_data >> 16) & 0xFF;
+            tx_data[4] = (raw_pres_data >> 8) & 0xFF;
+            tx_data[5] = raw_pres_data & 0xFF;
 
             break;
 
@@ -111,7 +103,7 @@ void handle_hk(uint8_t* rx_data) {
 
 
 void handle_sci(uint8_t* rx_data) {
-    // TODO
+    // TODO - higher level optical spi function that delays until interrupts
     // send_read_sensor_command(rx_data[2]);
 
     // Random data for now

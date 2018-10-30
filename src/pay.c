@@ -40,44 +40,35 @@ void init_pay(void) {
     // UART
     init_uart();
     print("\n\nInitializing PAY\n");
-    print("UART\n");
 
     // SPI
     init_spi();
-    print("SPI\n");
 
     // PEX
     init_pex(&pex);
-    print("PEX\n");
 
     // ADC
     init_adc(&adc);
-    print("ADC\n");
 
     // Environmental sensors
     temp_init();
     hum_init();
     pres_init();
-    print("Sensors\n");
 
     // PAY-Optical
     opt_spi_init();
-    print("Optical\n");
 
     // Motors
     init_motors();
-    print("Motors\n");
 
     // Queues
     init_queue(&can_rx_msgs);
     init_queue(&can_tx_msgs);
-    print("Queues\n");
 
     // CAN and MOBs
     init_can();
     init_rx_mob(&cmd_rx_mob);
     init_tx_mob(&data_tx_mob);
-    print("CAN\n");
 }
 
 // If there is an RX messsage in the queue, handle it
@@ -88,7 +79,7 @@ void handle_next_rx_msg(void) {
 }
 
 /*
-If there is a TX message in the queue, send it
+If there is a TX message in the queue, sends it
 
 When resume_mob(mob name) is called, it:
 1) resumes the MOB
