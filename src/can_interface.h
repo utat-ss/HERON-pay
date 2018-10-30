@@ -6,11 +6,9 @@
 #include <can/ids.h>
 #include <can/data_protocol.h>
 #include <queue/queue.h>
-//#include <utilities/utilities.h>
+#include <uart/uart.h>
 
-// CAN messages received but not processed yet
 extern queue_t rx_message_queue;
-// CAN messages to transmit
 extern queue_t tx_message_queue;
 
 // CAN MOBs

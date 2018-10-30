@@ -6,7 +6,7 @@
 #include <spi/spi.h>
 #include <uart/uart.h>
 #include <can/data_protocol.h>
-#include "can_callbacks.h"
+#include "can_interface.h"
 
 #ifndef F_CPU
 #define F_CPU 8000000UL
