@@ -1,9 +1,10 @@
-#ifndef MAIN_H
-#define MAIN_H
-
-#include <utilities/utilities.h>
+#ifndef PAY_H
+#define PAY_H
 
 // AVR libraries
+#ifndef F_CPU
+#define F_CPU 8000000UL
+#endif
 #include <util/delay.h>
 
 // Standard libraries
@@ -13,26 +14,30 @@
 
 // lib-common libraries
 #include <can/can.h>
-#include <can/can_ids.h>
-#include <can/can_data_protocol.h>
+#include <can/ids.h>
+#include <can/data_protocol.h>
 #include <queue/queue.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
 #include <adc/adc.h>
+#include <adc/pay.h>
 #include <pex/pex.h>
+#include <pex/pay.h>
 #include <conversions/conversions.h>
 
 // PAY libraries
-#include "analog_temp.h"
-#include "can_callbacks.h"
+#include "thermistors.h"
+#include "can_interface.h"
 #include "motors.h"
-#include "optical.h"
-#include "sensors.h"
+#include "optical_spi.h"
+#include "env_sensors.h"
+#include "commands.h"
 
-void handle_rx_hk(uint8_t* tx_data);
-void handle_rx_sci(uint8_t* tx_data);
-void handle_rx(void);
-void setup_adc(void);
+extern adc_t adc;
+extern pex_t pex;
+
 void init_pay(void);
+void handle_next_rx_msg(void);
+void send_next_tx_msg(void);
 
 #endif

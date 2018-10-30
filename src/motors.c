@@ -12,25 +12,6 @@ TODO - test faults
 // true if there is a fault detected in one or both of the motors
 bool motor_fault = false;
 
-
-pin_info_t pex_cs = {
-    .port = &PEX_CS_PORT_PAY,
-    .ddr = &PEX_CS_DDR_PAY,
-    .pin = PEX_CS_PIN_PAY
-};
-
-pin_info_t pex_rst = {
-    .port = &PEX_RST_PORT_PAY,
-    .ddr = &PEX_RST_DDR_PAY,
-    .pin = PEX_RST_PIN_PAY
-};
-
-pex_t pex = {
-    .addr = PEX_ADDR_PAY,
-    .cs = &pex_cs,
-    .rst = &pex_rst
-};
-
 // Define this delay function because the built-in _delay_ms() only works with
 // compile-time constants
 void delay_ms(uint32_t ms) {

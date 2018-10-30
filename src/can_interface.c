@@ -1,22 +1,24 @@
 #include "can_interface.h"
 
 
+/* Message queues */
+
 // CAN messages received but not processed yet
-queue_t rx_message_queue;
+queue_t can_rx_msgs;
 // CAN messages to transmit
-queue_t tx_message_queue;
+queue_t can_tx_msgs;
 
 
 
 
-/* CAN Interrupts */
+/* Callback functions */
 
 // MOB 0
 // For heartbeat
 void status_rx_callback(const uint8_t* data, uint8_t len) {
     print("MOB 0: Status RX Callback\n");
-    print("Received Message:\n");
-    print_bytes((uint8_t *) data, len);
+    print("Received Message: ");
+    print_bytes((uint8_t*) data, len);
 }
 
 // MOB 1
@@ -31,13 +33,12 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
     print("MOB 2: CMD TX Callback\n");
 }
 
-
 // MOB 3
 // CMD RX - received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
-    print("\nMOB 3: CMD RX Callback\n");
-    print("Received message:\n");
-    print_bytes((uint8_t *) data, len);
+    print("MOB 3: CMD RX Callback\n");
+    print("Received message: ");
+    print_bytes((uint8_t*) data, len);
 
     if (len == 0) {
         print("Received empty message\n");
@@ -45,38 +46,36 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 
     // If the RX message exists, add it to the queue of received messages to process
     else {
-        if (data[1] == CAN_PAY_HK || data[1] == CAN_PAY_SCI || data[1] == CAN_PAY_MOTOR) {
-            enqueue(&rx_message_queue, (uint8_t *) data);
-            print("Enqueued RX message");
-        }
+        enqueue(&can_rx_msgs, (uint8_t*) data);
+        print("Enqueued RX message\n");
     }
 }
-
 
 // MOB 5
 // Data TX - transmitting data
 void data_tx_callback(uint8_t* data, uint8_t* len) {
-    print("\nMOB 5: Data TX Callback\n");
+    print("MOB 5: Data TX Callback\n");
 
-    if (queue_empty(&tx_message_queue)) {
+    if (queue_empty(&can_tx_msgs)) {
         *len = 0;
         print("No message to transmit\n");
     }
 
     // If there is a message in the TX queue, transmit it
     else {
-        dequeue(&tx_message_queue, data);
+        dequeue(&can_tx_msgs, data);
         *len = 8;
 
         print("Dequeued TX message\n");
-        print("Transmitting message:\n");
+        print("Transmitting message: ");
         print_bytes(data, *len);
     }
 }
 
 
 
-// CAN MOBs
+
+/* MOBs */
 
 mob_t status_rx_mob = {
     .mob_num = 0,
@@ -112,7 +111,6 @@ mob_t cmd_rx_mob = {
     .mob_type = RX_MOB,
     .dlc = 8,
     .id_tag = PAY_CMD_RX_MOB_ID,
-    // .id_mask = { 0x0000 },
     .id_mask = CAN_RX_MASK_ID,
     .ctrl = default_rx_ctrl,
 
