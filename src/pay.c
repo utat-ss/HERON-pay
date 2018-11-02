@@ -72,7 +72,7 @@ void init_pay(void) {
 }
 
 // If there is an RX messsage in the queue, handle it
-void handle_next_rx_msg(void) {
+void process_next_rx_msg(void) {
     if (!queue_empty(&can_rx_msgs)) {
         handle_rx_msg();
     }

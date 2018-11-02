@@ -11,7 +11,7 @@ int main(void) {
 
     // Main loop
     while (1) {
-        handle_next_rx_msg();
+        process_next_rx_msg();
         send_next_tx_msg();
     }
 }

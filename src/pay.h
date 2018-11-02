@@ -37,7 +37,7 @@ extern adc_t adc;
 extern pex_t pex;
 
 void init_pay(void);
-void handle_next_rx_msg(void);
+void process_next_rx_msg(void);
 void send_next_tx_msg(void);
 
 #endif
