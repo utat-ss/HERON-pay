@@ -1,13 +1,10 @@
-#ifndef SENSORS_H
-#define SENSORS_H
-
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
+#ifndef ENV_SENSORS_H
+#define ENV_SENSORS_H
 
 #include <stdint.h>
+
 #include <avr/io.h>
-#include <util/delay.h>
+
 #include <spi/spi.h>
 #include <uart/uart.h>
 

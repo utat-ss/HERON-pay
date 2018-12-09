@@ -8,11 +8,6 @@
 #include <can/data_protocol.h>
 #include "can_interface.h"
 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-#include <util/delay.h>
-
 // SENS_CS pin on schematic
 #define OPT_CS_PIN      PB3
 #define OPT_CS_PORT     PORTB

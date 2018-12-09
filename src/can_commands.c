@@ -1,10 +1,19 @@
 /*
-Commands initiated by received CAN messages.
+Defines the logical interface that PAY uses for CAN communication. This is for
+handling received CAN messages, performing actions, and responding.
 
 Authors: Bruno Almeida
 */
 
-#include "commands.h"
+#include "can_commands.h"
+
+
+/* Message queues */
+
+// CAN messages received but not processed yet
+queue_t rx_msg_queue;
+// CAN messages to transmit
+queue_t tx_msg_queue;
 
 void handle_hk(uint8_t* rx_data);
 void handle_sci(uint8_t* rx_data);
@@ -12,14 +21,14 @@ void handle_motor(uint8_t* rx_data);
 
 
 void handle_rx_msg(void) {
-    if (queue_empty(&can_rx_msgs)) {
+    if (queue_empty(&rx_msg_queue)) {
         print("RX queue empty\n");
         return;
     }
 
     // Received message
     uint8_t rx_data[8];
-    dequeue(&can_rx_msgs, rx_data);
+    dequeue(&rx_msg_queue, rx_data);
     print("Dequeued RX\n");
     print_bytes(rx_data, 8);
 
@@ -96,7 +105,7 @@ void handle_hk(uint8_t* rx_data) {
     }
 
     // Enqueue TX data to transmit
-    enqueue(&can_tx_msgs, tx_data);
+    enqueue(&tx_msg_queue, tx_data);
     print("Enqueued TX\n");
     print_bytes(tx_data, 8);
 }
@@ -117,7 +126,7 @@ void handle_sci(uint8_t* rx_data) {
     tx_data[4] = (raw_optical >> 8) & 0xFF;
     tx_data[5] = raw_optical & 0xFF;
 
-    enqueue(&can_tx_msgs, tx_data);
+    enqueue(&tx_msg_queue, tx_data);
     print("Enqueued TX\n");
     print_bytes(tx_data, 8);
 }
@@ -135,7 +144,7 @@ void handle_motor(uint8_t* rx_data) {
         tx_data[2] = rx_data[2];
 
         // Enqueue TX data to transmit
-        enqueue(&can_tx_msgs, tx_data);
+        enqueue(&tx_msg_queue, tx_data);
         print("Enqueued TX\n");
         print_bytes(tx_data, 8);
     }
