@@ -1,11 +1,7 @@
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
-#include <uart/uart.h>
-#include <spi/spi.h>
-#include <util/delay.h>
 #include <pex/pex.h>
+#include <spi/spi.h>
+#include <uart/uart.h>
+
 #include "../../src/motors.h"
 
 int main(void){

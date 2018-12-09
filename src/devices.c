@@ -33,3 +33,19 @@ pex_t pex = {
     .cs = &pex_cs,
     .rst = &pex_rst
 };
+
+// DAC
+pin_info_t dac_cs = {
+    .pin = DAC_CS_PIN_PAY,
+    .ddr = &DAC_CS_DDR_PAY,
+    .port = &DAC_CS_PORT_PAY
+};
+pin_info_t dac_clr = {
+    .pin = DAC_CLR_PIN_PAY,
+    .ddr = &DAC_CLR_DDR_PAY,
+    .port = &DAC_CLR_PORT_PAY
+};
+dac_t dac = {
+    .cs = &dac_cs,
+    .clr = &dac_clr
+};

@@ -1,14 +1,10 @@
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
-#include <uart/uart.h>
-#include <spi/spi.h>
 #include <conversions/conversions.h>
-#include <util/delay.h>
+#include <spi/spi.h>
+#include <uart/uart.h>
+
 #include "../../src/env_sensors.h"
 
-int main(void){
+int main(void) {
     init_uart();
     print("\n\nUART initialized\n");
 

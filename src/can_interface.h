@@ -2,9 +2,10 @@
 #define CAN_INTERFACE_H
 
 #include <stdint.h>
+
 #include <can/can.h>
-#include <can/ids.h>
 #include <can/data_protocol.h>
+#include <can/ids.h>
 #include <queue/queue.h>
 #include <uart/uart.h>
 

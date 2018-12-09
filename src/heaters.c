@@ -11,23 +11,6 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 
 #include "heaters.h"
 
-pin_info_t dac_cs = {
-    .pin = DAC_CS_PIN_PAY,
-    .ddr = &DAC_CS_DDR_PAY,
-    .port = &DAC_CS_PORT_PAY
-};
-
-pin_info_t clr = {
-    .pin = DAC_CLR_PIN_PAY,
-    .ddr = &DAC_CLR_DDR_PAY,
-    .port = &DAC_CLR_PORT_PAY
-};
-
-dac_t dac = {
-    .cs = &dac_cs,
-    .clr = &clr
-};
-
 // init is covered by dac_init()
 
 void heaters_set_temp_a(double temp) {

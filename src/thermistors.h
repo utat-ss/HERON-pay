@@ -2,6 +2,7 @@
 #define THERMISTORS_H
 
 #include <stdint.h>
+
 #include <avr/pgmspace.h>
 
 #define THERMIS_V_REF     2.5

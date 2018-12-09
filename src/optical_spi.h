@@ -1,11 +1,13 @@
-#ifndef OPTICAL_H
-#define OPTICAL_H
+#ifndef OPTICAL_SPI_H
+#define OPTICAL_SPI_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include <can/data_protocol.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
-#include <can/data_protocol.h>
+
 #include "can_interface.h"
 
 // SENS_CS pin on schematic
