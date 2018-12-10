@@ -32,18 +32,13 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
 // CMD RX - received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
     print("MOB 3: CMD RX Callback\n");
-    print("Received message: ");
-    print_bytes((uint8_t*) data, len);
 
     if (len == 0) {
-        print("Received empty message\n");
+        return;
     }
 
-    // If the RX message exists, add it to the queue of received messages to process
-    else {
-        enqueue(&rx_msg_queue, (uint8_t*) data);
-        print("Enqueued RX message\n");
-    }
+    // Add it to the queue of received messages to process
+    enqueue(&rx_msg_queue, (uint8_t*) data);
 }
 
 // MOB 5
@@ -53,18 +48,12 @@ void data_tx_callback(uint8_t* data, uint8_t* len) {
 
     if (queue_empty(&tx_msg_queue)) {
         *len = 0;
-        print("No message to transmit\n");
+        return;
     }
 
     // If there is a message in the TX queue, transmit it
-    else {
-        dequeue(&tx_msg_queue, data);
-        *len = 8;
-
-        print("Dequeued TX message\n");
-        print("Transmitting message: ");
-        print_bytes(data, *len);
-    }
+    dequeue(&tx_msg_queue, data);
+    *len = 8;
 }
 
 

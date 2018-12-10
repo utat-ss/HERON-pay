@@ -10,6 +10,9 @@ RX and TX are defined from PAY's perspective.
 
 #include "../../src/general.h"
 
+// Set to false to stop printing PAY's TX and RX CAN messages
+bool print_can_msgs = true;
+
 
 // Callback function signature to run a command
 typedef void(*uart_cmd_fn_t)(void);
@@ -152,6 +155,22 @@ void process_tx(void) {
     }
 }
 
+void print_next_tx_msg(void) {
+    if (queue_empty(&tx_msg_queue)) {
+        return;
+    }
+    print("PAY TX: ");
+    print_bytes(tx_msg_queue.content[tx_msg_queue.head], QUEUE_DATA_SIZE);
+}
+
+void print_next_rx_msg(void) {
+    if (queue_empty(&rx_msg_queue)) {
+        return;
+    }
+    print("PAY RX: ");
+    print_bytes(rx_msg_queue.content[rx_msg_queue.head], QUEUE_DATA_SIZE);
+}
+
 
 
 
@@ -215,7 +234,14 @@ int main(void) {
     set_uart_rx_cb(uart_cb);
 
     while(1) {
+        if (print_can_msgs) {
+            print_next_tx_msg();
+        }
         process_tx();
+
+        if (print_can_msgs) {
+            print_next_rx_msg();
+        }
         process_next_rx_msg();
     }
 
