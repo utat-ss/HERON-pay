@@ -64,12 +64,19 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
 
     switch (tx_msg[2]) {
         case CAN_PAY_HK_TEMP:
+            // Printing floating point doesn't seem to work when it's in
+            // the same print statement as the hex number
+            // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
+            // Print it in a separate statement for now
+            // TODO - investigate this
+
             print("Temperature: ");
             raw_data =
                 (((uint32_t) tx_msg[4]) << 8) |
                 ((uint32_t) tx_msg[5]);
             double temperature = temp_raw_data_to_temperature(raw_data);
-            print("%.4X = %f C\n", raw_data, temperature);
+            print("0x%.4X = ", raw_data);
+            print("%.3f C\n", temperature);
             break;
 
         case CAN_PAY_HK_HUMID:
@@ -78,7 +85,8 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
                 (((uint32_t) tx_msg[4]) << 8) |
                 ((uint32_t) tx_msg[5]);
             double humidity = hum_raw_data_to_humidity(raw_data);
-            print("%.4X = %f %%RH\n", raw_data, humidity);
+            print("0x%.4X = ", raw_data);
+            print("%.3f %%RH\n", humidity);
             break;
 
         case CAN_PAY_HK_PRES:
@@ -88,7 +96,8 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
                 (((uint32_t) tx_msg[4]) << 8) |
                 ((uint32_t) tx_msg[5]);
             double pressure = pres_raw_data_to_pressure(raw_data);
-            print("%.6X = %f kPa\n", raw_data, pressure);
+            print("0x%.6X = ", raw_data);
+            print("%.3f kPa\n", pressure);
             break;
 
         default:
@@ -101,13 +110,14 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
 }
 
 void process_pay_sci_tx(uint8_t* tx_msg) {
-    print("Optical: ");
+    print("Optical #%u: ", tx_msg[2]);
     uint32_t raw_data =
         (((uint32_t) tx_msg[3]) << 16) |
         (((uint32_t) tx_msg[4]) << 8) |
         ((uint32_t) tx_msg[5]);
     double percent = ((double) raw_data) / 0xFFFFFF * 100.0;
-    print("%.6X = %f %%\n", raw_data, percent);
+    print("0x%.6X = ", raw_data);
+    print("%.3f %%\n", percent);
 
     if (tx_msg[2] < CAN_PAY_SCI_FIELD_COUNT - 1) {
         enqueue_rx_msg(CAN_PAY_SCI, tx_msg[2] + 1);

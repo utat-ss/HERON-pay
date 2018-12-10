@@ -29,23 +29,23 @@ void handle_rx_msg(void) {
     // Received message
     uint8_t rx_data[8];
     dequeue(&rx_msg_queue, rx_data);
-    print("Dequeued RX\n");
-    print_bytes(rx_data, 8);
+    // print("Dequeued RX\n");
+    // print_bytes(rx_data, 8);
 
     // Check message type
     switch (rx_data[1]) {
         case CAN_PAY_HK:
-            print("PAY_HK\n");
+            // print("PAY_HK\n");
             handle_hk(rx_data);
             break;
 
         case CAN_PAY_SCI:
-            print("PAY_SCI\n");
+            // print("PAY_SCI\n");
             handle_sci(rx_data);
             return;
 
         case CAN_PAY_MOTOR:
-            print("PAY_MOTOR\n");
+            // print("PAY_MOTOR\n");
             handle_motor(rx_data);
             break;
 

@@ -9,7 +9,6 @@ General-use functions for PAY.
 void init_pay(void) {
     // UART
     init_uart();
-    print("\n\nInitializing PAY\n");
 
     // SPI
     init_spi();
@@ -19,6 +18,9 @@ void init_pay(void) {
 
     // ADC
     init_adc(&adc);
+
+    // DAC
+    init_dac(&dac);
 
     // Environmental sensors
     temp_init();
