@@ -1,11 +1,16 @@
-# AVR compiled files
+# This .gitignore is meant to be used in any software repository
+
+# Compiled files
 *.d
 *.o
 *.elf
 *.hex
 
-# Mac files
+# macOS files
 .DS_Store
+
+# Windows files
+Thumbs.db
 
 # Xcode files
 xcuserdata

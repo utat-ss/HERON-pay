@@ -2,15 +2,12 @@
 #define MOTORS_H
 
 #include <stdbool.h>
-#include <avr/io.h>
-#include <pex/pex.h>
-#include <pex/pay.h>
-#include <uart/uart.h>
 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-#include <util/delay.h>
+#include <avr/io.h>
+
+#include <pex/pay.h>
+#include <pex/pex.h>
+#include <uart/uart.h>
 
 // Indexer mode
 // For both GPIOA (GPA) and GPIOB (GPB)

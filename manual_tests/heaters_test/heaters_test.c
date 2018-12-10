@@ -1,32 +1,10 @@
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
-#include <uart/uart.h>
-#include <spi/spi.h>
-#include <util/delay.h>
-#include "../../src/heaters.h"
-
-// Thermistors includes
 #include <adc/adc.h>
 #include <adc/pay.h>
 #include <conversions/conversions.h>
+#include <spi/spi.h>
+#include <uart/uart.h>
 
-// Thermistor adc
-pin_info_t therm_cs = {
-    .port = &ADC_CS_PORT_PAY,
-    .ddr = &ADC_CS_DDR_PAY,
-    .pin = ADC_CS_PIN_PAY
-};
-
-adc_t adc = {
-    .channels = 0x0FFF,
-    .cs = &therm_cs
-};
-
-extern dac_t dac;
-extern pin_info_t dac_cs;
-extern pin_info_t clr;
+#include "../../src/heaters.h"
 
 // Set the temperature on both heaters to temp
 void set_temp(double temp) {

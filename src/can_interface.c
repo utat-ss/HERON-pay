@@ -1,14 +1,9 @@
+/*
+Defines the physical interface (MOBs and callback functions) that PAY uses for
+CAN communication.
+*/
+
 #include "can_interface.h"
-
-
-/* Message queues */
-
-// CAN messages received but not processed yet
-queue_t can_rx_msgs;
-// CAN messages to transmit
-queue_t can_tx_msgs;
-
-
 
 
 /* Callback functions */
@@ -37,18 +32,13 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
 // CMD RX - received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
     print("MOB 3: CMD RX Callback\n");
-    print("Received message: ");
-    print_bytes((uint8_t*) data, len);
 
     if (len == 0) {
-        print("Received empty message\n");
+        return;
     }
 
-    // If the RX message exists, add it to the queue of received messages to process
-    else {
-        enqueue(&can_rx_msgs, (uint8_t*) data);
-        print("Enqueued RX message\n");
-    }
+    // Add it to the queue of received messages to process
+    enqueue(&rx_msg_queue, (uint8_t*) data);
 }
 
 // MOB 5
@@ -56,20 +46,14 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 void data_tx_callback(uint8_t* data, uint8_t* len) {
     print("MOB 5: Data TX Callback\n");
 
-    if (queue_empty(&can_tx_msgs)) {
+    if (queue_empty(&tx_msg_queue)) {
         *len = 0;
-        print("No message to transmit\n");
+        return;
     }
 
     // If there is a message in the TX queue, transmit it
-    else {
-        dequeue(&can_tx_msgs, data);
-        *len = 8;
-
-        print("Dequeued TX message\n");
-        print("Transmitting message: ");
-        print_bytes(data, *len);
-    }
+    dequeue(&tx_msg_queue, data);
+    *len = 8;
 }
 
 

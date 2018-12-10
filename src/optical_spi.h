@@ -1,17 +1,14 @@
-#ifndef OPTICAL_H
-#define OPTICAL_H
+#ifndef OPTICAL_SPI_H
+#define OPTICAL_SPI_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#include <can/data_protocol.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
-#include <can/data_protocol.h>
-#include "can_interface.h"
 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-#include <util/delay.h>
+#include "can_interface.h"
 
 // SENS_CS pin on schematic
 #define OPT_CS_PIN      PB3

@@ -3,14 +3,10 @@ Test the motors where you can press 'w' to move the platform up or 's' to move t
 (this is done through UART terminal input)
 */
 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
-#include <uart/uart.h>
-#include <spi/spi.h>
-#include <util/delay.h>
 #include <pex/pex.h>
+#include <spi/spi.h>
+#include <uart/uart.h>
+
 #include "../../src/motors.h"
 
 #define PERIOD_MS   40
@@ -58,6 +54,6 @@ int main(void){
 
     // Wait for key press interrupts
     // Register callback for key presses
-    register_callback(key_pressed);
+    set_uart_rx_cb(key_pressed);
     while (1) {}
 }

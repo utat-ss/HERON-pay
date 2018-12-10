@@ -1,25 +1,12 @@
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif
-
-#include <uart/uart.h>
-#include <spi/spi.h>
-#include <util/delay.h>
 #include <adc/adc.h>
 #include <adc/pay.h> //Includes constants
 #include <conversions/conversions.h>
+#include <spi/spi.h>
+#include <uart/uart.h>
+
+#include "../../src/devices.h"
 #include "../../src/thermistors.h"
 
-pin_info_t cs = {
-    .port = &ADC_CS_PORT_PAY,
-    .ddr = &ADC_CS_DDR_PAY,
-    .pin = ADC_CS_PIN_PAY
-};
-
-adc_t adc = {
-    .channels = 0x0FFF,
-    .cs = &cs
-};
 
 // Get the resistance of the thermistor given the voltage
 // For equation, see: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
