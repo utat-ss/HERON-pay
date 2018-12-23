@@ -1,6 +1,8 @@
 /*
 Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 
+Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-stack-stepper/37mm-37000
+
 - phase/enable mode
 
 TODO - sleep motors
