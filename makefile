@@ -28,27 +28,40 @@ BUILD = build
 MANUAL_TESTS = $(dir $(wildcard manual_tests/*/.))
 
 
-# PORT - Computer port that the programmer is connected to
-# Operating system detection based on https://gist.github.com/sighingnow/deee806603ec9274fd47
+# Detect operating system - based on https://gist.github.com/sighingnow/deee806603ec9274fd47
 
-# Windows
+# One of these flags will be set to true based on the operating system
+WINDOWS := false
+MAC_OS := false
+LINUX := false
+
 ifeq ($(OS),Windows_NT)
-	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | select -First 2 | select -Last 1")
-
-# Unix
+	WINDOWS := true
 else
-	# Get the operating system
+	# Unix - get the operating system
 	UNAME_S := $(shell uname -s)
-
-	# macOS
 	ifeq ($(UNAME_S),Darwin)
-		# Automatically find the port (lower number)
-		PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+		MAC_OS := true
 	endif
-	# Linux
 	ifeq ($(UNAME_S),Linux)
-		PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
+		LINUX := true
 	endif
+endif
+
+# PORT - Computer port that the programmer is connected to
+# Try to automatically detect the port
+ifeq ($(WINDOWS), true)
+	# higher number
+	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 2 | select -Last 1")
+endif
+ifeq ($(MAC_OS), true)
+	# lower number
+	PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+endif
+ifeq ($(LINUX), true)
+	# lower number
+	# TODO - test this
+	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
 endif
 
 # If automatic port detection fails,
@@ -59,7 +72,7 @@ endif
 
 
 # Special commands
-.PHONY: all clean debug help lib-common manual_tests upload
+.PHONY: all clean debug help lib-common manual_tests read-eeprom upload
 
 # Get all .c files in src folder
 SRC = $(wildcard ./src/*.c)
@@ -93,15 +106,15 @@ clean:
 
 # Print debug information
 debug:
-	@echo ————————————
+	@echo ------------
 	@echo $(SRC)
-	@echo ————————————
+	@echo ------------
 	@echo $(OBJ)
-	@echo ————————————
+	@echo ------------
 
 # Help shows available commands
 help:
-	@echo "usage: make [all | clean | debug | help | lib-common | manual_tests | upload]"
+	@echo "usage: make [all | clean | debug | help | lib-common | manual_tests | read-eeprom | upload]"
 	@echo "Running make without any arguments is equivalent to running make all."
 	@echo "all            build the main program (src directory)"
 	@echo "clean          clear the build directory and all subdirectories"
@@ -109,9 +122,9 @@ help:
 	@echo "help           display this help message"
 	@echo "lib-common     fetch and build the latest version of lib-common"
 	@echo "manual_tests   build all manual test programs (manual_tests directory)"
+	@echo "read-eeprom    read and display the contents of the microcontroller's EEPROM"
 	@echo "upload         upload the main program to a board"
 
-# Update and build lib-common
 lib-common:
 	@echo "Fetching latest version of lib-common..."
 	git submodule update --remote
@@ -126,6 +139,18 @@ manual_tests:
 		make ; \
 		cd ../.. ; \
 	done
+
+# Create a file called eeprom.bin, which contains a raw binary copy of the micro's EEPROM memory.
+# View the contents of the binary file in hex
+read-eeprom:
+	@echo "Reading EEPROM to binary file eeprom.bin..."
+	avrdude -p m32m1 -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
+	@echo "Displaying eeprom.bin in hex..."
+ifeq ($(WINDOWS), true)
+	powershell Format-Hex eeprom.bin
+else
+	hexdump eeprom.bin
+endif
 
 # Upload program to board
 upload: $(PROG)

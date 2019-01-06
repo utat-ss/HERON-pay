@@ -6,6 +6,9 @@
 *.elf
 *.hex
 
+# EEPROM binary files
+eeprom.bin
+
 # macOS files
 .DS_Store
 
@@ -14,3 +17,8 @@ Thumbs.db
 
 # Xcode files
 xcuserdata
+
+# Eclipse files
+.project
+.cproject
+.settings

@@ -8,7 +8,7 @@
 # Includes (header files)
 INCLUDES = -I../../lib-common/include
 # Libraries from lib-common to link
-LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lpex -lqueue -lspi -luart -lutilities -lprintf_flt -lm
+LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lprintf_flt -lm
 #-------------------------------------------------------------------------------
 
 
@@ -22,27 +22,40 @@ PGMR = stk500
 MCU = m32m1
 
 
-# PORT - Computer port that the programmer is connected to
-# Operating system detection based on https://gist.github.com/sighingnow/deee806603ec9274fd47
+# Detect operating system - based on https://gist.github.com/sighingnow/deee806603ec9274fd47
 
-# Windows
+# One of these flags will be set to true based on the operating system
+WINDOWS := false
+MAC_OS := false
+LINUX := false
+
 ifeq ($(OS),Windows_NT)
-	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | select -First 2 | select -Last 1")
-
-# Unix
+	WINDOWS := true
 else
-	# Get the operating system
+	# Unix - get the operating system
 	UNAME_S := $(shell uname -s)
-
-	# macOS
 	ifeq ($(UNAME_S),Darwin)
-		# Automatically find the port (lower number)
-		PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+		MAC_OS := true
 	endif
-	# Linux
 	ifeq ($(UNAME_S),Linux)
-		PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
+		LINUX := true
 	endif
+endif
+
+# PORT - Computer port that the programmer is connected to
+# Try to automatically detect the port
+ifeq ($(WINDOWS), true)
+	# higher number
+	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 2 | select -Last 1")
+endif
+ifeq ($(MAC_OS), true)
+	# lower number
+	PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+endif
+ifeq ($(LINUX), true)
+	# lower number
+	# TODO - test this
+	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
 endif
 
 # If automatic port detection fails,
@@ -53,7 +66,7 @@ endif
 
 
 # Special commands
-.PHONY: all clean debug help lib-common upload
+.PHONY: all clean debug help lib-common read-eeprom upload
 
 # SRC - defined in the example-specific makefile
 # All .c files in src map to .o files
@@ -80,20 +93,21 @@ clean:
 
 # Print debug information
 debug:
-	@echo ————————————
+	@echo ------------
 	@echo $(SRC)
-	@echo ————————————
+	@echo ------------
 	@echo $(OBJ)
-	@echo ————————————
+	@echo ------------
 
 help:
-	@echo "usage: make [all | clean | debug | help | lib-common | upload]"
+	@echo "usage: make [all | clean | debug | help | lib-common | read-eeprom | upload]"
 	@echo "Running make without any arguments is equivalent to running make all."
 	@echo "all            build this program"
 	@echo "clean          clear build files"
 	@echo "debug          display debugging information"
 	@echo "help           display this help message"
 	@echo "lib-common     fetch and build the latest version of lib-common"
+	@echo "read-eeprom    read and display the contents of the microcontroller's EEPROM"
 	@echo "upload         upload this program to a board"
 
 # Update and build lib-common
@@ -103,6 +117,18 @@ lib-common:
 	@echo "Compiling lib-common..."
 	make -C ../../lib-common clean
 	make -C ../../lib-common
+
+# Create a file called eeprom.bin, which contains a raw binary copy of the micro's EEPROM memory.
+# View the contents of the binary file in hex
+read-eeprom:
+	@echo "Reading EEPROM to binary file eeprom.bin..."
+	avrdude -p m32m1 -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
+	@echo "Displaying eeprom.bin in hex..."
+ifeq ($(WINDOWS), true)
+	powershell Format-Hex eeprom.bin
+else
+	hexdump eeprom.bin
+endif
 
 upload: $(PROG)
 	avrdude -p $(MCU) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
