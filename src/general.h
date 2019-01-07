@@ -26,7 +26,6 @@
 #include "env_sensors.h"
 #include "motors.h"
 #include "optical_spi.h"
-#include "thermistors.h"
 
 void init_pay(void);
 void process_next_rx_msg(void);

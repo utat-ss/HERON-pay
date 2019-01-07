@@ -5,14 +5,15 @@
 #include <uart/uart.h>
 
 #include "../../src/devices.h"
-#include "../../src/thermistors.h"
 
 
-// Get the resistance of the thermistor given the voltage
-// For equation, see: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
-double thermis_voltage_to_resistance(double voltage) {
-    return THERMIS_R_REF * (THERMIS_V_REF / voltage - 1);
-}
+// Modify this array to contain the ADC channels you want to monitor
+// (channels 10 and 11 are something else - motor positioning sensors)
+// uint8_t adc_channels[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+uint8_t adc_channels[] = {0, 1, 2};
+
+// automatically calculate the length of the array
+uint8_t adc_channels_len = sizeof(adc_channels) / sizeof(adc_channels[0]);
 
 int main(void){
     init_uart();
@@ -24,37 +25,33 @@ int main(void){
     init_adc(&adc);
     print("ADC Initialized\n");
 
-    print("\nStarting test\n\n");
+    print("adc_channels_len = %u\n", adc_channels_len);
 
-    //Number of thermistor channels to measure temperature (max 10)
-    uint8_t thermister_channel_num = 3;
+    print("\nStarting test\n\n");
 
     //Find the temperature given the voltage output from the adc
     while (1) {
         //Read all of the thermistors' voltage from adc
         fetch_all(&adc);
 
-        //temperature for each thermistor-channel
-        double thermis_temperature[ADC_CHANNELS];
+        print("raw data, voltage (volts), resistance (kohms), temperature (C)\n");
 
         //Find resistance for each channel
-        //only calculate it for thermistors (channel 10 and 11 are something else)
-        for (uint8_t i = 0; i < thermister_channel_num; i++) {
-            print("Channel %d\n", i);
-            uint16_t raw_data = read_channel(&adc, i);
+        //only calculate it for the thermistors specified in adc_channels
+        for (uint8_t i = 0; i < adc_channels_len; i++) {
+            uint8_t channel = adc_channels[i];
+            uint16_t raw_data = read_channel(&adc, channel);
             double voltage = adc_raw_data_to_raw_voltage(raw_data);
-            print("voltage (Volts): %f\n", voltage);
-
             //Convert adc voltage to resistance of thermistor
-            double resistance = thermis_voltage_to_resistance(voltage);
-            print("resistance (kilo Ohmns): %f\n", resistance);
-
+            double resistance = therm_vol_to_res(voltage);
             //Convert resistance to temperature of thermistor
-            thermis_temperature[i] = thermis_resistance_to_temp(resistance);
-            print("thermistor temperature (C): %f\n\n", thermis_temperature[i]);
+            double temp = therm_res_to_temp(resistance);
+
+            print("Channel %u: 0x%.3X, %f, %f, %f\n", channel, raw_data, voltage, resistance, temp);
         }
 
-        _delay_ms(10000);
+        print("\n");
+        _delay_ms(2000);
     }
 
     return 0;

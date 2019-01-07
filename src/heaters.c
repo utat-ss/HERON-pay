@@ -14,14 +14,14 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 // init is covered by dac_init()
 
 void heaters_set_temp_a(double temp) {
-    double resistance = thermis_temp_to_resistance(temp);
-    double voltage = thermis_resistance_to_voltage(resistance);
+    double resistance = therm_temp_to_res(temp);
+    double voltage = therm_res_to_vol(resistance);
     dac_set_voltage(&dac, voltage, DAC_A);
 }
 
 void heaters_set_temp_b(double temp) {
-    double resistance = thermis_temp_to_resistance(temp);
-    double voltage = thermis_resistance_to_voltage(resistance);
+    double resistance = therm_temp_to_res(temp);
+    double voltage = therm_res_to_vol(resistance);
     dac_set_voltage(&dac, voltage, DAC_B);
 }
 

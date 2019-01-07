@@ -6,7 +6,7 @@
 # Parameters that might need to be changed, depending on the repository
 #-------------------------------------------------------------------------------
 # Libraries from lib-common to link
-LIB = -L./lib-common/lib -ladc -lcan -ldac -lpex -lqueue -lspi -ltimer -luart -lutilities
+LIB = -L./lib-common/lib -ladc -lcan -lconversions -ldac -lpex -lqueue -lspi -ltimer -luart -lutilities
 # Program name
 PROG = pay
 #-------------------------------------------------------------------------------
