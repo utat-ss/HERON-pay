@@ -5,14 +5,7 @@
 #include <uart/uart.h>
 
 #include "../../src/devices.h"
-#include "../../src/thermistors.h"
 
-
-// Get the resistance of the thermistor given the voltage
-// For equation, see: https://www.allaboutcircuits.com/projects/measuring-temperature-with-an-ntc-thermistor/
-double thermis_voltage_to_resistance(double voltage) {
-    return THERMIS_R_REF * (THERMIS_V_REF / voltage - 1);
-}
 
 int main(void){
     init_uart();
@@ -46,15 +39,15 @@ int main(void){
             print("voltage (Volts): %f\n", voltage);
 
             //Convert adc voltage to resistance of thermistor
-            double resistance = thermis_voltage_to_resistance(voltage);
+            double resistance = therm_vol_to_res(voltage);
             print("resistance (kilo Ohmns): %f\n", resistance);
 
             //Convert resistance to temperature of thermistor
-            thermis_temperature[i] = thermis_resistance_to_temp(resistance);
+            thermis_temperature[i] = therm_res_to_temp(resistance);
             print("thermistor temperature (C): %f\n\n", thermis_temperature[i]);
         }
 
-        _delay_ms(10000);
+        _delay_ms(2000);
     }
 
     return 0;

@@ -1,4 +1,4 @@
 PROG = thermistors_test
 # SRC should only include necessary files
-SRC = $(addprefix ../../src/,devices.c thermistors.c)
+SRC = $(addprefix ../../src/,devices.c)
 include ../makefile
