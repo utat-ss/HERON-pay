@@ -25,8 +25,8 @@ typedef struct {
 
 
 void req_pay_hk_fn(void);
-void req_pay_sci_fn(void);
-void req_pay_motor_fn(void);
+void req_pay_opt_fn(void);
+void req_exp_pop_fn(void);
 
 // All possible commands
 uart_cmd_t all_cmds[] = {
@@ -36,11 +36,11 @@ uart_cmd_t all_cmds[] = {
     },
     {
         .description = "Request PAY SCI data",
-        .fn = req_pay_sci_fn
+        .fn = req_pay_opt_fn
     },
     {
-        .description = "Request PAY Motor actuation",
-        .fn = req_pay_motor_fn
+        .description = "Pop blister packs",
+        .fn = req_exp_pop_fn
     }
 };
 // Length of array
@@ -104,16 +104,17 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
             break;
 
         default:
-            break;
+            return;
     }
 
-    if (tx_msg[2] < CAN_PAY_HK_GET_COUNT - 1) {
-        enqueue_rx_msg(CAN_PAY_HK, tx_msg[2] + 1);
+    uint8_t next_field_num = tx_msg[2] + 1;
+    if (next_field_num < CAN_PAY_HK_GET_COUNT) {
+        enqueue_rx_msg(CAN_PAY_HK, next_field_num);
     }
 }
 
-void process_pay_sci_tx(uint8_t* tx_msg) {
-    print("Optical #%u: ", tx_msg[2]);
+void process_pay_opt_tx(uint8_t* tx_msg) {
+    print("Well #%u: ", tx_msg[2]);
     uint32_t raw_data =
         (((uint32_t) tx_msg[3]) << 16) |
         (((uint32_t) tx_msg[4]) << 8) |
@@ -122,53 +123,75 @@ void process_pay_sci_tx(uint8_t* tx_msg) {
     print("0x%.6X = ", raw_data);
     print("%.3f %%\n", percent);
 
-    if (tx_msg[2] < CAN_PAY_SCI_GET_COUNT - 1) {
-        enqueue_rx_msg(CAN_PAY_OPT, tx_msg[2] + 1);
+    uint8_t next_field_num = tx_msg[2] + 1;
+    if (next_field_num < CAN_PAY_SCI_GET_COUNT) {
+        enqueue_rx_msg(CAN_PAY_OPT, next_field_num);
     }
 }
 
-void process_pay_motor_tx(uint8_t* tx_msg) {
-    print("Motor actuated successfully\n");
+void process_pay_exp_tx(uint8_t* tx_msg) {
+    if (tx_msg[2] == CAN_PAY_EXP_POP) {
+        print("Blister packs popped\n");
+    }
 }
 
-// Processes a response that PAY sends back
-void process_tx(void) {
-    if (queue_empty(&tx_msg_queue)) {
-        return;
-    }
-
+// Displays the response that PAY sends back
+void sim_send_next_tx_msg(void) {
     uint8_t tx_msg[8] = { 0x00 };
-    dequeue(&tx_msg_queue, tx_msg);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&tx_msg_queue)) {
+            return;
+        }
+        dequeue(&tx_msg_queue, tx_msg);
+    }
 
     switch (tx_msg[1]) {
         case CAN_PAY_HK:
             process_pay_hk_tx(tx_msg);
             break;
         case CAN_PAY_OPT:
-            process_pay_sci_tx(tx_msg);
+            process_pay_opt_tx(tx_msg);
             break;
         case CAN_PAY_EXP:
-            process_pay_motor_tx(tx_msg);
+            process_pay_exp_tx(tx_msg);
             break;
         default:
-            break;
+            return;
     }
 }
 
 void print_next_tx_msg(void) {
-    if (queue_empty(&tx_msg_queue)) {
+    if (!print_can_msgs) {
         return;
     }
-    print("PAY TX: ");
-    print_bytes(tx_msg_queue.content[tx_msg_queue.head], QUEUE_DATA_SIZE);
+
+    uint8_t tx_msg[8] = { 0x00 };
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&tx_msg_queue)) {
+            return;
+        }
+        peek_queue(&tx_msg_queue, tx_msg);
+    }
+
+    print("CAN TX: ");
+    print_bytes(tx_msg, 8);
 }
 
 void print_next_rx_msg(void) {
-    if (queue_empty(&rx_msg_queue)) {
+    if (!print_can_msgs) {
         return;
     }
-    print("PAY RX: ");
-    print_bytes(rx_msg_queue.content[rx_msg_queue.head], QUEUE_DATA_SIZE);
+
+    uint8_t rx_msg[8] = { 0x00 };
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&rx_msg_queue)) {
+            return;
+        }
+        peek_queue(&rx_msg_queue, rx_msg);
+    }
+
+    print("CAN RX: ");
+    print_bytes(rx_msg, 8);
 }
 
 
@@ -178,11 +201,11 @@ void req_pay_hk_fn(void) {
     enqueue_rx_msg(CAN_PAY_HK, 0);
 }
 
-void req_pay_sci_fn(void) {
+void req_pay_opt_fn(void) {
     enqueue_rx_msg(CAN_PAY_OPT, 0);
 }
 
-void req_pay_motor_fn(void) {
+void req_exp_pop_fn(void) {
     enqueue_rx_msg(CAN_PAY_EXP, 0);
 }
 
@@ -197,7 +220,6 @@ void print_cmds(void) {
 
 uint8_t uart_cb(const uint8_t* data, uint8_t len) {
     if (len == 0) {
-        print("No UART\n");
         return 0;
     }
 
@@ -227,21 +249,17 @@ uint8_t uart_cb(const uint8_t* data, uint8_t len) {
 int main(void) {
     init_pay();
 
-    print("\n\n\n\nInitialized\n\n");
+    print("\n\n\nInitialized\n\n");
 
     print("At any time, press h to show the command menu\n");
     print_cmds();
     set_uart_rx_cb(uart_cb);
 
     while(1) {
-        if (print_can_msgs) {
-            print_next_tx_msg();
-        }
-        process_tx();
+        print_next_tx_msg();
+        sim_send_next_tx_msg();
 
-        if (print_can_msgs) {
-            print_next_rx_msg();
-        }
+        print_next_rx_msg();
         process_next_rx_msg();
     }
 
