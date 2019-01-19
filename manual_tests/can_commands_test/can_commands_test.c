@@ -82,7 +82,7 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
             print("%.3f C\n", temperature);
             break;
 
-        case CAN_PAY_HK_HUMID:
+        case CAN_PAY_HK_HUM:
             print("Humidity: ");
             raw_data =
                 (((uint32_t) tx_msg[4]) << 8) |
@@ -107,7 +107,7 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
             break;
     }
 
-    if (tx_msg[2] < CAN_PAY_HK_FIELD_COUNT - 1) {
+    if (tx_msg[2] < CAN_PAY_HK_GET_COUNT - 1) {
         enqueue_rx_msg(CAN_PAY_HK, tx_msg[2] + 1);
     }
 }
@@ -122,8 +122,8 @@ void process_pay_sci_tx(uint8_t* tx_msg) {
     print("0x%.6X = ", raw_data);
     print("%.3f %%\n", percent);
 
-    if (tx_msg[2] < CAN_PAY_SCI_FIELD_COUNT - 1) {
-        enqueue_rx_msg(CAN_PAY_SCI, tx_msg[2] + 1);
+    if (tx_msg[2] < CAN_PAY_SCI_GET_COUNT - 1) {
+        enqueue_rx_msg(CAN_PAY_OPT, tx_msg[2] + 1);
     }
 }
 
@@ -144,10 +144,10 @@ void process_tx(void) {
         case CAN_PAY_HK:
             process_pay_hk_tx(tx_msg);
             break;
-        case CAN_PAY_SCI:
+        case CAN_PAY_OPT:
             process_pay_sci_tx(tx_msg);
             break;
-        case CAN_PAY_MOTOR:
+        case CAN_PAY_EXP:
             process_pay_motor_tx(tx_msg);
             break;
         default:
@@ -179,11 +179,11 @@ void req_pay_hk_fn(void) {
 }
 
 void req_pay_sci_fn(void) {
-    enqueue_rx_msg(CAN_PAY_SCI, 0);
+    enqueue_rx_msg(CAN_PAY_OPT, 0);
 }
 
 void req_pay_motor_fn(void) {
-    enqueue_rx_msg(CAN_PAY_MOTOR, 0);
+    enqueue_rx_msg(CAN_PAY_EXP, 0);
 }
 
 
