@@ -4,10 +4,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <adc/adc.h>
 #include <can/data_protocol.h>
 #include <utilities/utilities.h>
 
 #include "can_interface.h"
+#include "devices.h"
 #include "env_sensors.h"
 
 extern queue_t rx_msg_queue;
