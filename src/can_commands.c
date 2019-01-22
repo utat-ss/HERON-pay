@@ -15,6 +15,11 @@ queue_t rx_msg_queue;
 // CAN messages to transmit
 queue_t tx_msg_queue;
 
+// Set this to true to simulate performing all local actions (e.g. fetching
+// data, actuating motors) - this allows testing just the PAY command handling
+// system on any PCB without any peripherals
+bool sim_local_actions = false;
+
 void handle_hk(uint8_t* rx_msg);
 void handle_opt(uint8_t* rx_msg);
 void handle_exp(uint8_t* rx_msg);
@@ -63,21 +68,38 @@ void handle_hk(uint8_t* rx_msg) {
     // Check field number
     switch (rx_msg[2]) {
         case CAN_PAY_HK_TEMP:
-            raw_temp_data = temp_read_raw_data();
+            if (sim_local_actions) {
+                // 16 bit raw data, make sure the 0b11 on the right is always there
+                raw_temp_data = (random() & 0xFFFF) | 0b11;
+            } else {
+                raw_temp_data = temp_read_raw_data();
+            }
+
             tx_msg[3] = 0x00;
             tx_msg[4] = (raw_temp_data >> 8) & 0xFF;
             tx_msg[5] = raw_temp_data & 0xFF;
             break;
 
         case CAN_PAY_HK_HUM:
-            raw_hum_data = hum_read_raw_data();
+            if (sim_local_actions) {
+                // 14 bit raw data
+                raw_hum_data = random() & 0x3FFF;
+            } else {
+                raw_hum_data = hum_read_raw_data();
+            }
+
             tx_msg[3] = 0x00;
             tx_msg[4] = (raw_hum_data >> 8) & 0xFF;
             tx_msg[5] = raw_hum_data & 0xFF;
             break;
 
         case CAN_PAY_HK_PRES:
-            raw_pres_data = pres_read_raw_data();
+            if (sim_local_actions) {
+                raw_pres_data = random() & 0xFFFFFF;
+            } else {
+                raw_pres_data = pres_read_raw_data();
+            }
+
             tx_msg[3] = (raw_pres_data >> 16) & 0xFF;
             tx_msg[4] = (raw_pres_data >> 8) & 0xFF;
             tx_msg[5] = raw_pres_data & 0xFF;
@@ -98,11 +120,18 @@ void handle_opt(uint8_t* rx_msg) {
         return;
     }
 
-    // TODO - higher level optical spi function that delays until interrupts
-    // send_read_sensor_command(rx_data[2]);
+    uint32_t raw_optical = 0;
 
-    // Random data for now
-    uint32_t raw_optical = rand() % 32767;
+    if (sim_local_actions) {
+        // 24 bit raw data
+        raw_optical = random() & 0xFFFFFF;
+    } else {
+        // TODO - higher level optical spi function that delays until interrupts
+        // send_read_sensor_command(rx_data[2]);
+
+        // Use random data for now
+        raw_optical = random() & 0xFFFFFF;
+    }
 
     // Add a message to transmit back
     uint8_t tx_msg[8] = { 0x00 };
@@ -125,8 +154,10 @@ void handle_exp(uint8_t* rx_msg) {
 
     switch(rx_msg[2]) {
         case CAN_PAY_EXP_POP:
-            // TODO
-            // actuate_motors();
+            if (!sim_local_actions) {
+                // TODO
+                // actuate_motors();
+            }
             break;
         default:
             return;

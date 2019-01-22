@@ -249,7 +249,11 @@ uint8_t uart_cb(const uint8_t* data, uint8_t len) {
 int main(void) {
     init_pay();
 
-    print("\n\n\nInitialized\n\n");
+    print("\n\n\nStarting commands test\n\n");
+
+    // Change this as necessary for testing
+    sim_local_actions = true;
+    print("sim_local_actions = %u\n", sim_local_actions);
 
     print("At any time, press h to show the command menu\n");
     print_cmds();
