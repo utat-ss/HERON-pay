@@ -11,7 +11,7 @@ RX and TX are defined from PAY's perspective.
 #include "../../src/general.h"
 
 // Set to false to stop printing PAY's TX and RX CAN messages
-bool print_can_msgs = true;
+bool print_can_msgs = false;
 
 
 // Callback function signature to run a command
@@ -25,8 +25,10 @@ typedef struct {
 
 
 void req_pay_hk_fn(void);
-void req_pay_sci_fn(void);
-void req_pay_motor_fn(void);
+void req_pay_opt_fn(void);
+void req_pay_exp_fn(void);
+void req_exp_level_fn(void);
+void req_exp_pop_fn(void);
 
 // All possible commands
 uart_cmd_t all_cmds[] = {
@@ -36,11 +38,19 @@ uart_cmd_t all_cmds[] = {
     },
     {
         .description = "Request PAY SCI data",
-        .fn = req_pay_sci_fn
+        .fn = req_pay_opt_fn
     },
     {
-        .description = "Request PAY Motor actuation",
-        .fn = req_pay_motor_fn
+        .description = "Request PAY EXP data",
+        .fn = req_pay_exp_fn
+    },
+    {
+        .description = "Level actuation plate",
+        .fn = req_exp_level_fn
+    },
+    {
+        .description = "Pop blister packs",
+        .fn = req_exp_pop_fn
     }
 };
 // Length of array
@@ -61,114 +71,170 @@ void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number) {
 
 
 void process_pay_hk_tx(uint8_t* tx_msg) {
-    // Must declare this here because redeclaring it in multiple case statements
-    // gives an error
-    uint32_t raw_data;
+    uint8_t field_num = tx_msg[2];
+    uint32_t raw_data =
+        (((uint32_t) tx_msg[3]) << 16) |
+        (((uint32_t) tx_msg[4]) << 8) |
+        ((uint32_t) tx_msg[5]);
 
-    switch (tx_msg[2]) {
-        case CAN_PAY_HK_TEMP:
-            // Printing floating point doesn't seem to work when it's in
-            // the same print statement as the hex number
-            // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
-            // Print it in a separate statement for now
-            // TODO - investigate this
+    if (field_num == CAN_PAY_HK_TEMP) {
+        // Printing floating point doesn't seem to work when it's in
+        // the same print statement as the hex number
+        // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
+        // Print it in a separate statement for now
+        // TODO - investigate this
 
-            print("Temperature: ");
-            raw_data =
-                (((uint32_t) tx_msg[4]) << 8) |
-                ((uint32_t) tx_msg[5]);
-            double temperature = temp_raw_data_to_temperature(raw_data);
-            print("0x%.4X = ", raw_data);
-            print("%.3f C\n", temperature);
-            break;
+        double temperature = temp_raw_data_to_temperature(raw_data);
+        print("Temperature: ");
+        print("0x%.4X = ", raw_data);
+        print("%.1f C\n", temperature);
 
-        case CAN_PAY_HK_HUMID:
-            print("Humidity: ");
-            raw_data =
-                (((uint32_t) tx_msg[4]) << 8) |
-                ((uint32_t) tx_msg[5]);
-            double humidity = hum_raw_data_to_humidity(raw_data);
-            print("0x%.4X = ", raw_data);
-            print("%.3f %%RH\n", humidity);
-            break;
-
-        case CAN_PAY_HK_PRES:
-            print("Pressure: ");
-            raw_data =
-                (((uint32_t) tx_msg[3]) << 16) |
-                (((uint32_t) tx_msg[4]) << 8) |
-                ((uint32_t) tx_msg[5]);
-            double pressure = pres_raw_data_to_pressure(raw_data);
-            print("0x%.6X = ", raw_data);
-            print("%.3f kPa\n", pressure);
-            break;
-
-        default:
-            break;
     }
 
-    if (tx_msg[2] < CAN_PAY_HK_FIELD_COUNT - 1) {
-        enqueue_rx_msg(CAN_PAY_HK, tx_msg[2] + 1);
+    else if (field_num == CAN_PAY_HK_HUM) {
+        double humidity = hum_raw_data_to_humidity(raw_data);
+        print("Humidity: ");
+        print("0x%.4X = ", raw_data);
+        print("%.1f %%RH\n", humidity);
+    }
+
+    else if (field_num == CAN_PAY_HK_PRES) {
+        double pressure = pres_raw_data_to_pressure(raw_data);
+        print("Pressure: ");
+        print("0x%.6lX = ", raw_data);
+        print("%.1f kPa\n", pressure);
+    }
+
+    else if ((CAN_PAY_HK_THERM0 <= field_num) &&
+            (field_num < CAN_PAY_HK_THERM0 + 10)) {
+        uint8_t channel = field_num - CAN_PAY_HK_THERM0;
+        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double res = therm_vol_to_res(vol);
+        double temp = therm_res_to_temp(res);
+        print("Thermistor %u: 0x%.3X", channel, raw_data);
+        print(" = %.3f C\n", temp);
+    }
+
+    else if (field_num == CAN_PAY_HK_GET_DAC1) {
+        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double res = therm_vol_to_res(vol);
+        double temp = therm_res_to_temp(res);
+        print("DAC Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
+    }
+
+    else if (field_num == CAN_PAY_HK_GET_DAC2) {
+        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double res = therm_vol_to_res(vol);
+        double temp = therm_res_to_temp(res);
+        print("DAC Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);
+    }
+
+    else {
+        return;
+    }
+
+    uint8_t next_field_num = tx_msg[2] + 1;
+    if (next_field_num < CAN_PAY_HK_GET_COUNT) {
+        enqueue_rx_msg(CAN_PAY_HK, next_field_num);
     }
 }
 
-void process_pay_sci_tx(uint8_t* tx_msg) {
-    print("Optical #%u: ", tx_msg[2]);
+void process_pay_opt_tx(uint8_t* tx_msg) {
+    print("Well #%u: ", tx_msg[2]);
     uint32_t raw_data =
         (((uint32_t) tx_msg[3]) << 16) |
         (((uint32_t) tx_msg[4]) << 8) |
         ((uint32_t) tx_msg[5]);
     double percent = ((double) raw_data) / 0xFFFFFF * 100.0;
-    print("0x%.6X = ", raw_data);
-    print("%.3f %%\n", percent);
+    print("0x%.6lX = ", raw_data);
+    print("%.1f %%\n", percent);
 
-    if (tx_msg[2] < CAN_PAY_SCI_FIELD_COUNT - 1) {
-        enqueue_rx_msg(CAN_PAY_SCI, tx_msg[2] + 1);
+    uint8_t next_field_num = tx_msg[2] + 1;
+    if (next_field_num < CAN_PAY_SCI_GET_COUNT) {
+        enqueue_rx_msg(CAN_PAY_OPT, next_field_num);
     }
 }
 
-void process_pay_motor_tx(uint8_t* tx_msg) {
-    print("Motor actuated successfully\n");
-}
+void process_pay_exp_tx(uint8_t* tx_msg) {
+    uint8_t field_num = tx_msg[2];
+    uint32_t raw_data =
+        (((uint32_t) tx_msg[3]) << 16) |
+        (((uint32_t) tx_msg[4]) << 8) |
+        ((uint32_t) tx_msg[5]);
 
-// Processes a response that PAY sends back
-void process_tx(void) {
-    if (queue_empty(&tx_msg_queue)) {
-        return;
+    if (field_num == CAN_PAY_EXP_PROX_LEFT) {
+        print("Left proximity: 0x%.3X\n", raw_data);
+    } else if (field_num == CAN_PAY_EXP_PROX_RIGHT) {
+        print("Right proximity: 0x%.3X\n", raw_data);
+    } else if (field_num == CAN_PAY_EXP_LEVEL) {
+        print("Levelled actuation plate\n");
+    } else if (field_num == CAN_PAY_EXP_POP) {
+        print("Popped blister packs\n");
     }
 
+    uint8_t next_field_num = tx_msg[2] + 1;
+    if (next_field_num <= CAN_PAY_EXP_PROX_RIGHT) {
+        enqueue_rx_msg(CAN_PAY_EXP, next_field_num);
+    }
+}
+
+// Displays the response that PAY sends back
+void sim_send_next_tx_msg(void) {
     uint8_t tx_msg[8] = { 0x00 };
-    dequeue(&tx_msg_queue, tx_msg);
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&tx_msg_queue)) {
+            return;
+        }
+        dequeue(&tx_msg_queue, tx_msg);
+    }
 
     switch (tx_msg[1]) {
         case CAN_PAY_HK:
             process_pay_hk_tx(tx_msg);
             break;
-        case CAN_PAY_SCI:
-            process_pay_sci_tx(tx_msg);
+        case CAN_PAY_OPT:
+            process_pay_opt_tx(tx_msg);
             break;
-        case CAN_PAY_MOTOR:
-            process_pay_motor_tx(tx_msg);
+        case CAN_PAY_EXP:
+            process_pay_exp_tx(tx_msg);
             break;
         default:
-            break;
+            return;
     }
 }
 
 void print_next_tx_msg(void) {
-    if (queue_empty(&tx_msg_queue)) {
+    if (!print_can_msgs) {
         return;
     }
-    print("PAY TX: ");
-    print_bytes(tx_msg_queue.content[tx_msg_queue.head], QUEUE_DATA_SIZE);
+
+    uint8_t tx_msg[8] = { 0x00 };
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&tx_msg_queue)) {
+            return;
+        }
+        peek_queue(&tx_msg_queue, tx_msg);
+    }
+
+    print("CAN TX: ");
+    print_bytes(tx_msg, 8);
 }
 
 void print_next_rx_msg(void) {
-    if (queue_empty(&rx_msg_queue)) {
+    if (!print_can_msgs) {
         return;
     }
-    print("PAY RX: ");
-    print_bytes(rx_msg_queue.content[rx_msg_queue.head], QUEUE_DATA_SIZE);
+
+    uint8_t rx_msg[8] = { 0x00 };
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (queue_empty(&rx_msg_queue)) {
+            return;
+        }
+        peek_queue(&rx_msg_queue, rx_msg);
+    }
+
+    print("CAN RX: ");
+    print_bytes(rx_msg, 8);
 }
 
 
@@ -178,12 +244,20 @@ void req_pay_hk_fn(void) {
     enqueue_rx_msg(CAN_PAY_HK, 0);
 }
 
-void req_pay_sci_fn(void) {
-    enqueue_rx_msg(CAN_PAY_SCI, 0);
+void req_pay_opt_fn(void) {
+    enqueue_rx_msg(CAN_PAY_OPT, 0);
 }
 
-void req_pay_motor_fn(void) {
-    enqueue_rx_msg(CAN_PAY_MOTOR, 0);
+void req_pay_exp_fn(void) {
+    enqueue_rx_msg(CAN_PAY_EXP, 0);
+}
+
+void req_exp_level_fn(void) {
+    enqueue_rx_msg(CAN_PAY_EXP, CAN_PAY_EXP_LEVEL);
+}
+
+void req_exp_pop_fn(void) {
+    enqueue_rx_msg(CAN_PAY_EXP, CAN_PAY_EXP_POP);
 }
 
 
@@ -197,7 +271,6 @@ void print_cmds(void) {
 
 uint8_t uart_cb(const uint8_t* data, uint8_t len) {
     if (len == 0) {
-        print("No UART\n");
         return 0;
     }
 
@@ -227,21 +300,23 @@ uint8_t uart_cb(const uint8_t* data, uint8_t len) {
 int main(void) {
     init_pay();
 
-    print("\n\n\n\nInitialized\n\n");
+    print("\n\n\nStarting commands test\n\n");
+
+    // Change this as necessary for testing
+    sim_local_actions = true;
+    print("sim_local_actions = %u\n", sim_local_actions);
+    print_can_msgs = false;
+    print("print_can_msgs = %u\n", print_can_msgs);
 
     print("At any time, press h to show the command menu\n");
     print_cmds();
     set_uart_rx_cb(uart_cb);
 
     while(1) {
-        if (print_can_msgs) {
-            print_next_tx_msg();
-        }
-        process_tx();
+        print_next_tx_msg();
+        sim_send_next_tx_msg();
 
-        if (print_can_msgs) {
-            print_next_rx_msg();
-        }
+        print_next_rx_msg();
         process_next_rx_msg();
     }
 
