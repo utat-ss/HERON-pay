@@ -66,6 +66,7 @@ void read_thermistor_data_fn(void) {
     //Read all of the thermistors' voltage from adc
     fetch_all(&adc);
 
+    print("\n");
     print("Temperature (C), Raw data (12 bits), ");
     print("Voltage (V), Resistance (kohms)\n");
 
@@ -114,6 +115,7 @@ void turn_heater_5_off_fn(void) {
 
 
 void print_cmds(void) {
+    print("\n");
     for (uint8_t i = 0; i < all_cmds_len; i++) {
         print("%u: %s\n", i, all_cmds[i].description);
     }
@@ -156,7 +158,10 @@ int main(void) {
 
     print("\n\n\nStarting test\n\n");
 
-    print("At any time, press h to show the command menu\n\n");
+    turn_heaters_1_4_off_fn();
+    turn_heater_5_off_fn();
+
+    print("\nAt any time, press h to show the command menu\n");
     print_cmds();
     set_uart_rx_cb(uart_cb);
 
