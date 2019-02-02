@@ -305,7 +305,7 @@ int main(void) {
     // Change this as necessary for testing
     sim_local_actions = true;
     print("sim_local_actions = %u\n", sim_local_actions);
-    print_can_msgs = false;
+    print_can_msgs = true;
     print("print_can_msgs = %u\n", print_can_msgs);
 
     print("At any time, press h to show the command menu\n");

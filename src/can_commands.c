@@ -62,88 +62,63 @@ void handle_hk(uint8_t* rx_msg) {
 
     // Check field number
     uint8_t field_num = rx_msg[2];
+    uint32_t raw_data = 0;
 
     if (field_num == CAN_PAY_HK_TEMP) {
-        uint16_t raw_temp_data = 0;
         if (sim_local_actions) {
             // 16 bit raw data, make sure the 0b11 on the right is always there
-            raw_temp_data = (random() & 0xFFFF) | 0b11;
+            raw_data = (random() & 0xFFFF) | 0b11;
         } else {
-            raw_temp_data = temp_read_raw_data();
+            raw_data = temp_read_raw_data();
         }
-
-        tx_msg[3] = 0x00;
-        tx_msg[4] = (raw_temp_data >> 8) & 0xFF;
-        tx_msg[5] = raw_temp_data & 0xFF;
     }
 
     else if (field_num == CAN_PAY_HK_HUM) {
-        uint16_t raw_hum_data = 0;
         if (sim_local_actions) {
             // 14 bit raw data
-            raw_hum_data = random() & 0x3FFF;
+            raw_data = random() & 0x3FFF;
         } else {
-            raw_hum_data = hum_read_raw_data();
+            raw_data = hum_read_raw_data();
         }
-
-        tx_msg[3] = 0x00;
-        tx_msg[4] = (raw_hum_data >> 8) & 0xFF;
-        tx_msg[5] = raw_hum_data & 0xFF;
     }
 
     else if (field_num == CAN_PAY_HK_PRES) {
-        uint32_t raw_pres_data = 0;
         if (sim_local_actions) {
-            raw_pres_data = random() & 0xFFFFFF;
+            raw_data = random() & 0xFFFFFF;
         } else {
-            raw_pres_data = pres_read_raw_data();
+            raw_data = pres_read_raw_data();
         }
-
-        tx_msg[3] = (raw_pres_data >> 16) & 0xFF;
-        tx_msg[4] = (raw_pres_data >> 8) & 0xFF;
-        tx_msg[5] = raw_pres_data & 0xFF;
     }
 
     else if ((CAN_PAY_HK_THERM0 <= field_num) &&
             (field_num < CAN_PAY_HK_THERM0 + 10)) {
-        uint16_t raw_therm_data;
         if (sim_local_actions) {
             // only allow 11 bits because thermistors do not exceed 2.5V
             // (half of the ADC's 5V range)
-            raw_therm_data = random() & 0x7FF;
+            raw_data = random() & 0x7FF;
         } else {
             uint8_t channel = field_num - CAN_PAY_HK_THERM0;
             fetch_channel(&adc, channel);
-            raw_therm_data = read_channel(&adc, channel);
+            raw_data = read_channel(&adc, channel);
         }
-
-        tx_msg[3] = 0x00;
-        tx_msg[4] = (raw_therm_data >> 8) & 0xFF;
-        tx_msg[5] = raw_therm_data & 0xFF;
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC1) {
-        uint16_t dac_setpoint = 0;
         // TODO - get DAC setpoint
-
-        tx_msg[3] = 0x00;
-        tx_msg[4] = (dac_setpoint >> 8) & 0xFF;
-        tx_msg[5] = dac_setpoint & 0xFF;
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC2) {
-        uint16_t dac_setpoint = 0;
         // TODO - get DAC setpoint
-
-        tx_msg[3] = 0x00;
-        tx_msg[4] = (dac_setpoint >> 8) & 0xFF;
-        tx_msg[5] = dac_setpoint & 0xFF;
     }
 
     else {
         // Return before calling enqueue() so we don't send a message back
         return;
     }
+
+    tx_msg[3] = (raw_data >> 16) & 0xFF;
+    tx_msg[4] = (raw_data >> 8) & 0xFF;
+    tx_msg[5] = raw_data & 0xFF;
 
     // Add message to transmit
     enqueue(&tx_msg_queue, tx_msg);
@@ -188,35 +163,29 @@ void handle_exp(uint8_t* rx_msg) {
     tx_msg[1] = rx_msg[1];
     tx_msg[2] = rx_msg[2];
 
-    uint16_t raw_prox_data = 0;
+    uint32_t raw_data = 0;
 
     switch (rx_msg[2]) {
         case CAN_PAY_EXP_PROX_LEFT:
             if (sim_local_actions) {
-                raw_prox_data = random() & 0xFFF;
+                raw_data = random() & 0xFFF;
             } else {
                 uint8_t channel = 10;
                 fetch_channel(&adc, channel);
-                raw_prox_data = read_channel(&adc, channel);
+                raw_data = read_channel(&adc, channel);
             }
 
-            tx_msg[3] = 0x00;
-            tx_msg[4] = (raw_prox_data >> 8) & 0xFF;
-            tx_msg[5] = raw_prox_data & 0xFF;
             break;
 
         case CAN_PAY_EXP_PROX_RIGHT:
             if (sim_local_actions) {
-                raw_prox_data = random() & 0xFFF;
+                raw_data = random() & 0xFFF;
             } else {
                 uint8_t channel = 11;
                 fetch_channel(&adc, channel);
-                raw_prox_data = read_channel(&adc, channel);
+                raw_data = read_channel(&adc, channel);
             }
 
-            tx_msg[3] = 0x00;
-            tx_msg[4] = (raw_prox_data >> 8) & 0xFF;
-            tx_msg[5] = raw_prox_data & 0xFF;
             break;
 
         case CAN_PAY_EXP_LEVEL:
@@ -236,6 +205,10 @@ void handle_exp(uint8_t* rx_msg) {
         default:
             return;
     }
+
+    tx_msg[3] = (raw_data >> 16) & 0xFF;
+    tx_msg[4] = (raw_data >> 8) & 0xFF;
+    tx_msg[5] = raw_data & 0xFF;
 
     // Enqueue TX message to transmit
     enqueue(&tx_msg_queue, tx_msg);
