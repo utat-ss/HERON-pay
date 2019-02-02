@@ -20,10 +20,9 @@
 #define OPT_RST_PORT    PORTB
 #define OPT_RST_DDR     DDRB
 
-extern bool opt_spi_enable_can;
-
-void opt_spi_init(void);
-void opt_spi_rst(void);
-void opt_spi_send_read_cmd(uint8_t field_number);
+void init_opt_spi(void);
+void rst_opt_spi(void);
+uint32_t read_opt_spi(uint8_t field_num);
+void send_opt_spi_cmd(uint8_t field_num);
 
 #endif
