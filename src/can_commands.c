@@ -127,21 +127,18 @@ void handle_hk(uint8_t* rx_msg) {
 
 void handle_opt(uint8_t* rx_msg) {
     // Check the field number is valid
-    if (rx_msg[2] >= CAN_PAY_SCI_GET_COUNT) {
+    uint8_t field_num = rx_msg[2];
+    if (field_num >= CAN_PAY_SCI_GET_COUNT) {
         return;
     }
 
     uint32_t raw_optical = 0;
-
     if (sim_local_actions) {
         // 24 bit raw data
         raw_optical = random() & 0xFFFFFF;
     } else {
-        // TODO - higher level optical spi function that delays until interrupts
-        // send_read_sensor_command(rx_data[2]);
-
-        // Use random data for now
-        raw_optical = random() & 0xFFFFFF;
+        // Get data from PAY-Optical over SPI
+        raw_optical = read_opt_spi(field_num);
     }
 
     // Add a message to transmit back
