@@ -28,7 +28,7 @@ void init_pay(void) {
     pres_init();
 
     // PAY-Optical
-    opt_spi_init();
+    init_opt_spi();
 
     // Motors
     init_motors();

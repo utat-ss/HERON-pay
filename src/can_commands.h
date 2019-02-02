@@ -11,6 +11,7 @@
 #include "can_interface.h"
 #include "devices.h"
 #include "env_sensors.h"
+#include "optical_spi.h"
 
 extern queue_t rx_msg_queue;
 extern queue_t tx_msg_queue;

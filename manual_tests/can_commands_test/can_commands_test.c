@@ -37,7 +37,7 @@ uart_cmd_t all_cmds[] = {
         .fn = req_pay_hk_fn
     },
     {
-        .description = "Request PAY SCI data",
+        .description = "Request PAY OPT data",
         .fn = req_pay_opt_fn
     },
     {
@@ -303,7 +303,7 @@ int main(void) {
     print("\n\n\nStarting commands test\n\n");
 
     // Change this as necessary for testing
-    sim_local_actions = true;
+    sim_local_actions = false;
     print("sim_local_actions = %u\n", sim_local_actions);
     print_can_msgs = false;
     print("print_can_msgs = %u\n", print_can_msgs);

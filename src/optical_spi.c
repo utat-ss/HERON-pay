@@ -23,29 +23,24 @@ PAY initiates a 1 byte SPI transfer to get the data
 PAY now has the 24 bit ADC reading (raw data) from PAY-Optical, which was sent
 as big-endian/network order (most significant byte first)
 
-
 TODO - maybe put protocol and constants in lib-common?
 */
 
 #include "optical_spi.h"
 
-// For testing, set this to false to not add a message to the CAN queue when data is obtained
-bool opt_spi_enable_can = true;
+// Must use volatile variables because we modify them in the ISR, but read them
+// from the blocking function
 
-// true if we are in the process of receiving SPI data
-bool spi_in_progress = false;
-// The field number we are requesting from PAY-Optical
-uint8_t spi_field_number = 0;
 // Number of bytes already received from PAY-Optical
-uint8_t spi_num_bytes_rcvd = 0;
-// Data already received from PAY-Optical
-uint32_t spi_data_rcvd = 0;
+volatile uint8_t opt_spi_num_bytes = 0;
+// Data already received from PAY-Optical, always right-aligned
+volatile uint32_t opt_spi_data = 0;
 
 
 /*
 Initializes the microcontroller to communicate with the PAY-Optical microcontroller over SPI.
 */
-void opt_spi_init(void) {
+void init_opt_spi(void) {
     // set behaviour of INT1 to trigger on rising edge
     EICRA |= (1 << ISC10) | (1 << ISC11);
     // enable external interrupt 0
@@ -65,27 +60,54 @@ void opt_spi_init(void) {
 /*
 Resets the PAY-Optical microcontroller.
 */
-void opt_spi_rst(void) {
+void rst_opt_spi(void) {
     // TODO - check how many cycles is necessary
     set_cs_low(OPT_RST_PIN, &OPT_RST_PORT);
     _delay_ms(1000);
     set_cs_high(OPT_RST_PIN, &OPT_RST_PORT);
 }
 
+// Reads 24 bits of raw data from the PAY-Optical microcontroller over optical SPI
+// (Sends the request command, then blocks until it gets 3 bytes back)
+uint32_t read_opt_spi(uint8_t field_num) {
+    send_opt_spi_cmd(field_num);
+
+    // Wait until we get 3 bytes, with a timeout
+    // In testing, timeout always ended at the original value minus 7 or 8
+    uint8_t timeout = UINT8_MAX;
+    while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
+        timeout--;
+    }
+    // print("timeout = %u\n", timeout);
+
+    // If we didn't get 3 bytes
+    if (opt_spi_num_bytes < 3) {
+        return 0;
+    }
+
+    // If we have received all 3 bytes now
+    uint32_t read_data = opt_spi_data;
+    // print ("Received optical data: 0x%06lx\n", read_data);
+
+    // Clear SPI request variables
+    opt_spi_num_bytes = 0;
+    opt_spi_data = 0;
+
+    return read_data;
+}
 
 /*
 Sends a command to read data for the specified field number from PAY-Optical.
 */
-void opt_spi_send_read_cmd(uint8_t field_number) {
-    spi_in_progress = true;
-    spi_field_number = field_number;
-    spi_data_rcvd = 0;
-    spi_num_bytes_rcvd = 0;
+void send_opt_spi_cmd(uint8_t field_num) {
+    // print("Sending optical command - field #%u\n", field_num);
+
+    opt_spi_data = 0;
+    opt_spi_num_bytes = 0;
 
     // Send the command to PAY-Optical to start reading data
-    print("Sending optical command - field #%u\n", field_number);
     set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
-    uint8_t spi_tx = (0b11 << 6) | spi_field_number;
+    uint8_t spi_tx = (0b11 << 6) | field_num;
     send_spi(spi_tx);
     set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
 
@@ -97,51 +119,18 @@ void opt_spi_send_read_cmd(uint8_t field_number) {
 /*
 This interrupt is triggered when the DATA_RDY pin goes set_cs_high
 (set by PAY-Optical to indicate data is ready).
+The SPI transfer should already be in progress if we get this interrupt.
 */
 ISR(INT1_vect) {
     // print("INT1 - DATA_RDY\n");
 
-    // SPI should be in progress if we get this interrupt, but just check
-    if (spi_in_progress) {
-        // Get the next byte over SPI
-        set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
-        uint8_t new_byte = send_spi(0x00);
-        set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
+    // Get the next byte over SPI
+    set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
+    uint8_t new_byte = send_spi(0x00);
+    set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
 
-        // Add new byte to received data
-        spi_data_rcvd = spi_data_rcvd << 8;
-        spi_data_rcvd = spi_data_rcvd | new_byte;
-
-        // Received one more byte
-        spi_num_bytes_rcvd++;
-
-        // If we have received all 3 bytes now
-        if (spi_num_bytes_rcvd >= 3) {
-            print ("Received optical data: %06lx\n", spi_data_rcvd);
-
-            // If we have CAN enabled, enqueue the message to send data back to OBC
-            // TODO
-            if (opt_spi_enable_can) {
-                // uint8_t tx_data[8];
-                // tx_data[0] = 0; // TODO
-                // tx_data[1] = CAN_PAY_SCI;
-                // tx_data[2] = spi_field_number;
-                //
-                // tx_data[3] = (spi_data_rcvd >> 16) & 0xFF;
-                // tx_data[4] = (spi_data_rcvd >> 8) & 0xFF;
-                // tx_data[5] = spi_data_rcvd & 0xFF;
-                //
-                // // Enqueue CAN message to be sent with data
-                // enqueue(&tx_message_queue, tx_data);
-                // print("Enqueued TX\n");
-                // print_bytes(tx_data, 8);
-            }
-
-            // Stop SPI requests
-            spi_in_progress = false;
-            spi_num_bytes_rcvd = 0;
-            spi_data_rcvd = 0;
-            spi_field_number = 0;
-        }
-    }
+    // Add new byte to received data
+    opt_spi_data = (opt_spi_data << 8) | new_byte;
+    // Received one more byte
+    opt_spi_num_bytes++;
 }
