@@ -1,4 +1,5 @@
-# This makefile should go in the manual_tests folder or examples folder of a repository
+# This makefile should go in the examples folder, harness_tests folder, or
+# manual_tests folder of a repository
 
 # Reference: http://www.atmel.com/webdoc/avrlibcreferencemanual/group__demo__project_1demo_project_compile.html
 
@@ -8,18 +9,21 @@
 # Includes (header files)
 INCLUDES = -I../../lib-common/include
 # Libraries from lib-common to link
-LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lprintf_flt -lm
+LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -lstack -ltest -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
+# Name of microcontroller ("32m1" or "64m1")
+MCU = 32m1
 #-------------------------------------------------------------------------------
 
 
 # AVR-GCC compiler
 CC = avr-gcc
 # Compiler flags
-CFLAGS = -std=gnu99 -Wall -Wl,-u,vfprintf -g -mmcu=atmega32m1 -Os -mcall-prologues
+# Should have "-mmcu=atmega32m1" or "-mmcu=atmega64m1"
+CFLAGS = -std=gnu99 -Wall -Wl,-u,vfprintf -g -mmcu=atmega$(MCU) -Os -mcall-prologues
 # Programmer
 PGMR = stk500
-# Microcontroller
-MCU = m32m1
+# AVR device for avrdude uploading - must be prefixed with "m"
+DEVICE = m$(MCU)
 
 
 # Detect operating system - based on https://gist.github.com/sighingnow/deee806603ec9274fd47
@@ -74,7 +78,7 @@ OBJ = $(SRC:../../src/%.c=./%.o)
 
 all: $(PROG)
 
-# Make program
+# Link .o files to make .elf program, then copies to .hex file
 $(PROG): $(PROG).o $(OBJ)
 	$(CC) $(CFLAGS) -o $@.elf $^ $(LIB)
 	avr-objcopy -j .text -j .data -O ihex $@.elf $@.hex
@@ -83,6 +87,7 @@ $(PROG): $(PROG).o $(OBJ)
 $(PROG).o: $(PROG).c
 	$(CC) $(CFLAGS) -c $(PROG).c $(INCLUDES)
 
+# Compile .c file to .o files
 ./%.o: ../../src/%.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES)
 
@@ -94,9 +99,15 @@ clean:
 # Print debug information
 debug:
 	@echo ------------
-	@echo $(SRC)
+	@echo "WINDOWS:" $(WINDOWS)
 	@echo ------------
-	@echo $(OBJ)
+	@echo "MAC_OS:" $(MAC_OS)
+	@echo ------------
+	@echo "LINUX:" $(LINUX)
+	@echo ------------
+	@echo "SRC:" $(SRC)
+	@echo ------------
+	@echo "OBJ:" $(OBJ)
 	@echo ------------
 
 help:
@@ -115,14 +126,14 @@ lib-common:
 	@echo "Fetching latest version of lib-common..."
 	git submodule update --remote
 	@echo "Compiling lib-common..."
-	make -C ../../lib-common clean
-	make -C ../../lib-common
+	make -C ../../lib-common clean MCU=$(MCU)
+	make -C ../../lib-common MCU=$(MCU)
 
 # Create a file called eeprom.bin, which contains a raw binary copy of the micro's EEPROM memory.
 # View the contents of the binary file in hex
 read-eeprom:
 	@echo "Reading EEPROM to binary file eeprom.bin..."
-	avrdude -p m32m1 -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
+	avrdude -p $(DEVICE) -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
 	@echo "Displaying eeprom.bin in hex..."
 ifeq ($(WINDOWS), true)
 	powershell Format-Hex eeprom.bin
@@ -130,5 +141,6 @@ else
 	hexdump eeprom.bin
 endif
 
+# Upload .hex program to device
 upload: $(PROG)
-	avrdude -p $(MCU) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
+	avrdude -p $(DEVICE) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex

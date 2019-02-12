@@ -6,22 +6,24 @@
 # Parameters that might need to be changed, depending on the repository
 #-------------------------------------------------------------------------------
 # Libraries from lib-common to link
-LIB = -L./lib-common/lib -ladc -lcan -lconversions -ldac -lpex -lqueue -lspi -ltimer -luart -lutilities
+LIB = -L./lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lwatchdog
 # Program name
 PROG = pay
+# Name of microcontroller ("32m1" or "64m1")
+MCU = 32m1
 #-------------------------------------------------------------------------------
 
 
 # AVR-GCC compiler
 CC = avr-gcc
 # Compiler flags
-CFLAGS = -Wall -std=gnu99 -g -mmcu=atmega32m1 -Os -mcall-prologues
+CFLAGS = -Wall -std=gnu99 -g -mmcu=atmega$(MCU) -Os -mcall-prologues
 # Includes (header files)
 INCLUDES = -I./lib-common/include/
 # Programmer
 PGMR = stk500
-# Microcontroller
-MCU = m32m1
+# avrdude device
+DEVICE = m$(MCU)
 # Build directory
 BUILD = build
 # Manual tests directory
@@ -71,8 +73,22 @@ endif
 # PORT = /dev/ttyS3					# Linux
 
 
+# Set the PYTHON variable - Python interpreter
+# Windows uses `python` for either Python 2 or 3,
+# while macOS/Linux use `python3` to explicitly use Python 3
+ifeq ($(WINDOWS), true)
+	PYTHON := python
+endif
+ifeq ($(MAC_OS), true)
+	PYTHON := python3
+endif
+ifeq ($(LINUX), true)
+	PYTHON := python3
+endif
+
+
 # Special commands
-.PHONY: all clean debug help lib-common manual_tests read-eeprom upload
+.PHONY: all clean debug harness help lib-common manual_tests read-eeprom upload
 
 # Get all .c files in src folder
 SRC = $(wildcard ./src/*.c)
@@ -107,18 +123,33 @@ clean:
 # Print debug information
 debug:
 	@echo ------------
-	@echo $(SRC)
+	@echo "WINDOWS:" $(WINDOWS)
 	@echo ------------
-	@echo $(OBJ)
+	@echo "MAC_OS:" $(MAC_OS)
 	@echo ------------
+	@echo "LINUX:" $(LINUX)
+	@echo ------------
+	@echo "PYTHON:" $(PYTHON)
+	@echo ------------
+	@echo "SRC:" $(SRC)
+	@echo ------------
+	@echo "OBJ:" $(OBJ)
+	@echo ------------
+
+# Need to cd into lib-common and refer back up one directory to the harness_tests folder
+# because harness.py has the `include` and `src` paths hardcoded
+harness:
+	cd lib-common && \
+	$(PYTHON) ./bin/harness.py -p $(PORT) -d ../harness_tests
 
 # Help shows available commands
 help:
-	@echo "usage: make [all | clean | debug | help | lib-common | manual_tests | read-eeprom | upload]"
+	@echo "usage: make [all | clean | debug | harness | help | lib-common | manual_tests | read-eeprom | upload]"
 	@echo "Running make without any arguments is equivalent to running make all."
 	@echo "all            build the main program (src directory)"
 	@echo "clean          clear the build directory and all subdirectories"
 	@echo "debug          display debugging information"
+	@echo "harness        run the test harness"
 	@echo "help           display this help message"
 	@echo "lib-common     fetch and build the latest version of lib-common"
 	@echo "manual_tests   build all manual test programs (manual_tests directory)"
@@ -129,8 +160,8 @@ lib-common:
 	@echo "Fetching latest version of lib-common..."
 	git submodule update --remote
 	@echo "Building lib-common..."
-	make -C lib-common clean
-	make -C lib-common
+	make -C lib-common clean MCU=$(MCU)
+	make -C lib-common MCU=$(MCU)
 
 manual_tests:
 	@for dir in $(MANUAL_TESTS) ; do \
@@ -144,7 +175,7 @@ manual_tests:
 # View the contents of the binary file in hex
 read-eeprom:
 	@echo "Reading EEPROM to binary file eeprom.bin..."
-	avrdude -p m32m1 -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
+	avrdude -p $(DEVICE) -c stk500 -P $(PORT) -U eeprom:r:eeprom.bin:r
 	@echo "Displaying eeprom.bin in hex..."
 ifeq ($(WINDOWS), true)
 	powershell Format-Hex eeprom.bin
@@ -154,4 +185,4 @@ endif
 
 # Upload program to board
 upload: $(PROG)
-	avrdude -c $(PGMR) -p $(MCU) -P $(PORT) -U flash:w:./build/$^.hex
+	avrdude -c $(PGMR) -p $(DEVICE) -P $(PORT) -U flash:w:./build/$^.hex
