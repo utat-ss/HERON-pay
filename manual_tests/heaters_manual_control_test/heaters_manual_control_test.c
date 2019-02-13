@@ -77,7 +77,7 @@ void read_thermistor_data_fn(void) {
         uint8_t channel = adc_channels[i];
         uint16_t raw_data = read_channel(&adc, channel);
 
-        double voltage = adc_raw_data_to_raw_voltage(raw_data);
+        double voltage = adc_raw_data_to_raw_vol(raw_data);
         //Convert adc voltage to resistance of thermistor
         double resistance = therm_vol_to_res(voltage);
         //Convert resistance to temperature of thermistor

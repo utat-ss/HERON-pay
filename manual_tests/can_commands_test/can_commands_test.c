@@ -108,7 +108,7 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
     else if ((CAN_PAY_HK_THERM0 <= field_num) &&
             (field_num < CAN_PAY_HK_THERM0 + 10)) {
         uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
         print("Thermistor %u: 0x%.3X", channel, raw_data);
@@ -116,14 +116,14 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC1) {
-        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
         print("DAC Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC2) {
-        double vol = adc_raw_data_to_raw_voltage(raw_data);
+        double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
         print("DAC Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);

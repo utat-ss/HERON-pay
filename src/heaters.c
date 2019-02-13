@@ -16,13 +16,13 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 void heaters_set_temp_a(double temp) {
     double resistance = therm_temp_to_res(temp);
     double voltage = therm_res_to_vol(resistance);
-    dac_set_voltage(&dac, voltage, DAC_A);
+    set_dac_voltage(&dac, DAC_A, voltage);
 }
 
 void heaters_set_temp_b(double temp) {
     double resistance = therm_temp_to_res(temp);
     double voltage = therm_res_to_vol(resistance);
-    dac_set_voltage(&dac, voltage, DAC_B);
+    set_dac_voltage(&dac, DAC_B, voltage);
 }
 
 void heaters_set_temp_both(double temp) {

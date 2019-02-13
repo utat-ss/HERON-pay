@@ -26,35 +26,35 @@ void init_motors(void) {
     // M1, M0, decay tied to both
 
     // nSLEEP = 1
-    pex_set_pin_dir(&pex, MOT_SLP, PEX_A, OUTPUT);
-    pex_set_pin_dir(&pex, MOT_SLP, PEX_B, OUTPUT);
-    pex_set_pin(&pex, MOT_SLP, PEX_A, HIGH);
-    pex_set_pin(&pex, MOT_SLP, PEX_B, HIGH);
+    set_pex_pin_dir(&pex, PEX_A, MOT_SLP, OUTPUT);
+    set_pex_pin_dir(&pex, PEX_B, MOT_SLP, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_SLP, 1);
+    set_pex_pin(&pex, PEX_B, MOT_SLP, 1);
 
     // ADECAY = 1 (fast decay)
     // TODO - might need to connect BDECAY high in hardware (currently tied to ground)
-    pex_set_pin_dir(&pex, MOT_ADECAY, PEX_A, OUTPUT);
-    pex_set_pin(&pex, MOT_ADECAY, PEX_A, HIGH);
+    set_pex_pin_dir(&pex, PEX_A, MOT_ADECAY, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_ADECAY, 1);
 
     // M1 = 1 (async fast decay)
-    pex_set_pin_dir(&pex, MOT_M1, PEX_A, OUTPUT);
-    pex_set_pin(&pex, MOT_M1, PEX_A, HIGH);
+    set_pex_pin_dir(&pex, PEX_A, MOT_M1, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_M1, 1);
 
     // APHASE = 0
-    pex_set_pin_dir(&pex, MOT_APHASE, PEX_A, OUTPUT);
-    pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
+    set_pex_pin_dir(&pex, PEX_A, MOT_APHASE, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_APHASE, 0);
 
     // BPHASE = 0
-    pex_set_pin_dir(&pex, MOT_BPHASE, PEX_A, OUTPUT);
-    pex_set_pin_dir(&pex, MOT_BPHASE, PEX_B, OUTPUT);
-    pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
-    pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
+    set_pex_pin_dir(&pex, PEX_A, MOT_BPHASE, OUTPUT);
+    set_pex_pin_dir(&pex, PEX_B, MOT_BPHASE, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_BPHASE, 0);
+    set_pex_pin(&pex, PEX_B, MOT_BPHASE, 0);
 
     // AENBL = 0
-    pex_set_pin_dir(&pex, MOT_AENBL, PEX_A, OUTPUT);
-    pex_set_pin_dir(&pex, MOT_AENBL, PEX_B, OUTPUT);
-    pex_set_pin(&pex, MOT_AENBL, PEX_A, LOW);
-    pex_set_pin(&pex, MOT_AENBL, PEX_B, LOW);
+    set_pex_pin_dir(&pex, PEX_A, MOT_AENBL, OUTPUT);
+    set_pex_pin_dir(&pex, PEX_B, MOT_AENBL, OUTPUT);
+    set_pex_pin(&pex, PEX_A, MOT_AENBL, 0);
+    set_pex_pin(&pex, PEX_B, MOT_AENBL, 0);
 
     // BENBL = 0
     init_cs(MOT_BENBL_PIN, &MOT_BENBL_DDR);
@@ -67,8 +67,8 @@ void enable_motors(void) {
     // nSLEEP = 1
 
     // AENBL = 1
-    pex_set_pin(&pex, MOT_AENBL, PEX_A, HIGH);
-    pex_set_pin(&pex, MOT_AENBL, PEX_B, HIGH);
+    set_pex_pin(&pex, PEX_A, MOT_AENBL, 1);
+    set_pex_pin(&pex, PEX_B, MOT_AENBL, 1);
 
     // BENBL = 1
     set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
@@ -80,8 +80,8 @@ void disable_motors(void) {
     // nSLEEP = 0
 
     // AENBL = 0
-    pex_set_pin(&pex, MOT_AENBL, PEX_A, LOW);
-    pex_set_pin(&pex, MOT_AENBL, PEX_B, LOW);
+    set_pex_pin(&pex, PEX_A, MOT_AENBL, 0);
+    set_pex_pin(&pex, PEX_B, MOT_AENBL, 0);
 
     // BENBL = 0
     set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
@@ -104,41 +104,41 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
         if (forward) {
             // BPHASE = 1
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
+            set_pex_pin(&pex, PEX_A, MOT_BPHASE, 1);
+            set_pex_pin(&pex, PEX_B, MOT_BPHASE, 1);
 
             // APHASE = 1
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
+            set_pex_pin(&pex, PEX_A, MOT_APHASE, 1);
 
             // BPHASE = 0
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
+            set_pex_pin(&pex, PEX_A, MOT_BPHASE, 0);
+            set_pex_pin(&pex, PEX_B, MOT_BPHASE, 0);
 
             // APHASE = 0
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
+            set_pex_pin(&pex, PEX_A, MOT_APHASE, 0);
         }
 
         else {
             // APHASE = 1
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_APHASE, PEX_A, HIGH);
+            set_pex_pin(&pex, PEX_A, MOT_APHASE, 1);
 
             // BPHASE = 1
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_A, HIGH);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_B, HIGH);
+            set_pex_pin(&pex, PEX_A, MOT_BPHASE, 1);
+            set_pex_pin(&pex, PEX_B, MOT_BPHASE, 1);
 
             // APHASE = 0
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_APHASE, PEX_A, LOW);
+            set_pex_pin(&pex, PEX_A, MOT_APHASE, 0);
 
             // BPHASE = 0
             delay_ms(delay);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_A, LOW);
-            pex_set_pin(&pex, MOT_BPHASE, PEX_B, LOW);
+            set_pex_pin(&pex, PEX_A, MOT_BPHASE, 0);
+            set_pex_pin(&pex, PEX_B, MOT_BPHASE, 0);
         }
     }
 
@@ -157,13 +157,12 @@ ISR(PCINT2_vect) {
 
     // Check if either of the motor _FLT_ (fault) pins is low
     // TODO - make pin constants
-    // TODO - should these be combined into a single PEX read?
 
-    if (pex_get_pin(&pex, 0, PEX_A) == 0) {
+    if (get_pex_pin(&pex, PEX_A, 0) == 0) {
         motor_fault = true;
         print("MOTOR A FAULT\n");
     }
-    if (pex_get_pin(&pex, 1, PEX_A)  == 0) {
+    if (get_pex_pin(&pex, PEX_A, 1)  == 0) {
         motor_fault = true;
         print("MOTOR B FAULT\n");
     }
