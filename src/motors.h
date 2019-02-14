@@ -9,6 +9,8 @@
 #include <pex/pex.h>
 #include <uart/uart.h>
 
+#include "devices.h"
+
 // Indexer mode
 // For both GPIOA (GPA) and GPIOB (GPB)
 // #define PEX_M1      7
@@ -32,8 +34,9 @@
 #define MOT_BENBL_PORT  PORTC
 #define MOT_BENBL_DDR   DDRC
 
-// PEX device
-extern pex_t pex;
+// Fault interrupt pins
+#define MOT_FLT_A       0   // A0
+#define MOT_FLT_B       1   // A1
 
 void init_motors(void);
 void enable_motors(void);

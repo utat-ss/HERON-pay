@@ -1,5 +1,5 @@
 /*
-Tests comparator functionality for heaters. Requires thermistors and heaters/ammeter
+Comparator functionality for heaters. Requires thermistors and heaters/ammeter
 attached to payload board
 
 Author: Brytni Richards, Bruno Almeida
@@ -13,19 +13,30 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 
 // init is covered by dac_init()
 
-void heaters_set_temp_a(double temp) {
-    double resistance = therm_temp_to_res(temp);
-    double voltage = therm_res_to_vol(resistance);
-    set_dac_voltage(&dac, DAC_A, voltage);
+// Sets temperature setpoint of heaters 1-4 (all connected to DAC A)
+// raw_data - 12 bit DAC raw data for setpoint
+void set_heaters_1_4_raw_setpoint(uint16_t raw_data) {
+    set_dac_raw_voltage(&dac, DAC_A, raw_data);
 }
 
-void heaters_set_temp_b(double temp) {
-    double resistance = therm_temp_to_res(temp);
-    double voltage = therm_res_to_vol(resistance);
-    set_dac_voltage(&dac, DAC_B, voltage);
+// Sets temperature setpoint of heater 5 (connected to DAC B)
+// raw_data - 12 bit DAC raw data for setpoint
+void set_heater_5_raw_setpoint(uint16_t raw_data) {
+    set_dac_raw_voltage(&dac, DAC_B, raw_data);
 }
 
-void heaters_set_temp_both(double temp) {
-    heaters_set_temp_a(temp);
-    heaters_set_temp_b(temp);
+// temp - in C
+void set_heaters_1_4_setpoint_temp(double temp) {
+    double res = therm_temp_to_res(temp);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    set_heaters_1_4_raw_setpoint(raw_data);
+}
+
+// temp - in C
+void set_heater_5_setpoint_temp(double temp) {
+    double res = therm_temp_to_res(temp);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    set_heater_5_raw_setpoint(raw_data);
 }

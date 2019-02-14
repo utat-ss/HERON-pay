@@ -6,7 +6,7 @@
 # Parameters that might need to be changed, depending on the repository
 #-------------------------------------------------------------------------------
 # Libraries from lib-common to link
-LIB = -L./lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lwatchdog
+LIB = -L./lib-common/lib -ladc -lcan -ldac -lconversions -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lwatchdog
 # Program name
 PROG = pay
 # Name of microcontroller ("32m1" or "64m1")

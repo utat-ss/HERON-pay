@@ -23,9 +23,9 @@ void init_pay(void) {
     init_dac(&dac);
 
     // Environmental sensors
-    temp_init();
-    hum_init();
-    pres_init();
+    init_temp();
+    init_hum();
+    init_pres();
 
     // PAY-Optical
     init_opt_spi();

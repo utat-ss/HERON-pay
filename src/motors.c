@@ -6,7 +6,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 - phase/enable mode
 
 TODO - sleep motors
-TODO - test faults
+TODO - test faults - INT2
 */
 
 #include "motors.h"
@@ -148,30 +148,20 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
 
 
 
-// TODO - should this be INT2 or PCINT2?
-ISR(PCINT2_vect) {
-    print("Interrupt - PCINT2 - Motor Fault (PEX INTA)\n");
+ISR(INT2_vect) {
+    print("INT2 - Motor Fault (PEX INTA)\n");
 
-    // GPA0 = _FLT_A_
-    // GPA1 = _FLT_B_
-
-    // Check if either of the motor _FLT_ (fault) pins is low
-    // TODO - make pin constants
-
-    if (get_pex_pin(&pex, PEX_A, 0) == 0) {
+    // Check if either of the motor FLTn (fault) pins is low
+    if (get_pex_pin(&pex, PEX_A, MOT_FLT_A) == 0) {
         motor_fault = true;
-        print("MOTOR A FAULT\n");
+        print("MOTOR A\n");
     }
-    if (get_pex_pin(&pex, PEX_A, 1)  == 0) {
+    if (get_pex_pin(&pex, PEX_A, MOT_FLT_B)  == 0) {
         motor_fault = true;
-        print("MOTOR B FAULT\n");
+        print("MOTOR B\n");
     }
 
     if (motor_fault) {
         disable_motors();
     }
-}
-
-ISR(INT2_vect) {
-    print("Interrupt - INT2\n");
 }

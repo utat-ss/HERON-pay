@@ -1,14 +1,14 @@
 #ifndef HEATERS_H
 #define HEATERS_H
 
-#include <conversions/conversions.h>
 #include <dac/dac.h>
-#include <dac/pay.h>
 
 #include "devices.h"
 
-void heaters_set_temp_a(double temp);
-void heaters_set_temp_b(double temp);
-void heaters_set_temp_both(double temp);
+void set_heaters_1_4_raw_setpoint(uint16_t raw_data);
+void set_heater_5_raw_setpoint(uint16_t raw_data);
+
+void set_heaters_1_4_setpoint_temp(double temp);
+void set_heater_5_setpoint_temp(double temp);
 
 #endif

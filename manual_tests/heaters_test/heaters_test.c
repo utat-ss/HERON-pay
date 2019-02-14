@@ -14,8 +14,8 @@ void set_temp(double temp) {
         temp, resistance, voltage);
     print("Setting temperature: %f C\n", temp);
 
-    heaters_set_temp_a(temp);
-    heaters_set_temp_b(temp);
+    set_heaters_1_4_setpoint_temp(temp);
+    set_heater_5_setpoint_temp(temp);
 }
 
 int main(void){
