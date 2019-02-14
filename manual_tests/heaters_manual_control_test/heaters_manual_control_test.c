@@ -67,8 +67,7 @@ void read_thermistor_data_fn(void) {
     fetch_all(&adc);
 
     print("\n");
-    print("Temperature (C), Raw data (12 bits), ");
-    print("Voltage (V), Resistance (kohms)\n");
+    print("Channel, Temperature (C), Raw (12 bits), Voltage (V), Resistance (kohms)\n");
 
     //Find resistance for each channel
     //only calculate it for the thermistors specified in adc_channels
@@ -83,7 +82,7 @@ void read_thermistor_data_fn(void) {
         //Convert resistance to temperature of thermistor
         double temperature = therm_res_to_temp(resistance);
 
-        print("Channel %u: %.3f, 0x%.3X, %.3f, %.3f\n", channel, temperature, raw_data, voltage, resistance);
+        print("%u: %.3f, 0x%.3X, %.3f, %.3f\n", channel, temperature, raw_data, voltage, resistance);
     }
 }
 

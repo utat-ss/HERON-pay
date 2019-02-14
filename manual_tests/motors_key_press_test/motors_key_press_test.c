@@ -52,6 +52,8 @@ int main(void){
     init_motors();
     print("Motors Initialized\n");
 
+    print("Press 'w' to actuate forwards or 's' to actuate backwards\n");
+
     // Wait for key press interrupts
     // Register callback for key presses
     set_uart_rx_cb(key_pressed);
