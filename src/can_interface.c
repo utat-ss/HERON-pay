@@ -31,7 +31,7 @@ void cmd_tx_callback(uint8_t* data, uint8_t* len) {
 // MOB 3
 // CMD RX - received commands
 void cmd_rx_callback(const uint8_t* data, uint8_t len) {
-    print("MOB 3: CMD RX Callback\n");
+    print("RX MOB cb\n");
 
     if (len == 0) {
         return;
@@ -44,7 +44,7 @@ void cmd_rx_callback(const uint8_t* data, uint8_t len) {
 // MOB 5
 // Data TX - transmitting data
 void data_tx_callback(uint8_t* data, uint8_t* len) {
-    print("MOB 5: Data TX Callback\n");
+    print("TX MOB cb\n");
 
     if (queue_empty(&tx_msg_queue)) {
         *len = 0;

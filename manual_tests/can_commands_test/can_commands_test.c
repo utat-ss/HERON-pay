@@ -10,7 +10,10 @@ RX and TX are defined from PAY's perspective.
 
 #include "../../src/general.h"
 
-// Set to false to stop printing PAY's TX and RX CAN messages
+// True to simulate OBC requests
+bool sim_obc = false;
+
+// Set to true to print TX and RX CAN messages
 bool print_can_msgs = false;
 
 
@@ -302,10 +305,13 @@ int main(void) {
 
     print("\n\n\nStarting commands test\n\n");
 
-    // Change this as necessary for testing
+    // Change these as necessary for testing
     sim_local_actions = false;
+    sim_obc = false;
+    print_can_msgs = true;
+
     print("sim_local_actions = %u\n", sim_local_actions);
-    print_can_msgs = false;
+    print("sim_obc = %u\n", sim_obc);
     print("print_can_msgs = %u\n", print_can_msgs);
 
     print("At any time, press h to show the command menu\n");
@@ -314,7 +320,11 @@ int main(void) {
 
     while(1) {
         print_next_tx_msg();
-        sim_send_next_tx_msg();
+        if (sim_obc) {
+            sim_send_next_tx_msg();
+        } else {
+            send_next_tx_msg();
+        }
 
         print_next_rx_msg();
         process_next_rx_msg();
