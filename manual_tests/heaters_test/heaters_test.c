@@ -8,19 +8,14 @@
 
 // Set the temperature on both heaters to temp
 void set_temp(double temp) {
-    double resistance = thermis_temp_to_resistance(temp);
-    double voltage = thermis_resistance_to_voltage(resistance);
+    double resistance = therm_temp_to_res(temp);
+    double voltage = therm_res_to_vol(resistance);
     print("Temperature = %f C, Resistance = %f kOhm, Voltage = %f V\n",
         temp, resistance, voltage);
     print("Setting temperature: %f C\n", temp);
 
-    heaters_set_temp_a(temp);
-    heaters_set_temp_b(temp);
-}
-
-// Get the resistance of the thermistor given the voltage
-double thermis_voltage_to_resistance(double voltage) {
-    return THERMIS_R_REF * (THERMIS_V_REF / voltage - 1);
+    set_heaters_1_4_setpoint_temp(temp);
+    set_heater_5_setpoint_temp(temp);
 }
 
 int main(void){
@@ -71,9 +66,9 @@ int main(void){
         for (uint8_t i = 0; i < thermister_channel_num; i++) {
             print("Channel %d\n", i);
             uint16_t raw_data = read_channel(&adc, i);
-            double voltage = adc_raw_data_to_raw_voltage(raw_data);
-            double resistance = thermis_voltage_to_resistance(voltage);
-            double thermis_temp = thermis_resistance_to_temp(resistance);
+            double voltage = adc_raw_data_to_raw_vol(raw_data);
+            double resistance = therm_vol_to_res(voltage);
+            double thermis_temp = therm_res_to_temp(resistance);
             // Print temperature/resistance/voltage of thermistors
             print("Temperature = %f C, Resistance = %f kOhm, Voltage = %f V\n",
                 thermis_temp, resistance, voltage);

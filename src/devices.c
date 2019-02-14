@@ -47,5 +47,7 @@ pin_info_t dac_clr = {
 };
 dac_t dac = {
     .cs = &dac_cs,
-    .clr = &dac_clr
+    .clr = &dac_clr,
+    .raw_voltage_a = 0,
+    .raw_voltage_b = 0
 };

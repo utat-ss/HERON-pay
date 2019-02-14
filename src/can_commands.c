@@ -69,7 +69,7 @@ void handle_hk(uint8_t* rx_msg) {
             // 16 bit raw data, make sure the 0b11 on the right is always there
             raw_data = (random() & 0xFFFF) | 0b11;
         } else {
-            raw_data = temp_read_raw_data();
+            raw_data = read_temp_raw_data();
         }
     }
 
@@ -78,7 +78,7 @@ void handle_hk(uint8_t* rx_msg) {
             // 14 bit raw data
             raw_data = random() & 0x3FFF;
         } else {
-            raw_data = hum_read_raw_data();
+            raw_data = read_hum_raw_data();
         }
     }
 
@@ -86,7 +86,7 @@ void handle_hk(uint8_t* rx_msg) {
         if (sim_local_actions) {
             raw_data = random() & 0xFFFFFF;
         } else {
-            raw_data = pres_read_raw_data();
+            raw_data = read_pres_raw_data();
         }
     }
 
@@ -104,11 +104,19 @@ void handle_hk(uint8_t* rx_msg) {
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC1) {
-        // TODO - get DAC setpoint
+        if (sim_local_actions) {
+            raw_data = random() & 0xFFF;
+        } else {
+            raw_data = dac.raw_voltage_a;
+        }
     }
 
     else if (field_num == CAN_PAY_HK_GET_DAC2) {
-        // TODO - get DAC setpoint
+        if (sim_local_actions) {
+            raw_data = random() & 0xFFF;
+        } else {
+            raw_data = dac.raw_voltage_b;
+        }
     }
 
     else {
@@ -188,14 +196,16 @@ void handle_exp(uint8_t* rx_msg) {
         case CAN_PAY_EXP_LEVEL:
             if (!sim_local_actions) {
                 // TODO
-                // level_motors();
+                // forwards - up
+                actuate_motors(40, 15, true);
             }
             break;
 
         case CAN_PAY_EXP_POP:
             if (!sim_local_actions) {
                 // TODO
-                // actuate_motors();
+                // backwards - down
+                actuate_motors(40, 15, false);
             }
             break;
 

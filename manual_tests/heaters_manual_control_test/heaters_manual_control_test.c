@@ -67,8 +67,7 @@ void read_thermistor_data_fn(void) {
     fetch_all(&adc);
 
     print("\n");
-    print("Temperature (C), Raw data (12 bits), ");
-    print("Voltage (V), Resistance (kohms)\n");
+    print("Channel, Temperature (C), Raw (12 bits), Voltage (V), Resistance (kohms)\n");
 
     //Find resistance for each channel
     //only calculate it for the thermistors specified in adc_channels
@@ -77,38 +76,38 @@ void read_thermistor_data_fn(void) {
         uint8_t channel = adc_channels[i];
         uint16_t raw_data = read_channel(&adc, channel);
 
-        double voltage = adc_raw_data_to_raw_voltage(raw_data);
+        double voltage = adc_raw_data_to_raw_vol(raw_data);
         //Convert adc voltage to resistance of thermistor
         double resistance = therm_vol_to_res(voltage);
         //Convert resistance to temperature of thermistor
         double temperature = therm_res_to_temp(resistance);
 
-        print("Channel %u: %.3f, 0x%.3X, %.3f, %.3f\n", channel, temperature, raw_data, voltage, resistance);
+        print("%u: %.3f, 0x%.3X, %.3f, %.3f\n", channel, temperature, raw_data, voltage, resistance);
     }
 }
 
 void turn_heaters_1_4_on_fn(void) {
-    heaters_set_temp_a(100);
-    print("Turned heaters 1-4 ON:\n");
-    print("Setpoint A = 100 C\n");
+    set_heaters_1_4_setpoint_temp(100);
+    print("Set heaters 1-4 setpoint (DAC A) = 100 C\n");
+    print("Heaters 1-4 should be ON\n");
 }
 
 void turn_heaters_1_4_off_fn(void) {
-    heaters_set_temp_a(0);
-    print("Turned heaters 1-4 OFF:\n");
-    print("Setpoint A = 0 C\n");
+    set_heaters_1_4_setpoint_temp(0);
+    print("Set heaters 1-4 setpoint (DAC A) = 0 C\n");
+    print("Heaters 1-4 should be OFF\n");
 }
 
 void turn_heater_5_on_fn(void) {
-    heaters_set_temp_b(100);
-    print("Turned heater 5 ON:\n");
-    print("Setpoint B = 100 C\n");
+    set_heater_5_setpoint_temp(100);
+    print("Set heater 5 setpoint (DAC B) = 100 C\n");
+    print("Heater 5 should be ON\n");
 }
 
 void turn_heater_5_off_fn(void) {
-    heaters_set_temp_b(0);
-    print("Turned heater 5 OFF:\n");
-    print("Setpoint B = 0 C\n");
+    set_heater_5_setpoint_temp(0);
+    print("Set heater 5 setpoint (DAC B) = 0 C\n");
+    print("Heater 5 should be OFF\n");
 }
 
 

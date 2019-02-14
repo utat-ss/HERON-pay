@@ -3,40 +3,33 @@ Environmental sensors (temperature, pressure, humidity) on the PAY-SSM.
 
 Temperature sensor - LM95071
 http://www.ti.com/lit/ds/symlink/lm95071.pdf
+- default continuous conversion mode (p. 8)
 
 Humidity sensor - HIH7131
 https://sensing.honeywell.com/honeywell-sensing-humidicon-hih7000-series-product-sheet-009074-6-en.pdf
-TODO - might want to use temperature data?
 
 Pressure sensor - MS5803-05BA
 http://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5803-05BA%7FB3%7Fpdf%7FEnglish%7FENG_DS_MS5803-05BA_B3.pdf%7FCAT-BLPS0011
-TODO - might want to use temperature data?
 
 AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 */
 
 #include "env_sensors.h"
 
-uint16_t pres_prom_data[8];
-
-
-
 
 /*
 Initializes the temperature sensor.
 */
-void temp_init(void) {
+void init_temp(void) {
     init_cs(TEMP_CS_PIN, &TEMP_CS_DDR);
     set_cs_high(TEMP_CS_PIN, &TEMP_CS_PORT);
-
-    // TODO - look into continuous conversion mode and shutdown (p.8)
 }
 
 /*
 Reads 16 bits of raw data from the temperature sensor
 (INCLUDING the 0b11 on the right that is always there).
 */
-uint16_t temp_read_raw_data(void) {
+uint16_t read_temp_raw_data(void) {
     // Typical temperature conversion time (p.3)
     _delay_ms(130);
 
@@ -57,7 +50,7 @@ uint16_t temp_read_raw_data(void) {
 /*
 Initializes the humidity sensor.
 */
-void hum_init(void) {
+void init_hum(void) {
     init_cs(HUM_CS_PIN, &HUM_CS_DDR);
     set_cs_high(HUM_CS_PIN, &HUM_CS_PORT);
 }
@@ -68,7 +61,7 @@ Reads 14 bits of raw data from the humidity sensor.
 The data received over SPI is formatted as
 {0b00, humidity (14 bits), temperature (14 bits), 0b00}
 */
-uint16_t hum_read_raw_data(void) {
+uint16_t read_hum_raw_data(void) {
     uint32_t data = 0;
 
     set_cs_low(HUM_CS_PIN, &HUM_CS_PORT);
@@ -88,25 +81,27 @@ uint16_t hum_read_raw_data(void) {
 
 
 
+uint16_t pres_prom_data[8];
+
 /*
 Initializes the pressure sensor.
 */
-void pres_init(void) {
+void init_pres(void) {
     init_cs(PRES_CS_PIN, &PRES_CS_DDR);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 
-    pres_reset();
+    reset_pres();
 
     // read the calibration PROM
     for (uint8_t i = 0; i < 8; i++){
-        pres_prom_data[i] = pres_read_prom(i);
+        pres_prom_data[i] = read_pres_prom(i);
     }
 }
 
 /*
 Resets the pressure sensor.
 */
-void pres_reset(void) {
+void reset_pres(void) {
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
     send_spi(PRES_CMD_RESET);
     // 2.8ms reload time (p.10)
@@ -118,7 +113,7 @@ void pres_reset(void) {
 Reads the calibration coefficients from the pressure sensor's PROM.
 p.8,11
 */
-uint16_t pres_read_prom(uint8_t address) {
+uint16_t read_pres_prom(uint8_t address) {
     uint16_t data = 0;
 
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
@@ -135,7 +130,7 @@ uint16_t pres_read_prom(uint8_t address) {
 Reads 24 bits of raw uncompensated pressure or temperature data from the
 pressure sensor's ADC, depending on the command given.
 */
-uint32_t pres_read_raw_uncomp_data(uint8_t cmd) {
+uint32_t read_pres_raw_uncomp_data(uint8_t cmd) {
     set_cs_low(PRES_CS_PIN, &PRES_CS_PORT);
     send_spi(cmd);
     // wait for adc conversion to complete
@@ -243,7 +238,7 @@ uint32_t pres_reg_data_to_raw_data(
 Reads 24 bits of raw data from the pressure sensor - 0-6000 mbar with 0.01mbar resolution per bit
 Datasheet says 0.03mbar resolution, but should be 0.01mbar
 */
-uint32_t pres_read_raw_data(void) {
+uint32_t read_pres_raw_data(void) {
     // Calibration data
     uint16_t C1 = pres_prom_data[1];
     uint16_t C2 = pres_prom_data[2];
@@ -253,9 +248,9 @@ uint32_t pres_read_raw_data(void) {
     uint16_t C6 = pres_prom_data[6];
 
     // Digital pressure
-    uint32_t D1 = pres_read_raw_uncomp_data(PRES_CMD_D1_4096);
+    uint32_t D1 = read_pres_raw_uncomp_data(PRES_CMD_D1_4096);
     // Digital temperature
-    uint32_t D2 = pres_read_raw_uncomp_data(PRES_CMD_D2_4096);
+    uint32_t D2 = read_pres_raw_uncomp_data(PRES_CMD_D2_4096);
 
     return pres_reg_data_to_raw_data(C1, C2, C3, C4, C5, C6, D1, D2);
 }
