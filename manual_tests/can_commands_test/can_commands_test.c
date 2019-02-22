@@ -30,8 +30,8 @@ typedef struct {
 void req_pay_hk_fn(void);
 void req_pay_opt_fn(void);
 void req_pay_exp_fn(void);
-void req_exp_level_fn(void);
-void req_exp_pop_fn(void);
+void req_act_up_fn(void);
+void req_act_down_fn(void);
 
 // All possible commands
 uart_cmd_t all_cmds[] = {
@@ -48,12 +48,12 @@ uart_cmd_t all_cmds[] = {
         .fn = req_pay_exp_fn
     },
     {
-        .description = "Level actuation plate",
-        .fn = req_exp_level_fn
+        .description = "Actuate plate up",
+        .fn = req_act_up_fn
     },
     {
-        .description = "Pop blister packs",
-        .fn = req_exp_pop_fn
+        .description = "Actuate plate down",
+        .fn = req_act_down_fn
     }
 };
 // Length of array
@@ -118,18 +118,26 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
         print(" = %.3f C\n", temp);
     }
 
-    else if (field_num == CAN_PAY_HK_GET_DAC1) {
+    else if (field_num == CAN_PAY_HK_HEAT_SP1) {
         double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
         print("DAC Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
     }
 
-    else if (field_num == CAN_PAY_HK_GET_DAC2) {
+    else if (field_num == CAN_PAY_HK_HEAT_SP2) {
         double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
         print("DAC Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);
+    }
+
+    else if (field_num == CAN_PAY_HK_PROX_LEFT) {
+        print("Left proximity: 0x%.3X\n", raw_data);
+    }
+
+    else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
+        print("Right proximity: 0x%.3X\n", raw_data);
     }
 
     else {
@@ -137,7 +145,7 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
     }
 
     uint8_t next_field_num = tx_msg[2] + 1;
-    if (next_field_num < CAN_PAY_HK_GET_COUNT) {
+    if (next_field_num < CAN_PAY_HK_FIELD_COUNT) {
         enqueue_rx_msg(CAN_PAY_HK, next_field_num);
     }
 }
@@ -153,31 +161,23 @@ void process_pay_opt_tx(uint8_t* tx_msg) {
     print("%.1f %%\n", percent);
 
     uint8_t next_field_num = tx_msg[2] + 1;
-    if (next_field_num < CAN_PAY_SCI_GET_COUNT) {
+    if (next_field_num < CAN_PAY_OPT_FIELD_COUNT) {
         enqueue_rx_msg(CAN_PAY_OPT, next_field_num);
     }
 }
 
-void process_pay_exp_tx(uint8_t* tx_msg) {
+void process_pay_ctrl_tx(uint8_t* tx_msg) {
     uint8_t field_num = tx_msg[2];
-    uint32_t raw_data =
-        (((uint32_t) tx_msg[3]) << 16) |
-        (((uint32_t) tx_msg[4]) << 8) |
-        ((uint32_t) tx_msg[5]);
 
-    if (field_num == CAN_PAY_EXP_PROX_LEFT) {
-        print("Left proximity: 0x%.3X\n", raw_data);
-    } else if (field_num == CAN_PAY_EXP_PROX_RIGHT) {
-        print("Right proximity: 0x%.3X\n", raw_data);
-    } else if (field_num == CAN_PAY_EXP_LEVEL) {
-        print("Levelled actuation plate\n");
-    } else if (field_num == CAN_PAY_EXP_POP) {
-        print("Popped blister packs\n");
+    if (field_num == CAN_PAY_CTRL_ACT_UP) {
+        print("Actuated plate up\n");
+    } else if (field_num == CAN_PAY_CTRL_ACT_DOWN) {
+        print("Actuated plate down\n");
     }
 
     uint8_t next_field_num = tx_msg[2] + 1;
-    if (next_field_num <= CAN_PAY_EXP_PROX_RIGHT) {
-        enqueue_rx_msg(CAN_PAY_EXP, next_field_num);
+    if (next_field_num <= CAN_PAY_HK_PROX_RIGHT) {
+        enqueue_rx_msg(CAN_PAY_CTRL, next_field_num);
     }
 }
 
@@ -198,8 +198,8 @@ void sim_send_next_tx_msg(void) {
         case CAN_PAY_OPT:
             process_pay_opt_tx(tx_msg);
             break;
-        case CAN_PAY_EXP:
-            process_pay_exp_tx(tx_msg);
+        case CAN_PAY_CTRL:
+            process_pay_ctrl_tx(tx_msg);
             break;
         default:
             return;
@@ -252,15 +252,15 @@ void req_pay_opt_fn(void) {
 }
 
 void req_pay_exp_fn(void) {
-    enqueue_rx_msg(CAN_PAY_EXP, 0);
+    enqueue_rx_msg(CAN_PAY_CTRL, 0);
 }
 
-void req_exp_level_fn(void) {
-    enqueue_rx_msg(CAN_PAY_EXP, CAN_PAY_EXP_LEVEL);
+void req_act_up_fn(void) {
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_UP);
 }
 
-void req_exp_pop_fn(void) {
-    enqueue_rx_msg(CAN_PAY_EXP, CAN_PAY_EXP_POP);
+void req_act_down_fn(void) {
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_DOWN);
 }
 
 

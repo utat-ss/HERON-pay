@@ -22,7 +22,7 @@ bool sim_local_actions = false;
 
 void handle_hk(uint8_t* rx_msg);
 void handle_opt(uint8_t* rx_msg);
-void handle_exp(uint8_t* rx_msg);
+void handle_ctrl(uint8_t* rx_msg);
 
 
 void handle_rx_msg(void) {
@@ -43,8 +43,8 @@ void handle_rx_msg(void) {
         case CAN_PAY_OPT:
             handle_opt(rx_msg);
             break;
-        case CAN_PAY_EXP:
-            handle_exp(rx_msg);
+        case CAN_PAY_CTRL:
+            handle_ctrl(rx_msg);
             break;
         default:
             return;
@@ -98,12 +98,12 @@ void handle_hk(uint8_t* rx_msg) {
             raw_data = random() & 0x7FF;
         } else {
             uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-            fetch_channel(&adc, channel);
-            raw_data = read_channel(&adc, channel);
+            fetch_adc_channel(&adc, channel);
+            raw_data = read_adc_channel(&adc, channel);
         }
     }
 
-    else if (field_num == CAN_PAY_HK_GET_DAC1) {
+    else if (field_num == CAN_PAY_HK_HEAT_SP1) {
         if (sim_local_actions) {
             raw_data = random() & 0xFFF;
         } else {
@@ -111,11 +111,31 @@ void handle_hk(uint8_t* rx_msg) {
         }
     }
 
-    else if (field_num == CAN_PAY_HK_GET_DAC2) {
+    else if (field_num == CAN_PAY_HK_HEAT_SP2) {
         if (sim_local_actions) {
             raw_data = random() & 0xFFF;
         } else {
             raw_data = dac.raw_voltage_b;
+        }
+    }
+
+    else if (field_num == CAN_PAY_HK_PROX_LEFT) {
+        if (sim_local_actions) {
+            raw_data = random() & 0xFFF;
+        } else {
+            uint8_t channel = 10;
+            fetch_adc_channel(&adc, channel);
+            raw_data = read_adc_channel(&adc, channel);
+        }
+    }
+
+    else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
+        if (sim_local_actions) {
+            raw_data = random() & 0xFFF;
+        } else {
+            uint8_t channel = 11;
+            fetch_adc_channel(&adc, channel);
+            raw_data = read_adc_channel(&adc, channel);
         }
     }
 
@@ -136,7 +156,7 @@ void handle_hk(uint8_t* rx_msg) {
 void handle_opt(uint8_t* rx_msg) {
     // Check the field number is valid
     uint8_t field_num = rx_msg[2];
-    if (field_num >= CAN_PAY_SCI_GET_COUNT) {
+    if (field_num >= CAN_PAY_OPT_FIELD_COUNT) {
         return;
     }
 
@@ -161,7 +181,7 @@ void handle_opt(uint8_t* rx_msg) {
 }
 
 
-void handle_exp(uint8_t* rx_msg) {
+void handle_ctrl(uint8_t* rx_msg) {
     // Send back the same message type and field number
     uint8_t tx_msg[8] = { 0x00 };
     tx_msg[0] = 0; // TODO
@@ -171,29 +191,7 @@ void handle_exp(uint8_t* rx_msg) {
     uint32_t raw_data = 0;
 
     switch (rx_msg[2]) {
-        case CAN_PAY_EXP_PROX_LEFT:
-            if (sim_local_actions) {
-                raw_data = random() & 0xFFF;
-            } else {
-                uint8_t channel = 10;
-                fetch_channel(&adc, channel);
-                raw_data = read_channel(&adc, channel);
-            }
-
-            break;
-
-        case CAN_PAY_EXP_PROX_RIGHT:
-            if (sim_local_actions) {
-                raw_data = random() & 0xFFF;
-            } else {
-                uint8_t channel = 11;
-                fetch_channel(&adc, channel);
-                raw_data = read_channel(&adc, channel);
-            }
-
-            break;
-
-        case CAN_PAY_EXP_LEVEL:
+        case CAN_PAY_CTRL_ACT_UP:
             if (!sim_local_actions) {
                 // TODO
                 // forwards - up
@@ -201,7 +199,7 @@ void handle_exp(uint8_t* rx_msg) {
             }
             break;
 
-        case CAN_PAY_EXP_POP:
+        case CAN_PAY_CTRL_ACT_DOWN:
             if (!sim_local_actions) {
                 // TODO
                 // backwards - down
