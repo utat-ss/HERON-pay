@@ -1,5 +1,4 @@
 #include <adc/adc.h>
-#include <adc/pay.h> //Includes constants
 #include <conversions/conversions.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
@@ -32,7 +31,7 @@ int main(void){
     //Find the temperature given the voltage output from the adc
     while (1) {
         //Read all of the thermistors' voltage from adc
-        fetch_all(&adc);
+        fetch_all_adc_channels(&adc);
 
         print("raw data, voltage (volts), resistance (kohms), temperature (C)\n");
 
@@ -40,7 +39,7 @@ int main(void){
         //only calculate it for the thermistors specified in adc_channels
         for (uint8_t i = 0; i < adc_channels_len; i++) {
             uint8_t channel = adc_channels[i];
-            uint16_t raw_data = read_channel(&adc, channel);
+            uint16_t raw_data = read_adc_channel(&adc, channel);
             double voltage = adc_raw_data_to_raw_vol(raw_data);
             //Convert adc voltage to resistance of thermistor
             double resistance = therm_vol_to_res(voltage);

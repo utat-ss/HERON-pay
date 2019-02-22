@@ -5,7 +5,6 @@
 
 #include <avr/io.h>
 
-#include <pex/pay.h>
 #include <pex/pex.h>
 #include <uart/uart.h>
 

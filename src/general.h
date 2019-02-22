@@ -8,12 +8,10 @@
 
 // lib-common libraries
 #include <adc/adc.h>
-#include <adc/pay.h>
 #include <can/can.h>
 #include <can/data_protocol.h>
 #include <can/ids.h>
 #include <conversions/conversions.h>
-#include <pex/pay.h>
 #include <pex/pex.h>
 #include <queue/queue.h>
 #include <spi/spi.h>

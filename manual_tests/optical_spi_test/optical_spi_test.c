@@ -23,7 +23,7 @@ int main(void){
     print("\nStarting test\n\n");
 
     while (1) {
-        for (uint8_t field_num = 0; field_num < CAN_PAY_SCI_GET_COUNT; field_num++) {
+        for (uint8_t field_num = 0; field_num < CAN_PAY_OPT_FIELD_COUNT; field_num++) {
             uint32_t data = read_opt_spi(field_num);
             print("Field #%u = 0x%06lx\n", field_num, data);
         }
