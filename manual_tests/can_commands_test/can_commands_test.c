@@ -29,7 +29,10 @@ typedef struct {
 
 void req_pay_hk_fn(void);
 void req_pay_opt_fn(void);
-void req_pay_exp_fn(void);
+void set_heaters_1_4_0c_fn(void);
+void set_heaters_1_4_100c_fn(void);
+void set_heater_5_0c_fn(void);
+void set_heater_5_100c_fn(void);
 void req_act_up_fn(void);
 void req_act_down_fn(void);
 
@@ -44,8 +47,20 @@ uart_cmd_t all_cmds[] = {
         .fn = req_pay_opt_fn
     },
     {
-        .description = "Request PAY EXP data",
-        .fn = req_pay_exp_fn
+        .description = "Set heaters 1-4 setpoint = 0C",
+        .fn = set_heaters_1_4_0c_fn
+    },
+    {
+        .description = "Set heaters 1-4 setpoint = 100C",
+        .fn = set_heaters_1_4_100c_fn
+    },
+    {
+        .description = "Set heater 5 setpoint = 0C",
+        .fn = set_heater_5_0c_fn
+    },
+    {
+        .description = "Set heater 5 setpoint = 100C",
+        .fn = set_heater_5_100c_fn
     },
     {
         .description = "Actuate plate up",
@@ -64,11 +79,14 @@ const uint8_t all_cmds_len = sizeof(all_cmds) / sizeof(all_cmds[0]);
 
 
 // Enqueues a message for PAY to receive
-void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number) {
+void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number, uint32_t raw_data) {
     uint8_t rx_msg[8] = { 0x00 };
     rx_msg[0] = 0;    // TODO
     rx_msg[1] = msg_type;
     rx_msg[2] = field_number;
+    rx_msg[3] = (raw_data >> 16) & 0xFF;
+    rx_msg[4] = (raw_data >> 8) & 0xFF;
+    rx_msg[5] = raw_data & 0xFF;
     enqueue(&rx_msg_queue, rx_msg);
 }
 
@@ -122,14 +140,14 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
         double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("DAC Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
+        print("Heater Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_SP2) {
         double vol = adc_raw_data_to_raw_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("DAC Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);
+        print("Heater Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);
     }
 
     else if (field_num == CAN_PAY_HK_PROX_LEFT) {
@@ -146,7 +164,7 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
 
     uint8_t next_field_num = tx_msg[2] + 1;
     if (next_field_num < CAN_PAY_HK_FIELD_COUNT) {
-        enqueue_rx_msg(CAN_PAY_HK, next_field_num);
+        enqueue_rx_msg(CAN_PAY_HK, next_field_num, 0);
     }
 }
 
@@ -162,22 +180,21 @@ void process_pay_opt_tx(uint8_t* tx_msg) {
 
     uint8_t next_field_num = tx_msg[2] + 1;
     if (next_field_num < CAN_PAY_OPT_FIELD_COUNT) {
-        enqueue_rx_msg(CAN_PAY_OPT, next_field_num);
+        enqueue_rx_msg(CAN_PAY_OPT, next_field_num, 0);
     }
 }
 
 void process_pay_ctrl_tx(uint8_t* tx_msg) {
     uint8_t field_num = tx_msg[2];
 
-    if (field_num == CAN_PAY_CTRL_ACT_UP) {
+    if (field_num == CAN_PAY_CTRL_HEAT_SP1) {
+        print("Set heaters 1-4 setpoint\n");
+    } else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
+        print("Set heater 5 setpoint\n");
+    } else if (field_num == CAN_PAY_CTRL_ACT_UP) {
         print("Actuated plate up\n");
     } else if (field_num == CAN_PAY_CTRL_ACT_DOWN) {
         print("Actuated plate down\n");
-    }
-
-    uint8_t next_field_num = tx_msg[2] + 1;
-    if (next_field_num <= CAN_PAY_HK_PROX_RIGHT) {
-        enqueue_rx_msg(CAN_PAY_CTRL, next_field_num);
     }
 }
 
@@ -244,23 +261,47 @@ void print_next_rx_msg(void) {
 
 
 void req_pay_hk_fn(void) {
-    enqueue_rx_msg(CAN_PAY_HK, 0);
+    enqueue_rx_msg(CAN_PAY_HK, 0, 0);
 }
 
 void req_pay_opt_fn(void) {
-    enqueue_rx_msg(CAN_PAY_OPT, 0);
+    enqueue_rx_msg(CAN_PAY_OPT, 0, 0);
 }
 
-void req_pay_exp_fn(void) {
-    enqueue_rx_msg(CAN_PAY_CTRL, 0);
+void set_heaters_1_4_0c_fn(void) {
+    // TODO - encapsulate in function in lib-common/conversions
+    double res = therm_temp_to_res(0);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
+}
+void set_heaters_1_4_100c_fn(void) {
+    double res = therm_temp_to_res(100);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
+}
+
+void set_heater_5_0c_fn(void) {
+    double res = therm_temp_to_res(0);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
+}
+
+void set_heater_5_100c_fn(void) {
+    double res = therm_temp_to_res(100);
+    double vol = therm_res_to_vol(res);
+    uint16_t raw_data = dac_vol_to_raw_data(vol);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
 }
 
 void req_act_up_fn(void) {
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_UP);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_UP, 0);
 }
 
 void req_act_down_fn(void) {
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_DOWN);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_DOWN, 0);
 }
 
 

@@ -188,12 +188,24 @@ void handle_ctrl(uint8_t* rx_msg) {
     tx_msg[1] = rx_msg[1];
     tx_msg[2] = rx_msg[2];
 
-    uint32_t raw_data = 0;
+    uint32_t raw_data =
+        (((uint32_t) rx_msg[3]) << 16) |
+        (((uint32_t) rx_msg[4]) << 8) |
+        (((uint32_t) rx_msg[5]));
 
     switch (rx_msg[2]) {
+        case CAN_PAY_CTRL_HEAT_SP1:
+            if (!sim_local_actions) {
+                set_dac_raw_voltage(&dac, DAC_A, raw_data);
+            }
+            break;
+        case CAN_PAY_CTRL_HEAT_SP2:
+            if (!sim_local_actions) {
+                set_dac_raw_voltage(&dac, DAC_B, raw_data);
+            }
+            break;
         case CAN_PAY_CTRL_ACT_UP:
             if (!sim_local_actions) {
-                // TODO
                 // forwards - up
                 actuate_motors(40, 15, true);
             }
@@ -201,7 +213,6 @@ void handle_ctrl(uint8_t* rx_msg) {
 
         case CAN_PAY_CTRL_ACT_DOWN:
             if (!sim_local_actions) {
-                // TODO
                 // backwards - down
                 actuate_motors(40, 15, false);
             }
