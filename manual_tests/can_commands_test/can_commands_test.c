@@ -137,25 +137,29 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_SP1) {
-        double vol = adc_raw_data_to_raw_vol(raw_data);
+        double vol = dac_raw_data_to_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 1: 0x%.3X = %.3f C\n", raw_data, temp);
+        print("Heater Setpoint 1: 0x%.3X", raw_data);
+        print(" = %.3f C\n", temp);
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_SP2) {
-        double vol = adc_raw_data_to_raw_vol(raw_data);
+        double vol = dac_raw_data_to_vol(raw_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 2: 0x%.3X = %.3f C\n", raw_data, temp);
+        print("Heater Setpoint 2: 0x%.3X", raw_data);
+        print(" = %.3f C\n", temp);
     }
 
     else if (field_num == CAN_PAY_HK_PROX_LEFT) {
-        print("Left proximity: 0x%.3X\n", raw_data);
+        double vol = adc_raw_data_to_raw_vol(raw_data);
+        print("Left proximity: 0x%.3X = %.3f V\n", raw_data, vol);
     }
 
     else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
-        print("Right proximity: 0x%.3X\n", raw_data);
+        double vol = adc_raw_data_to_raw_vol(raw_data);
+        print("Right proximity: 0x%.3X = %.3f V\n", raw_data, vol);
     }
 
     else {
@@ -348,7 +352,7 @@ int main(void) {
 
     // Change these as necessary for testing
     sim_local_actions = false;
-    sim_obc = false;
+    sim_obc = true;
     print_can_msgs = true;
 
     print("sim_local_actions = %u\n", sim_local_actions);

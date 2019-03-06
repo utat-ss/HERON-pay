@@ -11,6 +11,7 @@
 #include "can_interface.h"
 #include "devices.h"
 #include "env_sensors.h"
+#include "heaters.h"
 #include "motors.h"
 #include "optical_spi.h"
 

@@ -196,12 +196,12 @@ void handle_ctrl(uint8_t* rx_msg) {
     switch (rx_msg[2]) {
         case CAN_PAY_CTRL_HEAT_SP1:
             if (!sim_local_actions) {
-                set_dac_raw_voltage(&dac, DAC_A, raw_data);
+                set_heaters_1_to_4_raw_setpoint(raw_data);
             }
             break;
         case CAN_PAY_CTRL_HEAT_SP2:
             if (!sim_local_actions) {
-                set_dac_raw_voltage(&dac, DAC_B, raw_data);
+                set_heater_5_raw_setpoint(raw_data);
             }
             break;
         case CAN_PAY_CTRL_ACT_UP:

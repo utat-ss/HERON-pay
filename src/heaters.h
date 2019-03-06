@@ -5,10 +5,10 @@
 
 #include "devices.h"
 
-void set_heaters_1_4_raw_setpoint(uint16_t raw_data);
+void set_heaters_1_to_4_raw_setpoint(uint16_t raw_data);
 void set_heater_5_raw_setpoint(uint16_t raw_data);
 
-void set_heaters_1_4_setpoint_temp(double temp);
-void set_heater_5_setpoint_temp(double temp);
+void set_heaters_1_to_4_temp_setpoint(double temp);
+void set_heater_5_temp_setpoint(double temp);
 
 #endif
