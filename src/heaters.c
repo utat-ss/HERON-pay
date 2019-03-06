@@ -15,7 +15,7 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 
 // Sets temperature setpoint of heaters 1-4 (all connected to DAC A)
 // raw_data - 12 bit DAC raw data for setpoint
-void set_heaters_1_4_raw_setpoint(uint16_t raw_data) {
+void set_heaters_1_to_4_raw_setpoint(uint16_t raw_data) {
     set_dac_raw_voltage(&dac, DAC_A, raw_data);
 }
 
@@ -26,15 +26,15 @@ void set_heater_5_raw_setpoint(uint16_t raw_data) {
 }
 
 // temp - in C
-void set_heaters_1_4_setpoint_temp(double temp) {
+void set_heaters_1_to_4_temp_setpoint(double temp) {
     double res = therm_temp_to_res(temp);
     double vol = therm_res_to_vol(res);
     uint16_t raw_data = dac_vol_to_raw_data(vol);
-    set_heaters_1_4_raw_setpoint(raw_data);
+    set_heaters_1_to_4_raw_setpoint(raw_data);
 }
 
 // temp - in C
-void set_heater_5_setpoint_temp(double temp) {
+void set_heater_5_temp_setpoint(double temp) {
     double res = therm_temp_to_res(temp);
     double vol = therm_res_to_vol(res);
     uint16_t raw_data = dac_vol_to_raw_data(vol);

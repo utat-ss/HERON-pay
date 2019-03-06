@@ -13,8 +13,8 @@ void set_temp(double temp) {
         temp, resistance, voltage);
     print("Setting temperature: %f C\n", temp);
 
-    set_heaters_1_4_setpoint_temp(temp);
-    set_heater_5_setpoint_temp(temp);
+    set_heaters_1_to_4_temp_setpoint(temp);
+    set_heater_5_temp_setpoint(temp);
 }
 
 int main(void){

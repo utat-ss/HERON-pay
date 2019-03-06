@@ -87,25 +87,25 @@ void read_thermistor_data_fn(void) {
 }
 
 void turn_heaters_1_4_on_fn(void) {
-    set_heaters_1_4_setpoint_temp(100);
+    set_heaters_1_to_4_temp_setpoint(100);
     print("Set heaters 1-4 setpoint (DAC A) = 100 C\n");
     print("Heaters 1-4 should be ON\n");
 }
 
 void turn_heaters_1_4_off_fn(void) {
-    set_heaters_1_4_setpoint_temp(0);
+    set_heaters_1_to_4_temp_setpoint(0);
     print("Set heaters 1-4 setpoint (DAC A) = 0 C\n");
     print("Heaters 1-4 should be OFF\n");
 }
 
 void turn_heater_5_on_fn(void) {
-    set_heater_5_setpoint_temp(100);
+    set_heater_5_temp_setpoint(100);
     print("Set heater 5 setpoint (DAC B) = 100 C\n");
     print("Heater 5 should be ON\n");
 }
 
 void turn_heater_5_off_fn(void) {
-    set_heater_5_setpoint_temp(0);
+    set_heater_5_temp_setpoint(0);
     print("Set heater 5 setpoint (DAC B) = 0 C\n");
     print("Heater 5 should be OFF\n");
 }
