@@ -346,6 +346,13 @@ uint8_t uart_cb(const uint8_t* data, uint8_t len) {
 }
 
 int main(void) {
+    // Make sure the watchdog timer starts at the first thing, before any
+    // initialization which could get stuck
+    // Turn it off first to prevent repeated resets if the watchdog timer just
+    // caused an MCU reset
+    WDT_OFF();
+    WDT_ENABLE_SYS_RESET(WDTO_8S);
+
     init_pay();
 
     print("\n\n\nStarting commands test\n\n");
@@ -364,15 +371,21 @@ int main(void) {
     set_uart_rx_cb(uart_cb);
 
     while(1) {
-        print_next_tx_msg();
-        if (sim_obc) {
-            sim_send_next_tx_msg();
-        } else {
-            send_next_tx_msg();
+        WDT_ENABLE_SYS_RESET(WDTO_8S);
+
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            print_next_tx_msg();
+            if (sim_obc) {
+                sim_send_next_tx_msg();
+            } else {
+                send_next_tx_msg();
+            }
         }
 
-        print_next_rx_msg();
-        process_next_rx_msg();
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+            print_next_rx_msg();
+            process_next_rx_msg();
+        }
     }
 
     return 0;

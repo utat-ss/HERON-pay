@@ -27,15 +27,16 @@ void init_pay(void) {
     init_hum();
     init_pres();
 
-    // PAY-Optical
-    init_opt_spi();
-
     // Motors
     init_motors();
 
     // Queues
     init_queue(&rx_msg_queue);
     init_queue(&tx_msg_queue);
+
+    // PAY-Optical
+    init_opt_spi();
+    rst_opt_spi();
 
     // CAN and MOBs
     init_can();

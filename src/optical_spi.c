@@ -70,30 +70,37 @@ void rst_opt_spi(void) {
 // Reads 24 bits of raw data from the PAY-Optical microcontroller over optical SPI
 // (Sends the request command, then blocks until it gets 3 bytes back)
 uint32_t read_opt_spi(uint8_t field_num) {
-    send_opt_spi_cmd(field_num);
+    // Must make this block non-atomic to ensure interrupts are enabled, in case
+    // this function executes within an atomic block (e.g. in main() of main_test)
+    NONATOMIC_BLOCK(NONATOMIC_RESTORESTATE) {
+        send_opt_spi_cmd(field_num);
 
-    // Wait until we get 3 bytes, with a timeout
-    // In testing, timeout always ended at the original value minus 7 or 8
-    uint8_t timeout = UINT8_MAX;
-    while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
-        timeout--;
+        // Wait until we get 3 bytes, with a timeout
+        // In testing, timeout always ended at the original value minus 7 or 8
+        uint8_t timeout = UINT8_MAX;
+        while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
+            timeout--;
+        }
+        // print("timeout = %u\n", timeout);
+
+        // If we didn't get 3 bytes
+        if (opt_spi_num_bytes < 3) {
+            return 0;
+        }
+
+        // If we have received all 3 bytes now
+        uint32_t read_data = opt_spi_data;
+        // print ("Received optical data: 0x%06lx\n", read_data);
+
+        // Clear SPI request variables
+        opt_spi_num_bytes = 0;
+        opt_spi_data = 0;
+
+        return read_data;
     }
-    // print("timeout = %u\n", timeout);
 
-    // If we didn't get 3 bytes
-    if (opt_spi_num_bytes < 3) {
-        return 0;
-    }
-
-    // If we have received all 3 bytes now
-    uint32_t read_data = opt_spi_data;
-    // print ("Received optical data: 0x%06lx\n", read_data);
-
-    // Clear SPI request variables
-    opt_spi_num_bytes = 0;
-    opt_spi_data = 0;
-
-    return read_data;
+    // Silence missing return warning
+    return 0;
 }
 
 /*

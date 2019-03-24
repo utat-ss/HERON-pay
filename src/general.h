@@ -16,6 +16,7 @@
 #include <queue/queue.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
+#include <watchdog/watchdog.h>
 
 // PAY libraries
 #include "can_commands.h"
