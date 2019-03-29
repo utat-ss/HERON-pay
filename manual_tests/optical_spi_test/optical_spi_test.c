@@ -6,7 +6,7 @@
 
 int main(void){
     init_uart();
-    print("\n\nUART initialized\n");
+    print("UART Initialized\n");
 
     init_spi();
     print("SPI Initialized\n");
