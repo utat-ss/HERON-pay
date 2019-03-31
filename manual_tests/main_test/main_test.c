@@ -359,7 +359,7 @@ int main(void) {
 
     // Change these as necessary for testing
     sim_local_actions = false;
-    sim_obc = true;
+    sim_obc = false;
     print_can_msgs = true;
 
     print("sim_local_actions = %u\n", sim_local_actions);
