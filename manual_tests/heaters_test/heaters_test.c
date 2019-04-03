@@ -33,9 +33,6 @@ int main(void){
     init_heaters();
     print("Heaters Initialized\n");
 
-    print("DAC Raw Voltage A: %.4x\n", dac.raw_voltage_a);
-    print("DAC Raw Voltage B: %.4x\n", dac.raw_voltage_b);
-
     print("\nStarting test\n\n");
 
     // Cycle through a high and low set temperature 10 times

@@ -52,6 +52,6 @@ void init_heaters(){
     if (heater_5_last_setpoint == EEPROM_DEF_DWORD){
         heater_5_last_setpoint = 0;
     }
-    set_heaters_1_to_4_temp_setpoint(heater_1_to_4_last_setpoint);
-    set_heater_5_temp_setpoint(heater_5_last_setpoint);
+    set_heaters_1_to_4_raw_setpoint(heater_1_to_4_last_setpoint);
+    set_heater_5_raw_setpoint(heater_5_last_setpoint);
 }

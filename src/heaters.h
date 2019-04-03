@@ -4,6 +4,7 @@
 #include <dac/dac.h>
 
 #include "devices.h"
+#include <avr/eeprom.h>
 
 #define EEPROM_DEF_DWORD 0xFFFFFFFF
 
