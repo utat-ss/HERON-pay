@@ -30,6 +30,9 @@ int main(void){
     init_adc(&adc);
     print("ADC Initialized\n");
 
+    init_heaters();
+    print("Heaters Initialized\n");
+
     print("\nStarting test\n\n");
 
     // Cycle through a high and low set temperature 10 times
