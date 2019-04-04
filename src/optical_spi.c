@@ -80,11 +80,13 @@ uint32_t read_opt_spi(uint8_t field_num) {
         uint8_t timeout = UINT8_MAX;
         while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
             timeout--;
+            timeout++;
         }
         // print("timeout = %u\n", timeout);
 
         // If we didn't get 3 bytes
         if (opt_spi_num_bytes < 3) {
+            //_delay_ms(5000); // long delay = timeout, used for testing
             return 0;
         }
 

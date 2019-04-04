@@ -22,13 +22,33 @@ int main(void){
 
     print("\nStarting test\n\n");
 
+    uint8_t field_num = 0;
+    uint32_t data = 0;
+
     while (1) {
+        for (uint8_t bank = 1; bank < 3; bank ++){
+            for (uint8_t channel = 0; channel < 8; channel++){
+                // bit 5 is set to 1 (optical density)
+                field_num = (0x2 << 6) | 0x1<<5 |((bank & 0x3) << 3) | (channel & 0x7);
+
+                // bit 5 is set to 0 (fluorescence)
+                // field_num = (0b11 << 6) |((bank & 0b11) << 3) | (channel & 0b111) & ~_BV(5);
+
+                data = read_opt_spi(field_num);
+                print("A%d_%d = 0x%06lx--> %-4.2f\n", bank+1, channel+1, data, (float)data/(float)0xffffff * 100);
+                print("\n");
+
+                _delay_ms(1000);
+            }
+            print("\n");
+        }
+
+        /*
         for (uint8_t field_num = 0; field_num < CAN_PAY_OPT_FIELD_COUNT; field_num++) {
             uint32_t data = read_opt_spi(field_num);
             print("Field #%u = 0x%06lx\n", field_num, data);
         }
+        */
 
-        _delay_ms(5000);
-        print("\n");
     }
 }
