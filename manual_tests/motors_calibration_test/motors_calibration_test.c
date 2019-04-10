@@ -12,9 +12,10 @@
 void calibration();
 void sensor_reading();
 void simultaneous();
+//slower stronger torque
 uint8_t period = 100;
 uint8_t times = 12; //shaft rotates exactly one circle with this period and times
-uint8_t sum = 0;
+double sum = 0.0;
 // TO-DO: keeping track of how many "steps" down
 uint8_t step = 0;
 
@@ -31,7 +32,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
   switch (buf[0]) {
       case 'w':
         while (count < 5){
-          print("cycle %d\n",count+1);
+          print("cycle %d, step %d\n",count+1, step+1);
           calibration();
           count += 1;
         }
@@ -39,13 +40,16 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
       case 's':
         while (count < 5){
           actuate_motors(period, times, true);
+          print("Moving up");
           count += 1;
+          step -= 1; //step now underflow here
         }
         break;
       case 'r':
-        //reset set point
-        sum = 0;
-        sensor_reading();
+        //reset set point and step count
+        sum = 0.0;
+        step = 0;
+        print("System reset\n");
         break;
       case 't':
         for (uint8_t i = 0; i < calibration_channel_num; i++){
@@ -59,7 +63,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
         break;
       case 'e':
         //reset set point
-        sum = 0;
+        sensor_reading();
         disable_motors();
         print("motors disabled\n");
         break;
@@ -77,12 +81,16 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
 void calibration(){
     print("Actuating: %dms, %d times, going down\n", period, times);
     actuate_motors(period, times, false);
+    step += 1;
     sensor_reading();
 }
 
 void simultaneous(){
+  sum = 0.0;
   // sum is the set-point
-  while (sum < 5){
+  while (sum < 4.3){
+    //reset after each step
+    sum = 0.0;
     for (uint8_t i = 0; i < calibration_channel_num; i++){
     fetch_all_adc_channels(&adc);
     uint8_t channel = adc_channels[i];
@@ -90,8 +98,10 @@ void simultaneous(){
     print("Channel %d Raw Data: %d\n", channel, raw_data);
     sum += raw_data;
     }
-    sum = sum/2; //implicit typecast here, will look into float more
+    print("sum: %f\n", sum);
+    sum = sum/2;
     actuate_motors(period,times,false);
+    step += 1;
   }
   disable_motors();
   print("motors disabled\n");
@@ -105,7 +115,6 @@ void sensor_reading(){
     uint16_t raw_data = read_adc_channel(&adc, channel);
     double voltage = adc_raw_data_to_raw_vol(raw_data);
     print("Raw Data: %d, Voltage: %f V\n", raw_data, voltage);
-    _delay_ms(1000); // might not be needed
   }
 }
 
