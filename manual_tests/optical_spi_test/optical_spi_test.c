@@ -26,16 +26,20 @@ int main(void){
     uint32_t data = 0;
 
     while (1) {
-        for (uint8_t bank = 1; bank < 3; bank ++){
+        for (uint8_t bank = 0; bank < 4; bank ++){
             for (uint8_t channel = 0; channel < 8; channel++){
+                // clear field_num
+                field_num = 0;
+
                 // bit 5 is set to 1 (optical density)
-                field_num = (0x2 << 6) | 0x1<<5 |((bank & 0x3) << 3) | (channel & 0x7);
+                field_num = (0b11 << 6) | (0x1<<5) | ((bank & 0b11) << 3) | (channel & 0b111);
 
                 // bit 5 is set to 0 (fluorescence)
-                // field_num = (0b11 << 6) |((bank & 0b11) << 3) | (channel & 0b111) & ~_BV(5);
+                // field_num = (0b11 << 6) |((bank & 0b11) << 3) | (channel & 0b111);
+                //  field_num = field_num & ~_BV(5);
 
                 data = read_opt_spi(field_num);
-                print("A%d_%d = 0x%06lx--> %-4.2f\n", bank+1, channel+1, data, (float)data/(float)0xffffff * 100);
+                print("A%d_%d = 0x%06lx--> %-4.2f%\n", bank+1, channel+1, data, (float)data/(float)0xffffff * 100);
                 print("\n");
 
                 _delay_ms(1000);
