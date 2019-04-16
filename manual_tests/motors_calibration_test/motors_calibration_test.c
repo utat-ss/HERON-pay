@@ -36,17 +36,18 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
   uint8_t count = 0;
   switch (buf[0]) {
       case 'd':
-        while (count < 1){
+        while (count < 10){
           print("cycle %d, step %d\n",count+1, step+1);
-           actuate_motors(period, times, false);
+          actuate_motors(period, times, false);
           count += 1;
+          step += 1;
         }
         break;
       case 'u':
-        while (count < 5){
+        while ((count < 5)&&(step > 0)){
           actuate_motors(period, times, true);
           count += 1;
-          step -= 1; //step now underflow here
+          step -= 1;
         }
         print("Moving up\n");
         break;
@@ -157,10 +158,10 @@ void sensor_reading(){
 This function runs the motor for a range of periods (from 50~200 with a increment of 10) but the same times. This is for calibration purposes.
 */
 void speed_test(){
-  uint8_t period = 50;
-  print("testing with cycles_num %d", times);
-  for(uint8_t i = 0; i < 15; i = i + 10){
-    period = period + i;
+  uint16_t period;
+  print("testing with cycles_num %d\n", times);
+  for(uint16_t i = 0; i < 160; i = i + 10){
+    period = 50 + i;
     print("iter %d, period %d\n", (i/10), period);
     actuate_motors(period, times, true);
     _delay_ms(1000);
@@ -171,11 +172,11 @@ void speed_test(){
 This function runs the motor for a range of times (from 5~100 with a increment of 5) but the same period. This is for calibration purposes.
 */
 void turn_test(){
-  uint8_t cycles = 5;
+  uint16_t cycles;
   print("testing with period %d\n", period);
-  for(uint8_t i = 0; i < 19; i = i + 5){
-    cycles = cycles + i;
-    print("iter %d, period %d", (i/5), cycles);
+  for(uint16_t i = 0; i < 100; i = i + 5){
+    cycles = 5 + i;
+    print("iter %d, period %d\n", (i/5), cycles);
     actuate_motors(period, cycles, true);
     _delay_ms(1000);
   }
