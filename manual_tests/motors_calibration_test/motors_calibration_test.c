@@ -78,6 +78,13 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
       case 'k':
         speed_test();
         break;
+      case 'o':
+        // take the plate off
+        while(count < 10){
+          actuate_motors(period, times, true);
+          count += 1;
+          }
+        break;
       default:
         print("Invalid command\n");
         break;
