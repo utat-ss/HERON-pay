@@ -1,0 +1,2 @@
+PROG = motors
+include ../makefile
