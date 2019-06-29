@@ -6,7 +6,10 @@
 # Parameters that might need to be changed, depending on the repository
 #-------------------------------------------------------------------------------
 # Libraries from lib-common to link
-LIB = -L./lib-common/lib -ladc -lcan -ldac -lconversions -lheartbeat -lpex -lqueue -lspi -ltimer -luart -lutilities -lwatchdog
+# For some reason, conversions needs to come after dac or else it gives an error
+# Need to put dac before conversions, uptime before timer, heartbeat before can,
+# or else gives an error for undefined reference
+LIB = -L./lib-common/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -luptime -ltimer -luart -lutilities -lwatchdog
 # Program name
 PROG = pay
 # Name of microcontroller ("32m1" or "64m1")
@@ -28,7 +31,8 @@ DEVICE = m$(MCU)
 BUILD = build
 # Manual tests directory
 MANUAL_TESTS = $(dir $(wildcard manual_tests/*/.))
-
+# Harness testing folder
+TEST = harness_tests
 
 # Detect operating system - based on https://gist.github.com/sighingnow/deee806603ec9274fd47
 
@@ -55,15 +59,19 @@ endif
 ifeq ($(WINDOWS), true)
 	# higher number
 	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 2 | select -Last 1")
+	# TODO Not sure if this actually works for windows
+ 	UART = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 1")
 endif
 ifeq ($(MAC_OS), true)
 	# lower number
 	PORT = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | head -n1)
+	UART = $(shell find /dev -name 'tty.usbmodem[0-9]*' | sort | sed -n 2p)
 endif
 ifeq ($(LINUX), true)
 	# lower number
 	# TODO - test this
 	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
+	UART = $(shell find /dev -name 'ttyS[0-9]*' | sort | sed -n 2p)
 endif
 
 # If automatic port detection fails,
@@ -140,7 +148,7 @@ debug:
 # because harness.py has the `include` and `src` paths hardcoded
 harness:
 	cd lib-common && \
-	$(PYTHON) ./bin/harness.py -p $(PORT) -d ../harness_tests
+	$(PYTHON) ./bin/harness.py -p $(PORT) -u $(UART) -d ../$(TEST)
 
 # Help shows available commands
 help:
@@ -185,4 +193,4 @@ endif
 
 # Upload program to board
 upload: $(PROG)
-	avrdude -c $(PGMR) -p $(DEVICE) -P $(PORT) -U flash:w:./build/$^.hex
+	avrdude -c $(PGMR) -C ./lib-common/avrdude.conf -p $(DEVICE) -P $(PORT) -U flash:w:./build/$^.hex
