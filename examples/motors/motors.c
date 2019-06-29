@@ -46,25 +46,23 @@ void init_motors(void) {
     set_pex_pin(&pex, PEX_A, PEX_DECAY_M2, 1);
     set_pex_pin(&pex, PEX_B, PEX_DECAY_M1, 1);
 
-    // Set no current through bridges
-    // AI0/BI0/AI1/BI1 = 0
     set_pex_pin_dir(&pex, PEX_A, PEX_AI0_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_AI1_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_BI0_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_BI1_M2, OUTPUT);
-    set_pex_pin(&pex, PEX_A, PEX_AI0_M2, 1);
-    set_pex_pin(&pex, PEX_A, PEX_AI1_M2, 1);
-    set_pex_pin(&pex, PEX_A, PEX_BI0_M2, 1);
-    set_pex_pin(&pex, PEX_A, PEX_BI1_M2, 1);
+    set_pex_pin(&pex, PEX_A, PEX_AI0_M2, 0);
+    set_pex_pin(&pex, PEX_A, PEX_AI1_M2, 0);
+    set_pex_pin(&pex, PEX_A, PEX_BI0_M2, 0);
+    set_pex_pin(&pex, PEX_A, PEX_BI1_M2, 0);
 
     set_pex_pin_dir(&pex, PEX_B, PEX_AI0_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_AI1_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_BI0_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_BI1_M1, OUTPUT);
-    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 1);
-    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 1);
-    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 1);
-    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 0);
+    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 0);
+    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 0);
+    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 0);
 
     // Logic output pins motor 1
     init_output_pin(AIN1_M1, &DDR_M1, 0);
@@ -101,7 +99,7 @@ void enable_motors(void) {
 
 void disable_motors(void) {
     // Disable motors and enable sleep
-
+    reset_motors();
     // nSLEEP = 0
     set_pex_pin(&pex, PEX_A, PEX_SLP_M1, 0);
     set_pex_pin(&pex, PEX_B, PEX_SLP_M2, 0);
@@ -114,6 +112,23 @@ void reset_motors(void) {
 
     init_motors();
 }
+
+uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
+  if (len == 0) {
+      return 0;
+  }
+  switch (buf[0]) {
+        case 'm':
+            print("Actuating motors\n");
+            actuate_motors(40,1,true);
+            break;
+        default:
+            print("Invalid command\n");
+            break;
+  }
+  return 1;
+}
+
 
 
 /*
@@ -130,70 +145,118 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
 
     for (uint16_t i = 0; i < num_cycles; i++) {
         if (forward) {
-            // BPHASE = 1
+            // STEP 1
             // BOUT1 = 1, BOUT2 = 0
             delay_ms(delay);
-            set_pin_high(BIN1_M2, &PORT_M2);
+            //M1
+            set_pin_high(AIN1_M1, &PORT_M1);
+            set_pin_low(AIN2_M1, &PORT_M1);
             set_pin_high(BIN1_M1, &PORT_M1);
-            set_pin_low(BIN2_M2, &PORT_M2);
             set_pin_low(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_high(AIN1_M2, &PORT_M2);
+            set_pin_low(AIN2_M2, &PORT_M2);
+            set_pin_high(BIN1_M2, &PORT_M2);
+            set_pin_low(BIN2_M2, &PORT_M2);
 
-            // APHASE = 1
+            // STEP 2
             // AOUT1 = 1, AOUT2 = 0
             delay_ms(delay);
-            set_pin_high(AIN1_M2, &PORT_M2);
-            set_pin_high(AIN1_M1, &PORT_M1);
-            set_pin_low(AIN2_M2, &PORT_M2);
-            set_pin_low(AIN2_M1, &PORT_M1);
+            //M1
+            set_pin_low(AIN1_M1, &PORT_M1);
+            set_pin_high(AIN2_M1, &PORT_M1);
+            set_pin_high(BIN1_M1, &PORT_M1);
+            set_pin_low(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_low(AIN1_M2, &PORT_M2);
+            set_pin_high(AIN2_M2, &PORT_M2);
+            set_pin_high(BIN1_M2, &PORT_M2);
+            set_pin_low(BIN2_M2, &PORT_M2);
 
             // BPHASE = 0
             // BOUT1 = 0, BOUT2 = 1
             delay_ms(delay);
-            set_pin_low(BIN1_M2, &PORT_M2);
+            //M1
+            set_pin_low(AIN1_M1, &PORT_M1);
+            set_pin_high(AIN2_M1, &PORT_M1);
             set_pin_low(BIN1_M1, &PORT_M1);
-            set_pin_high(BIN2_M2, &PORT_M2);
             set_pin_high(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_low(AIN1_M2, &PORT_M2);
+            set_pin_high(AIN2_M2, &PORT_M2);
+            set_pin_low(BIN1_M2, &PORT_M2);
+            set_pin_high(BIN2_M2, &PORT_M2);
 
             // APHASE = 0
             // AOUT1 = 0, AOUT2 = 1
             delay_ms(delay);
-            set_pin_low(AIN1_M2, &PORT_M2);
-            set_pin_low(AIN1_M1, &PORT_M1);
-            set_pin_high(AIN2_M2, &PORT_M2);
-            set_pin_high(AIN2_M1, &PORT_M1);
+            //M1
+            set_pin_high(AIN1_M1, &PORT_M1);
+            set_pin_low(AIN2_M1, &PORT_M1);
+            set_pin_low(BIN1_M1, &PORT_M1);
+            set_pin_high(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_high(AIN1_M2, &PORT_M2);
+            set_pin_low(AIN2_M2, &PORT_M2);
+            set_pin_low(BIN1_M2, &PORT_M2);
+            set_pin_high(BIN2_M2, &PORT_M2);
         }
         else {
             // APHASE = 1
             // AOUT1 = 1, AOUT2 = 0
             delay_ms(delay);
-            set_pin_high(AIN1_M2, &PORT_M2);
+            //M1
             set_pin_high(AIN1_M1, &PORT_M1);
-            set_pin_low(AIN2_M2, &PORT_M2);
             set_pin_low(AIN2_M1, &PORT_M1);
+            set_pin_low(BIN1_M1, &PORT_M1);
+            set_pin_high(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_high(AIN1_M2, &PORT_M2);
+            set_pin_low(AIN2_M2, &PORT_M2);
+            set_pin_low(BIN1_M2, &PORT_M2);
+            set_pin_high(BIN2_M2, &PORT_M2);
 
             // BPHASE = 1
             // BOUT1 = 1, BOUT2 = 0
             delay_ms(delay);
-            set_pin_high(BIN1_M2, &PORT_M2);
-            set_pin_high(BIN1_M1, &PORT_M1);
-            set_pin_low(BIN2_M2, &PORT_M2);
-            set_pin_low(BIN2_M1, &PORT_M1);
+            //M1
+            set_pin_low(AIN1_M1, &PORT_M1);
+            set_pin_high(AIN2_M1, &PORT_M1);
+            set_pin_low(BIN1_M1, &PORT_M1);
+            set_pin_high(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_low(AIN1_M2, &PORT_M2);
+            set_pin_high(AIN2_M2, &PORT_M2);
+            set_pin_low(BIN1_M2, &PORT_M2);
+            set_pin_high(BIN2_M2, &PORT_M2);
 
             // APHASE = 0
             // AOUT1 = 0, AOUT2 = 1
             delay_ms(delay);
-            set_pin_low(AIN1_M2, &PORT_M2);
+            //M1
             set_pin_low(AIN1_M1, &PORT_M1);
-            set_pin_high(AIN2_M2, &PORT_M2);
             set_pin_high(AIN2_M1, &PORT_M1);
+            set_pin_high(BIN1_M1, &PORT_M1);
+            set_pin_low(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_low(AIN1_M2, &PORT_M2);
+            set_pin_high(AIN2_M2, &PORT_M2);
+            set_pin_high(BIN1_M2, &PORT_M2);
+            set_pin_low(BIN2_M2, &PORT_M2);
 
             // BPHASE = 0
             // BOUT1 = 0, BOUT2 = 1
             delay_ms(delay);
-            set_pin_low(BIN1_M2, &PORT_M2);
-            set_pin_low(BIN1_M1, &PORT_M1);
-            set_pin_high(BIN2_M2, &PORT_M2);
-            set_pin_high(BIN2_M1, &PORT_M1);
+            //M1
+            set_pin_high(AIN1_M1, &PORT_M1);
+            set_pin_low(AIN2_M1, &PORT_M1);
+            set_pin_high(BIN1_M1, &PORT_M1);
+            set_pin_low(BIN2_M1, &PORT_M1);
+            //M2
+            set_pin_high(AIN1_M2, &PORT_M2);
+            set_pin_low(AIN2_M2, &PORT_M2);
+            set_pin_high(BIN1_M2, &PORT_M2);
+            set_pin_low(BIN2_M2, &PORT_M2);
         }
     }
     disable_motors();
@@ -228,11 +291,11 @@ int main(void){
     init_motors();
     print("Pins Motors initialized\n");
 
-    enable_motors();
-    print("motors enabled\n");
+    set_uart_rx_cb(key_pressed);
 
-    //actuate_motors(100, 100, true);
+    while(1){};
 
+    /* 
     delay_ms(5);
     set_pin_low(AIN2_M2, &PORT_M2);
     set_pin_low(AIN2_M1, &PORT_M1);
@@ -249,5 +312,5 @@ int main(void){
         set_pin_low(AIN1_M1, &PORT_M1);
         set_pin_low(BIN1_M2, &PORT_M2);
         set_pin_low(BIN1_M1, &PORT_M1);
-    }
+    }*/
 }
