@@ -20,7 +20,7 @@ int main(void){
     print("\nStarting test\n\n");
 
     // CHANGE HERE FOR THERMISTORS CHANNEL
-    uint8_t adc_channels[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    uint8_t adc_channels[] = {0, 1, 2, 3, 4, 5, 6, 7};
 
     // automatically calculate the length of the array
     uint8_t thermister_channel_num = sizeof(adc_channels) / sizeof(adc_channels[0]);
@@ -28,7 +28,7 @@ int main(void){
     uint32_t seconds = 0;
     double temp1_4 = 40.0;
     double temp5 = 40.0;
-    uint16_t hold_time = 600; //unit is [s]
+    uint16_t hold_time = 1800; //unit is [s]
     uint8_t range = 3;
     uint8_t toggle = 0;
 
