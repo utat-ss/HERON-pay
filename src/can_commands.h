@@ -6,6 +6,7 @@
 
 #include <adc/adc.h>
 #include <can/data_protocol.h>
+#include <uptime/uptime.h>
 #include <utilities/utilities.h>
 
 #include "can_interface.h"

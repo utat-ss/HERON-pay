@@ -42,6 +42,8 @@ void init_pay(void) {
     init_can();
     init_rx_mob(&cmd_rx_mob);
     init_tx_mob(&data_tx_mob);
+
+    init_uptime();
 }
 
 
