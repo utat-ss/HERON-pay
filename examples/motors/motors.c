@@ -30,39 +30,39 @@ void delay_ms(uint32_t ms) {
 
 void init_motors(void) {
     // nRESET = 1 for no reset
-    //init_output_pin(RESET_M2, &MOT_RESET_DDR, 1);
-    //init_output_pin(RESET_M1, &MOT_RESET_DDR, 1);
+    init_output_pin(RESET_M2, &MOT_RESET_DDR, 1);
+    init_output_pin(RESET_M1, &MOT_RESET_DDR, 1);
 
-    // nSLEEP = 0 - disable
+    // nSLEEP = 1 enable device, 0 to enter low-power mode
     set_pex_pin_dir(&pex, PEX_A, PEX_SLP_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_SLP_M1, OUTPUT);
     set_pex_pin(&pex, PEX_A, PEX_SLP_M1, 0);
     set_pex_pin(&pex, PEX_B, PEX_SLP_M2, 0);
 
     // DECAY = 1 (fast decay)
-    // TODO - might need to connect BDECAY high in hardware (currently tied to ground)
     set_pex_pin_dir(&pex, PEX_A, PEX_DECAY_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_DECAY_M1, OUTPUT);
     set_pex_pin(&pex, PEX_A, PEX_DECAY_M2, 1);
     set_pex_pin(&pex, PEX_B, PEX_DECAY_M1, 1);
 
+    // current regulation, set all to 1 to disable bridge
     set_pex_pin_dir(&pex, PEX_A, PEX_AI0_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_AI1_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_BI0_M2, OUTPUT);
     set_pex_pin_dir(&pex, PEX_A, PEX_BI1_M2, OUTPUT);
-    set_pex_pin(&pex, PEX_A, PEX_AI0_M2, 0);
-    set_pex_pin(&pex, PEX_A, PEX_AI1_M2, 0);
-    set_pex_pin(&pex, PEX_A, PEX_BI0_M2, 0);
-    set_pex_pin(&pex, PEX_A, PEX_BI1_M2, 0);
+    set_pex_pin(&pex, PEX_A, PEX_AI0_M2, 1);
+    set_pex_pin(&pex, PEX_A, PEX_AI1_M2, 1);
+    set_pex_pin(&pex, PEX_A, PEX_BI0_M2, 1);
+    set_pex_pin(&pex, PEX_A, PEX_BI1_M2, 1);
 
     set_pex_pin_dir(&pex, PEX_B, PEX_AI0_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_AI1_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_BI0_M1, OUTPUT);
     set_pex_pin_dir(&pex, PEX_B, PEX_BI1_M1, OUTPUT);
-    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 0);
-    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 0);
-    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 0);
-    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 0);
+    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 1);
 
     // Logic output pins motor 1
     init_output_pin(AIN1_M1, &DDR_M1, 0);
@@ -80,7 +80,6 @@ void init_motors(void) {
 
 void enable_motors(void) {
     // Disable sleep
-
     // nSLEEP = 1
     set_pex_pin(&pex, PEX_A, PEX_SLP_M1, 1);
     set_pex_pin(&pex, PEX_B, PEX_SLP_M2, 1);
@@ -92,9 +91,9 @@ void enable_motors(void) {
     set_pex_pin(&pex, PEX_A, PEX_BI1_M2, 0);
 
     set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 0);
-    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 0);
     set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 0);
-    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 0);
 }
 
 void disable_motors(void) {
@@ -109,8 +108,9 @@ void reset_motors(void) {
     // Reset motors
     set_pin_low(RESET_M1, &MOT_RESET_DDR);
     set_pin_low(RESET_M2, &MOT_RESET_DDR);
-
-    init_motors();
+    delay_ms(10);
+    set_pin_high(RESET_M1, &MOT_RESET_DDR);
+    set_pin_high(RESET_M2, &MOT_RESET_DDR);
 }
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
@@ -120,7 +120,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
   switch (buf[0]) {
         case 'm':
             print("Actuating motors\n");
-            actuate_motors(40,1,true);
+            actuate_motors(40,3,true);
             break;
         default:
             print("Invalid command\n");

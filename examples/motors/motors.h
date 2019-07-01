@@ -1,4 +1,4 @@
-s#ifndef MOTORS_H
+#ifndef MOTORS_H
 #define MOTORS_H
 
 #include <stdbool.h>
@@ -29,7 +29,7 @@ extern pex_t pex;
 //#include "devices.h"
 
 // Reset pins
-#define RESET_M1        PB3
+#define RESET_M1        PB4
 #define RESET_M2        PB6
 #define MOT_RESET_DDR   DDRB
 
