@@ -72,10 +72,10 @@ extern pex_t pex;
 #define DDR_M1      DDRC
 
 // DRV8843N2
-#define AIN1_M2     PD1
-#define AIN2_M2     PD5
-#define BIN1_M2     PD6
-#define BIN2_M2     PD7
+#define AIN1_M2     PD7
+#define AIN2_M2     PD6
+#define BIN1_M2     PD5
+#define BIN2_M2     PD1
 #define PORT_M2     PORTD
 #define DDR_M2      DDRD
 

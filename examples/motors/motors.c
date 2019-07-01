@@ -79,10 +79,12 @@ void init_motors(void) {
 }
 
 void enable_motors(void) {
-    // Disable sleep
+    // Exit sleep mode
     // nSLEEP = 1
     set_pex_pin(&pex, PEX_A, PEX_SLP_M1, 1);
     set_pex_pin(&pex, PEX_B, PEX_SLP_M2, 1);
+    // when returned from sleep mode need ~1ms set up time
+    delay_ms(2);
 
     // 100% Current through H bridges
     set_pex_pin(&pex, PEX_A, PEX_AI0_M2, 0);
@@ -99,17 +101,31 @@ void enable_motors(void) {
 void disable_motors(void) {
     // Disable motors and enable sleep
     reset_motors();
-    // nSLEEP = 0
+    // nSLEEP = 0, enter sleep mode
     set_pex_pin(&pex, PEX_A, PEX_SLP_M1, 0);
     set_pex_pin(&pex, PEX_B, PEX_SLP_M2, 0);
+    //disable current bridges
+    //M1
+    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 1);
+    //M2
+    set_pex_pin(&pex, PEX_B, PEX_AI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_AI1_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI0_M1, 1);
+    set_pex_pin(&pex, PEX_B, PEX_BI1_M1, 1);
+
 }
 
 void reset_motors(void) {
     // Reset motors
     set_pin_low(RESET_M1, &MOT_RESET_DDR);
-    set_pin_low(RESET_M2, &MOT_RESET_DDR);
     delay_ms(10);
     set_pin_high(RESET_M1, &MOT_RESET_DDR);
+
+    set_pin_low(RESET_M2, &MOT_RESET_DDR);
+    delay_ms(10);
     set_pin_high(RESET_M2, &MOT_RESET_DDR);
 }
 
@@ -120,7 +136,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
   switch (buf[0]) {
         case 'm':
             print("Actuating motors\n");
-            actuate_motors(40,3,true);
+            actuate_motors(200,1,true);
             break;
         default:
             print("Invalid command\n");
@@ -149,10 +165,10 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
             // BOUT1 = 1, BOUT2 = 0
             delay_ms(delay);
             //M1
-            set_pin_high(AIN1_M1, &PORT_M1);
+            /*set_pin_high(AIN1_M1, &PORT_M1);
             set_pin_low(AIN2_M1, &PORT_M1);
             set_pin_high(BIN1_M1, &PORT_M1);
-            set_pin_low(BIN2_M1, &PORT_M1);
+            set_pin_low(BIN2_M1, &PORT_M1); */
             //M2
             set_pin_high(AIN1_M2, &PORT_M2);
             set_pin_low(AIN2_M2, &PORT_M2);
@@ -163,38 +179,36 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
             // AOUT1 = 1, AOUT2 = 0
             delay_ms(delay);
             //M1
-            set_pin_low(AIN1_M1, &PORT_M1);
+            /* set_pin_low(AIN1_M1, &PORT_M1);
             set_pin_high(AIN2_M1, &PORT_M1);
             set_pin_high(BIN1_M1, &PORT_M1);
-            set_pin_low(BIN2_M1, &PORT_M1);
+            set_pin_low(BIN2_M1, &PORT_M1);*/
             //M2
             set_pin_low(AIN1_M2, &PORT_M2);
             set_pin_high(AIN2_M2, &PORT_M2);
             set_pin_high(BIN1_M2, &PORT_M2);
             set_pin_low(BIN2_M2, &PORT_M2);
 
-            // BPHASE = 0
-            // BOUT1 = 0, BOUT2 = 1
+            // STEP 3
             delay_ms(delay);
             //M1
-            set_pin_low(AIN1_M1, &PORT_M1);
+            /*set_pin_low(AIN1_M1, &PORT_M1);
             set_pin_high(AIN2_M1, &PORT_M1);
             set_pin_low(BIN1_M1, &PORT_M1);
-            set_pin_high(BIN2_M1, &PORT_M1);
+            set_pin_high(BIN2_M1, &PORT_M1); */
             //M2
             set_pin_low(AIN1_M2, &PORT_M2);
             set_pin_high(AIN2_M2, &PORT_M2);
             set_pin_low(BIN1_M2, &PORT_M2);
             set_pin_high(BIN2_M2, &PORT_M2);
 
-            // APHASE = 0
-            // AOUT1 = 0, AOUT2 = 1
+            // STEP 4
             delay_ms(delay);
             //M1
-            set_pin_high(AIN1_M1, &PORT_M1);
+            /* set_pin_high(AIN1_M1, &PORT_M1);
             set_pin_low(AIN2_M1, &PORT_M1);
             set_pin_low(BIN1_M1, &PORT_M1);
-            set_pin_high(BIN2_M1, &PORT_M1);
+            set_pin_high(BIN2_M1, &PORT_M1);*/
             //M2
             set_pin_high(AIN1_M2, &PORT_M2);
             set_pin_low(AIN2_M2, &PORT_M2);
