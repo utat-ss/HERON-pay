@@ -11,7 +11,7 @@ INCLUDES = -I../../lib-common/include
 # Libraries from lib-common to link
 LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -lstack -ltest -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
 # Name of microcontroller ("32m1" or "64m1")
-MCU = 32m1
+MCU = 64m1
 #-------------------------------------------------------------------------------
 
 
@@ -143,4 +143,4 @@ endif
 
 # Upload .hex program to device
 upload: $(PROG)
-	avrdude -p $(DEVICE) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
+	avrdude -C ../../lib-common/avrdude.conf -p $(DEVICE) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
