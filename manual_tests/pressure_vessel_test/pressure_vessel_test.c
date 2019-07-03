@@ -24,9 +24,9 @@
 volatile uint8_t test_run = 0;
 
 uint8_t rx_command(const uint8_t* buf, uint8_t len){
-    if (buf[0] == 0xAA){
+    if (buf[0] == 'A'){
         test_run = 1;
-    } else if (buf[0] == 0xFF){
+    } else if (buf[0] == 'F'){
         test_run = 0; 
     }
     return len;
@@ -60,10 +60,9 @@ int main(void) {
             double pres = pres_raw_data_to_pressure(pres_raw);
 
             print("%.3f,%.3f,%.3f\n", pres, temp, hum);
-
-            _delay_ms(1000);
         } else {
-            continue;
+            print("%01X\n", 0xA);
         }
+        _delay_ms(10000);
     }
 }
