@@ -20,6 +20,11 @@ pex_t pex = {
 // true if there is a fault detected in one or both of the motors
 bool motor_fault = false;
 
+// global parameters for setting motor periods and times
+uint8_t period = 120;
+uint8_t times = 12;
+uint8_t count = 0;
+
 // Define this delay function because the built-in _delay_ms() only works with
 // compile-time constants
 void delay_ms(uint32_t ms) {
@@ -119,6 +124,22 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
         case 'b':
             print("Actuating motors backwards\n");
             actuate_motors(40,5,false);
+            break;
+        case 'd':
+            while (count < 5){
+                print("cycle %d\n",count+1);
+                actuate_motors(period, times, true);
+                count += 1;
+            }
+            count = 0;
+            break;
+        case 'u':
+            while (count < 5){
+                print("cycle %d\n",count+1);
+                actuate_motors(period, times, false);
+                count += 1;
+            }
+            count = 0;
             break;
         default:
             print("Invalid command\n");
