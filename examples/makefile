@@ -64,7 +64,7 @@ endif
 
 # If automatic port detection fails,
 # uncomment one of these lines and change it to set the port manually
-# PORT = COM3						# Windows
+PORT = COM6						# Windows
 # PORT = /dev/tty.usbmodem00208212	# macOS
 # PORT = /dev/ttyS3					# Linux
 

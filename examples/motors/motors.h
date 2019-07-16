@@ -83,6 +83,10 @@ void init_motors(void);
 void enable_motors(void);
 void disable_motors(void);
 void reset_motors(void);
-void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward);
+void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward, bool m1, bool m2);
+void enable_motor_1(void);
+void enable_motor_2(void);
+void disable_motor_1(void);
+void disable_motor_2(void);
 
 #endif

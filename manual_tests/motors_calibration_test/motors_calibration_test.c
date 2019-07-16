@@ -36,7 +36,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
   uint8_t count = 0;
   switch (buf[0]) {
       case 'd':
-        while (count < 10){
+        while (count < 5){
           print("cycle %d, step %d\n",count+1, step+1);
           actuate_motors(period, times, false);
           count += 1;
