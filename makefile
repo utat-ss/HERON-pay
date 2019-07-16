@@ -33,6 +33,7 @@ BUILD = build
 MANUAL_TESTS = $(dir $(wildcard manual_tests/*/.))
 # Harness testing folder
 TEST = harness_tests
+# HARNESS_ARGS - can specify from the command line when calling `make`
 
 # Detect operating system - based on https://gist.github.com/sighingnow/deee806603ec9274fd47
 
@@ -131,6 +132,14 @@ clean:
 # Print debug information
 debug:
 	@echo ------------
+	@echo "MCU:" $(MCU)
+	@echo ------------
+	@echo "DEVICE:" $(DEVICE)
+	@echo ------------
+	@echo "TEST:" $(TEST)
+	@echo ------------
+	@echo "HARNESS_ARGS:" $(HARNESS_ARGS)
+	@echo ------------
 	@echo "WINDOWS:" $(WINDOWS)
 	@echo ------------
 	@echo "MAC_OS:" $(MAC_OS)
@@ -148,7 +157,7 @@ debug:
 # because harness.py has the `include` and `src` paths hardcoded
 harness:
 	cd lib-common && \
-	$(PYTHON) ./bin/harness.py -p $(PORT) -u $(UART) -d ../$(TEST)
+	$(PYTHON) ./bin/harness.py -p $(PORT) -u $(UART) -d ../$(TEST) $(HARNESS_ARGS)
 
 # Help shows available commands
 help:

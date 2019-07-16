@@ -6,10 +6,15 @@
 
 # Parameters that might need to be changed, depending on the repository
 #-------------------------------------------------------------------------------
+# Path to lib-common (relative to current directory)
+LIB_COMMON = ../../lib-common
 # Includes (header files)
-INCLUDES = -I../../lib-common/include
+INCLUDES = -I$(LIB_COMMON)/include
 # Libraries from lib-common to link
-LIB = -L../../lib-common/lib -ladc -lcan -lconversions -ldac -lheartbeat -lpex -lqueue -lspi -lstack -ltest -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
+# For some reason, conversions needs to come after dac or else it gives an error
+# Need to put dac before conversions, uptime before timer, heartbeat before can,
+# or else gives an error for undefined reference
+LIB = -L$(LIB_COMMON)/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -lstack -ltest -luptime -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
 # Name of microcontroller ("32m1" or "64m1")
 MCU = 64m1
 #-------------------------------------------------------------------------------
@@ -126,8 +131,8 @@ lib-common:
 	@echo "Fetching latest version of lib-common..."
 	git submodule update --remote
 	@echo "Compiling lib-common..."
-	make -C ../../lib-common clean MCU=$(MCU)
-	make -C ../../lib-common MCU=$(MCU)
+	make -C $(LIB_COMMON) clean MCU=$(MCU)
+	make -C $(LIB_COMMON) MCU=$(MCU)
 
 # Create a file called eeprom.bin, which contains a raw binary copy of the micro's EEPROM memory.
 # View the contents of the binary file in hex
@@ -143,4 +148,4 @@ endif
 
 # Upload .hex program to device
 upload: $(PROG)
-	avrdude -C ../../lib-common/avrdude.conf -p $(DEVICE) -c $(PGMR) -P $(PORT) -U flash:w:./$^.hex
+	avrdude -p $(DEVICE) -c $(PGMR) -C $(LIB_COMMON)/avrdude.conf -P $(PORT) -U flash:w:./$^.hex
