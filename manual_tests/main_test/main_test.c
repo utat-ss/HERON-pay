@@ -27,6 +27,7 @@ typedef struct {
 } uart_cmd_t;
 
 
+void get_status_fn(void);
 void req_pay_hk_fn(void);
 void req_pay_opt_fn(void);
 void set_heaters_1_4_0c_fn(void);
@@ -38,6 +39,10 @@ void req_act_down_fn(void);
 
 // All possible commands
 uart_cmd_t all_cmds[] = {
+    {
+        .description = "Get subsystem status",
+        .fn = get_status_fn
+    },
     {
         .description = "Request PAY HK data",
         .fn = req_pay_hk_fn
@@ -169,6 +174,7 @@ void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
 
 void process_pay_opt_tx(uint8_t field_num, uint32_t tx_data) {
     double percent = ((double) tx_data) / 0xFFFFFF * 100.0;
+    print("Well #%u: ", field_num);
     print("0x%.6lX = ", tx_data);
     print("%.1f %%\n", percent);
 
@@ -259,6 +265,12 @@ void print_next_rx_msg(void) {
 
 
 
+
+void get_status_fn(void) {
+    print("Restart count: %lu\n", restart_count);
+    print("Restart reason: %lu\n", restart_reason);
+    print("Uptime: %lu s\n", uptime_s);
+}
 
 void req_pay_hk_fn(void) {
     enqueue_rx_msg(CAN_PAY_HK, 0, 0);
@@ -355,7 +367,7 @@ int main(void) {
 
     // Change these as necessary for testing
     sim_local_actions = false;
-    sim_obc = false;
+    sim_obc = true;
     print_can_msgs = true;
 
     print("sim_local_actions = %u\n", sim_local_actions);
