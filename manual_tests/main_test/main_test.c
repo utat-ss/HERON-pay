@@ -81,23 +81,19 @@ const uint8_t all_cmds_len = sizeof(all_cmds) / sizeof(all_cmds[0]);
 // Enqueues a message for PAY to receive
 void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number, uint32_t raw_data) {
     uint8_t rx_msg[8] = { 0x00 };
-    rx_msg[0] = 0;    // TODO
-    rx_msg[1] = msg_type;
-    rx_msg[2] = field_number;
-    rx_msg[3] = (raw_data >> 16) & 0xFF;
-    rx_msg[4] = (raw_data >> 8) & 0xFF;
-    rx_msg[5] = raw_data & 0xFF;
+    rx_msg[0] = 0x00;
+    rx_msg[1] = 0x00;
+    rx_msg[2] = msg_type;
+    rx_msg[3] = field_number;
+    rx_msg[4] = (raw_data >> 24) & 0xFF;
+    rx_msg[5] = (raw_data >> 16) & 0xFF;
+    rx_msg[6] = (raw_data >> 8) & 0xFF;
+    rx_msg[7] = raw_data & 0xFF;
     enqueue(&rx_msg_queue, rx_msg);
 }
 
 
-void process_pay_hk_tx(uint8_t* tx_msg) {
-    uint8_t field_num = tx_msg[2];
-    uint32_t raw_data =
-        (((uint32_t) tx_msg[3]) << 16) |
-        (((uint32_t) tx_msg[4]) << 8) |
-        ((uint32_t) tx_msg[5]);
-
+void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
     if (field_num == CAN_PAY_HK_TEMP) {
         // Printing floating point doesn't seem to work when it's in
         // the same print statement as the hex number
@@ -105,92 +101,84 @@ void process_pay_hk_tx(uint8_t* tx_msg) {
         // Print it in a separate statement for now
         // TODO - investigate this
 
-        double temperature = temp_raw_data_to_temperature(raw_data);
+        double temperature = temp_raw_data_to_temperature(tx_data);
         print("Temperature: ");
-        print("0x%.4X = ", raw_data);
+        print("0x%.4X = ", tx_data);
         print("%.1f C\n", temperature);
-
     }
 
     else if (field_num == CAN_PAY_HK_HUM) {
-        double humidity = hum_raw_data_to_humidity(raw_data);
+        double humidity = hum_raw_data_to_humidity(tx_data);
         print("Humidity: ");
-        print("0x%.4X = ", raw_data);
+        print("0x%.4X = ", tx_data);
         print("%.1f %%RH\n", humidity);
     }
 
     else if (field_num == CAN_PAY_HK_PRES) {
-        double pressure = pres_raw_data_to_pressure(raw_data);
+        double pressure = pres_raw_data_to_pressure(tx_data);
         print("Pressure: ");
-        print("0x%.6lX = ", raw_data);
+        print("0x%.6lX = ", tx_data);
         print("%.1f kPa\n", pressure);
     }
 
     else if ((CAN_PAY_HK_THERM0 <= field_num) &&
             (field_num < CAN_PAY_HK_THERM0 + 10)) {
         uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-        double vol = adc_raw_data_to_raw_vol(raw_data);
+        double vol = adc_raw_data_to_raw_vol(tx_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("Thermistor %u: 0x%.3X", channel, raw_data);
+        print("Thermistor %u: 0x%.3X", channel, tx_data);
         print(" = %.3f C\n", temp);
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_SP1) {
-        double vol = dac_raw_data_to_vol(raw_data);
+        double vol = dac_raw_data_to_vol(tx_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 1: 0x%.3X", raw_data);
+        print("Heater Setpoint 1: 0x%.3X", tx_data);
         print(" = %.3f C\n", temp);
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_SP2) {
-        double vol = dac_raw_data_to_vol(raw_data);
+        double vol = dac_raw_data_to_vol(tx_data);
         double res = therm_vol_to_res(vol);
         double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 2: 0x%.3X", raw_data);
+        print("Heater Setpoint 2: 0x%.3X", tx_data);
         print(" = %.3f C\n", temp);
     }
 
     else if (field_num == CAN_PAY_HK_PROX_LEFT) {
-        double vol = adc_raw_data_to_raw_vol(raw_data);
-        print("Left proximity: 0x%.3X = %.3f V\n", raw_data, vol);
+        double vol = adc_raw_data_to_raw_vol(tx_data);
+        print("Left proximity: 0x%.3X = %.3f V\n", tx_data, vol);
     }
 
     else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
-        double vol = adc_raw_data_to_raw_vol(raw_data);
-        print("Right proximity: 0x%.3X = %.3f V\n", raw_data, vol);
+        double vol = adc_raw_data_to_raw_vol(tx_data);
+        print("Right proximity: 0x%.3X = %.3f V\n", tx_data, vol);
     }
 
     else {
         return;
     }
 
-    uint8_t next_field_num = tx_msg[2] + 1;
+    uint8_t next_field_num = field_num + 1;
     if (next_field_num < CAN_PAY_HK_FIELD_COUNT) {
         enqueue_rx_msg(CAN_PAY_HK, next_field_num, 0);
     }
 }
 
-void process_pay_opt_tx(uint8_t* tx_msg) {
-    print("Well #%u: ", tx_msg[2]);
-    uint32_t raw_data =
-        (((uint32_t) tx_msg[3]) << 16) |
-        (((uint32_t) tx_msg[4]) << 8) |
-        ((uint32_t) tx_msg[5]);
-    double percent = ((double) raw_data) / 0xFFFFFF * 100.0;
-    print("0x%.6lX = ", raw_data);
+void process_pay_opt_tx(uint8_t field_num, uint32_t tx_data) {
+    double percent = ((double) tx_data) / 0xFFFFFF * 100.0;
+    print("0x%.6lX = ", tx_data);
     print("%.1f %%\n", percent);
 
-    uint8_t next_field_num = tx_msg[2] + 1;
+    uint8_t next_field_num = field_num + 1;
     if (next_field_num < CAN_PAY_OPT_FIELD_COUNT) {
         enqueue_rx_msg(CAN_PAY_OPT, next_field_num, 0);
     }
 }
 
-void process_pay_ctrl_tx(uint8_t* tx_msg) {
-    uint8_t field_num = tx_msg[2];
-
+void process_pay_ctrl_tx(uint8_t field_num) {
     if (field_num == CAN_PAY_CTRL_HEAT_SP1) {
         print("Set heaters 1-4 setpoint\n");
     } else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
@@ -212,15 +200,23 @@ void sim_send_next_tx_msg(void) {
         dequeue(&tx_msg_queue, tx_msg);
     }
 
-    switch (tx_msg[1]) {
+    uint8_t msg_type = tx_msg[2];
+    uint8_t field_num = tx_msg[3];
+    uint32_t tx_data =
+        ((uint32_t) tx_msg[4] << 24) |
+        ((uint32_t) tx_msg[5] << 16) |
+        ((uint32_t) tx_msg[6] << 8) |
+        ((uint32_t) tx_msg[7]);
+
+    switch (msg_type) {
         case CAN_PAY_HK:
-            process_pay_hk_tx(tx_msg);
+            process_pay_hk_tx(field_num, tx_data);
             break;
         case CAN_PAY_OPT:
-            process_pay_opt_tx(tx_msg);
+            process_pay_opt_tx(field_num, tx_data);
             break;
         case CAN_PAY_CTRL:
-            process_pay_ctrl_tx(tx_msg);
+            process_pay_ctrl_tx(field_num);
             break;
         default:
             return;
