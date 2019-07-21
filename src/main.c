@@ -11,10 +11,12 @@ int main(void) {
     WDT_ENABLE_SYS_RESET(WDTO_8S);
 
     init_pay();
+    init_hb(HB_PAY);
 
     // Main loop
     while (1) {
         WDT_ENABLE_SYS_RESET(WDTO_8S);
+        run_hb();
         send_next_tx_msg();
         process_next_rx_msg();
     }

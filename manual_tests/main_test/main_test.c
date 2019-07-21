@@ -12,7 +12,7 @@ RX and TX are defined from PAY's perspective.
 
 // True to simulate OBC requests
 bool sim_obc = false;
-
+bool disable_hb = false;
 // Set to true to print TX and RX CAN messages
 bool print_can_msgs = false;
 
@@ -368,11 +368,18 @@ int main(void) {
     // Change these as necessary for testing
     sim_local_actions = false;
     sim_obc = true;
+    hb_ping_period_s = 30;
+    disable_hb = false;
     print_can_msgs = true;
 
     print("sim_local_actions = %u\n", sim_local_actions);
     print("sim_obc = %u\n", sim_obc);
     print("print_can_msgs = %u\n", print_can_msgs);
+
+    // Initialize heartbeat separately so we have the option to disable it for debugging
+    if (!disable_hb) {
+        init_hb(HB_PAY);
+    }
 
     print("At any time, press h to show the command menu\n");
     print_cmds();
@@ -380,6 +387,10 @@ int main(void) {
 
     while(1) {
         WDT_ENABLE_SYS_RESET(WDTO_8S);
+
+        if (!disable_hb) {
+            run_hb();
+        }
 
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
             print_next_tx_msg();

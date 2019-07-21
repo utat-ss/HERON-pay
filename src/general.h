@@ -12,6 +12,7 @@
 #include <can/data_protocol.h>
 #include <can/ids.h>
 #include <conversions/conversions.h>
+#include <heartbeat/heartbeat.h>
 #include <pex/pex.h>
 #include <queue/queue.h>
 #include <spi/spi.h>
