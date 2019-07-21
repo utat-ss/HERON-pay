@@ -60,7 +60,6 @@ endif
 ifeq ($(WINDOWS), true)
 	# higher number
 	PORT = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 2 | select -Last 1")
-	# TODO Not sure if this actually works for windows
  	UART = $(shell powershell "[System.IO.Ports.SerialPort]::getportnames() | sort | select -First 1")
 endif
 ifeq ($(MAC_OS), true)
@@ -70,7 +69,6 @@ ifeq ($(MAC_OS), true)
 endif
 ifeq ($(LINUX), true)
 	# lower number
-	# TODO - test this
 	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
 	UART = $(shell find /dev -name 'ttyS[0-9]*' | sort | sed -n 2p)
 endif
