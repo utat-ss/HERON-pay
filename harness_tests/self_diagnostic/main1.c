@@ -12,6 +12,7 @@
 // PAY libraries
 #include "../../src/devices.h"
 #include "../../src/env_sensors.h"
+#include "../../src/general.h"
 #include "../../src/optical_spi.h"
 
 #define ASSERT_BETWEEN(least, greatest, value) \
@@ -21,13 +22,13 @@
 void temperature_test(void) {
     uint16_t temp_raw = read_temp_raw_data();
     double temp = temp_raw_data_to_temperature(temp_raw);
-    ASSERT_BETWEEN(25, 37, (uint8_t) temp);
+    ASSERT_BETWEEN(25, 37, temp);
 }
 
 void humidity_test(void) {
     uint16_t hum_raw = read_hum_raw_data();
     double hum = hum_raw_data_to_humidity(hum_raw);
-    ASSERT_BETWEEN(95, 101, (uint8_t) hum);
+    ASSERT_BETWEEN(95, 101, hum);
 }
 
 void pressure_test(void) {
@@ -69,18 +70,10 @@ test_t t5 = { .name = "thermistor test", .fn = thermistor_test };
 test_t* suite[] = { &t1, &t2, &t3 , &t4, &t5};
 
 int main(void) {
-    init_uart();
-    init_spi();
+    init_pay();
 
-    init_temp();
-    init_hum();
-    init_pres();
+    //TODO: Have a test for the opt spi reset too
 
-    init_opt_spi();
-    rst_opt_spi(); //TODO: Have a test for the reset too
-
-    init_adc(&adc);
-
-    run_tests(suite, 5);
+    run_tests(suite, sizeof(suite) / sizeof(suite[0]));
     return 0;
 }
