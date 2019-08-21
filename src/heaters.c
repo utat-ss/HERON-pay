@@ -13,6 +13,28 @@ Datasheet: https://www.st.com/content/ccc/resource/technical/document/datasheet/
 
 // init is covered by dac_init()
 
+// global variable for uptime counter function
+uint8_t low_power_countdown = 0;
+
+void low_power_timer_func(void) {
+    if (low_power_countdown > 0) {
+        low_power_countdown -= 1;
+        // Finished waiting
+        if (low_power_countdown == 0) {
+            update_heater_setpoint_to_previous_values();
+        }
+    }
+}
+
+// When called, will set the heaters to low power mode for 30 seconds
+void start_low_power_mode(void) {
+    // Go to low power mode
+    set_dac_raw_voltage(&dac, DAC_A, 0);
+    set_dac_raw_voltage(&dac, DAC_B, 0);
+    // Wait 30 seconds before turning heaters back on
+    low_power_countdown = 30;
+}
+
 // Sets temperature setpoint of heaters 1-4 (all connected to DAC A)
 // raw_data - 12 bit DAC raw data for setpoint
 void set_heaters_1_to_4_raw_setpoint(uint16_t raw_data) {
@@ -43,7 +65,7 @@ void set_heater_5_temp_setpoint(double temp) {
     set_heater_5_raw_setpoint(raw_data);
 }
 
-void init_heaters(){
+void update_heater_setpoint_to_previous_values(void) {
     uint16_t heater_1_to_4_last_setpoint = eeprom_read_dword(HEATER_1_TO_4_RAW_SETPOINT_ADDR);
     if (heater_1_to_4_last_setpoint == EEPROM_DEF_DWORD){
         heater_1_to_4_last_setpoint = 0;
@@ -52,6 +74,12 @@ void init_heaters(){
     if (heater_5_last_setpoint == EEPROM_DEF_DWORD){
         heater_5_last_setpoint = 0;
     }
+
     set_heaters_1_to_4_raw_setpoint(heater_1_to_4_last_setpoint);
     set_heater_5_raw_setpoint(heater_5_last_setpoint);
+}
+
+void init_heaters(){
+    update_heater_setpoint_to_previous_values();
+    add_uptime_callback(low_power_timer_func);
 }
