@@ -13,6 +13,8 @@
 #define HEATER_1_TO_4_RAW_SETPOINT_ADDR ((uint32_t*) 0x80)
 #define HEATER_5_RAW_SETPOINT_ADDR ((uint32_t*) 0x84)
 
+#define HEATER_LOW_POWER_TIMER 30
+
 void low_power_timer_func(void);
 void start_low_power_mode(void);
 

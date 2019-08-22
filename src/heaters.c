@@ -32,7 +32,7 @@ void start_low_power_mode(void) {
     set_dac_raw_voltage(&dac, DAC_A, 0);
     set_dac_raw_voltage(&dac, DAC_B, 0);
     // Wait 30 seconds before turning heaters back on
-    low_power_countdown = 30;
+    low_power_countdown = HEATER_LOW_POWER_TIMER;
 }
 
 // Sets temperature setpoint of heaters 1-4 (all connected to DAC A)
