@@ -27,7 +27,7 @@ Thermistor 1 corresponds to ADC channel 0, thermistor 2 to channel 1, etc.
 
 
 // TODO - need to increase if you get the warning (see below)
-#define DATA_PERIOD_MS 1UL   // in ms
+#define DATA_PERIOD_MS 200UL   // in ms
 
 
 // TODO - kind of hacky, copied start_timer_8bit() from timer.c and modified
@@ -120,7 +120,7 @@ int main(void){
         print(", Resistance %u (kohms), Temperature %u (C)", i, i);
     }
     print("\n");
-    
+
 
     print("\nStarting test\n\n");
 
