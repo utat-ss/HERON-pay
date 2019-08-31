@@ -49,7 +49,7 @@ void init_opt_spi(void) {
     sei();
 
     // Initialize PAY-Optical CS pin
-    init_cs(OPT_CS_PIN, &OPT_CS_DDR);
+    init_cs(OPT_CS_PIN, &OPT_CS_DDR );
     set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
 
     // Initialize PAY-Optical reset pin
@@ -77,14 +77,15 @@ uint32_t read_opt_spi(uint8_t field_num) {
 
         // Wait until we get 3 bytes, with a timeout
         // In testing, timeout always ended at the original value minus 7 or 8
-        uint8_t timeout = UINT8_MAX;
+        uint32_t timeout = UINT32_MAX;
         while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
             timeout--;
         }
-        // print("timeout = %u\n", timeout);
+        print("timeout = %u\n", timeout);
 
         // If we didn't get 3 bytes
         if (opt_spi_num_bytes < 3) {
+            //_delay_ms(5000); // long delay = timeout, used for testing
             return 0;
         }
 
