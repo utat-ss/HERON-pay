@@ -99,20 +99,20 @@ void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number, uint32_t raw_data) {
 
 
 void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
-    if (field_num == CAN_PAY_HK_TEMP) {
-        // Printing floating point doesn't seem to work when it's in
-        // the same print statement as the hex number
-        // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
-        // Print it in a separate statement for now
-        // TODO - investigate this
+    // if (field_num == CAN_PAY_HK_TEMP) {
+    //     // Printing floating point doesn't seem to work when it's in
+    //     // the same print statement as the hex number
+    //     // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
+    //     // Print it in a separate statement for now
+    //     // TODO - investigate this
 
-        double temperature = temp_raw_data_to_temperature(tx_data);
-        print("Temperature: ");
-        print("0x%.4X = ", tx_data);
-        print("%.1f C\n", temperature);
-    }
+    //     double temperature = temp_raw_data_to_temperature(tx_data);
+    //     print("Temperature: ");
+    //     print("0x%.4X = ", tx_data);
+    //     print("%.1f C\n", temperature);
+    // }
 
-    else if (field_num == CAN_PAY_HK_HUM) {
+    if (field_num == CAN_PAY_HK_HUM) {
         double humidity = hum_raw_data_to_humidity(tx_data);
         print("Humidity: ");
         print("0x%.4X = ", tx_data);
@@ -126,41 +126,32 @@ void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
         print("%.1f kPa\n", pressure);
     }
 
-    else if ((CAN_PAY_HK_THERM0 <= field_num) &&
-            (field_num < CAN_PAY_HK_THERM0 + 10)) {
-        uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-        double vol = adc_raw_data_to_raw_vol(tx_data);
-        double res = therm_vol_to_res(vol);
-        double temp = therm_res_to_temp(res);
-        print("Thermistor %u: 0x%.3X", channel, tx_data);
-        print(" = %.3f C\n", temp);
-    }
+    // else if ((CAN_PAY_HK_THERM0 <= field_num) &&
+    //         (field_num < CAN_PAY_HK_THERM0 + 10)) {
+    //     uint8_t channel = field_num - CAN_PAY_HK_THERM0;
+    //     double vol = adc_raw_data_to_raw_vol(tx_data);
+    //     double res = therm_vol_to_res(vol);
+    //     double temp = therm_res_to_temp(res);
+    //     print("Thermistor %u: 0x%.3X", channel, tx_data);
+    //     print(" = %.3f C\n", temp);
+    // }
 
-    else if (field_num == CAN_PAY_HK_HEAT_SP1) {
-        double vol = dac_raw_data_to_vol(tx_data);
-        double res = therm_vol_to_res(vol);
-        double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 1: 0x%.3X", tx_data);
-        print(" = %.3f C\n", temp);
-    }
+    // else if (field_num == CAN_PAY_HK_HEAT_SP1) {
+    //     double vol = dac_raw_data_to_vol(tx_data);
+    //     double res = therm_vol_to_res(vol);
+    //     double temp = therm_res_to_temp(res);
+    //     print("Heater Setpoint 1: 0x%.3X", tx_data);
+    //     print(" = %.3f C\n", temp);
+    // }
 
-    else if (field_num == CAN_PAY_HK_HEAT_SP2) {
-        double vol = dac_raw_data_to_vol(tx_data);
-        double res = therm_vol_to_res(vol);
-        double temp = therm_res_to_temp(res);
-        print("Heater Setpoint 2: 0x%.3X", tx_data);
-        print(" = %.3f C\n", temp);
-    }
+    // else if (field_num == CAN_PAY_HK_HEAT_SP2) {
+    //     double vol = dac_raw_data_to_vol(tx_data);
+    //     double res = therm_vol_to_res(vol);
+    //     double temp = therm_res_to_temp(res);
+    //     print("Heater Setpoint 2: 0x%.3X", tx_data);
+    //     print(" = %.3f C\n", temp);
+    // }
 
-    else if (field_num == CAN_PAY_HK_PROX_LEFT) {
-        double vol = adc_raw_data_to_raw_vol(tx_data);
-        print("Left proximity: 0x%.3X = %.3f V\n", tx_data, vol);
-    }
-
-    else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
-        double vol = adc_raw_data_to_raw_vol(tx_data);
-        print("Right proximity: 0x%.3X = %.3f V\n", tx_data, vol);
-    }
 
     else {
         return;
@@ -185,11 +176,12 @@ void process_pay_opt_tx(uint8_t field_num, uint32_t tx_data) {
 }
 
 void process_pay_ctrl_tx(uint8_t field_num) {
-    if (field_num == CAN_PAY_CTRL_HEAT_SP1) {
-        print("Set heaters 1-4 setpoint\n");
-    } else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
-        print("Set heater 5 setpoint\n");
-    } else if (field_num == CAN_PAY_CTRL_ACT_UP) {
+    // if (field_num == CAN_PAY_CTRL_HEAT_SP1) {
+    //     print("Set heaters 1-4 setpoint\n");
+    // } else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
+    //     print("Set heater 5 setpoint\n");
+    // }
+    if (field_num == CAN_PAY_CTRL_ACT_UP) {
         print("Actuated plate up\n");
     } else if (field_num == CAN_PAY_CTRL_ACT_DOWN) {
         print("Actuated plate down\n");
@@ -282,30 +274,30 @@ void req_pay_opt_fn(void) {
 
 void set_heaters_1_4_0c_fn(void) {
     // TODO - encapsulate in function in lib-common/conversions
-    double res = therm_temp_to_res(0);
-    double vol = therm_res_to_vol(res);
-    uint16_t raw_data = dac_vol_to_raw_data(vol);
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
+    // double res = therm_temp_to_res(0);
+    // double vol = therm_res_to_vol(res);
+    // uint16_t raw_data = dac_vol_to_raw_data(vol);
+    // enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
 }
 void set_heaters_1_4_100c_fn(void) {
-    double res = therm_temp_to_res(100);
-    double vol = therm_res_to_vol(res);
-    uint16_t raw_data = dac_vol_to_raw_data(vol);
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
+    // double res = therm_temp_to_res(100);
+    // double vol = therm_res_to_vol(res);
+    // uint16_t raw_data = dac_vol_to_raw_data(vol);
+    // enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP1, raw_data);
 }
 
 void set_heater_5_0c_fn(void) {
-    double res = therm_temp_to_res(0);
-    double vol = therm_res_to_vol(res);
-    uint16_t raw_data = dac_vol_to_raw_data(vol);
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
+    // double res = therm_temp_to_res(0);
+    // double vol = therm_res_to_vol(res);
+    // uint16_t raw_data = dac_vol_to_raw_data(vol);
+    // enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
 }
 
 void set_heater_5_100c_fn(void) {
-    double res = therm_temp_to_res(100);
-    double vol = therm_res_to_vol(res);
-    uint16_t raw_data = dac_vol_to_raw_data(vol);
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
+    // double res = therm_temp_to_res(100);
+    // double vol = therm_res_to_vol(res);
+    // uint16_t raw_data = dac_vol_to_raw_data(vol);
+    // enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_HEAT_SP2, raw_data);
 }
 
 void req_act_up_fn(void) {

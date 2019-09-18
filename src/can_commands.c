@@ -65,16 +65,16 @@ void handle_rx_msg(void) {
 void handle_hk(uint8_t field_num) {
     uint32_t tx_data = 0;
 
-    if (field_num == CAN_PAY_HK_TEMP) {
-        if (sim_local_actions) {
-            // 16 bit raw data, make sure the 0b11 on the right is always there
-            tx_data = (random() & 0xFFFF) | 0b11;
-        } else {
-            tx_data = read_temp_raw_data();
-        }
-    }
+    // if (field_num == CAN_PAY_HK_TEMP) {
+    //     if (sim_local_actions) {
+    //         // 16 bit raw data, make sure the 0b11 on the right is always there
+    //         tx_data = (random() & 0xFFFF) | 0b11;
+    //     } else {
+    //         tx_data = read_temp_raw_data();
+    //     }
+    // }
 
-    else if (field_num == CAN_PAY_HK_HUM) {
+    if (field_num == CAN_PAY_HK_HUM) {
         if (sim_local_actions) {
             // 14 bit raw data
             tx_data = random() & 0x3FFF;
@@ -91,54 +91,34 @@ void handle_hk(uint8_t field_num) {
         }
     }
 
-    else if ((CAN_PAY_HK_THERM0 <= field_num) &&
-            (field_num < CAN_PAY_HK_THERM0 + 10)) {
-        if (sim_local_actions) {
-            // only allow 11 bits because thermistors do not exceed 2.5V
-            // (half of the ADC's 5V range)
-            tx_data = random() & 0x7FF;
-        } else {
-            uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-            fetch_adc_channel(&adc, channel);
-            tx_data = read_adc_channel(&adc, channel);
-        }
-    }
+    // else if ((CAN_PAY_HK_THERM0 <= field_num) &&
+    //         (field_num < CAN_PAY_HK_THERM0 + 10)) {
+    //     if (sim_local_actions) {
+    //         // only allow 11 bits because thermistors do not exceed 2.5V
+    //         // (half of the ADC's 5V range)
+    //         tx_data = random() & 0x7FF;
+    //     } else {
+    //         uint8_t channel = field_num - CAN_PAY_HK_THERM0;
+    //         fetch_adc_channel(&adc, channel);
+    //         tx_data = read_adc_channel(&adc, channel);
+    //     }
+    // }
 
-    else if (field_num == CAN_PAY_HK_HEAT_SP1) {
-        if (sim_local_actions) {
-            tx_data = random() & 0xFFF;
-        } else {
-            tx_data = dac.raw_voltage_a;
-        }
-    }
+    // else if (field_num == CAN_PAY_HK_HEAT_SP1) {
+    //     if (sim_local_actions) {
+    //         tx_data = random() & 0xFFF;
+    //     } else {
+    //         tx_data = dac.raw_voltage_a;
+    //     }
+    // }
 
-    else if (field_num == CAN_PAY_HK_HEAT_SP2) {
-        if (sim_local_actions) {
-            tx_data = random() & 0xFFF;
-        } else {
-            tx_data = dac.raw_voltage_b;
-        }
-    }
-
-    else if (field_num == CAN_PAY_HK_PROX_LEFT) {
-        if (sim_local_actions) {
-            tx_data = random() & 0xFFF;
-        } else {
-            uint8_t channel = 10;
-            fetch_adc_channel(&adc, channel);
-            tx_data = read_adc_channel(&adc, channel);
-        }
-    }
-
-    else if (field_num == CAN_PAY_HK_PROX_RIGHT) {
-        if (sim_local_actions) {
-            tx_data = random() & 0xFFF;
-        } else {
-            uint8_t channel = 11;
-            fetch_adc_channel(&adc, channel);
-            tx_data = read_adc_channel(&adc, channel);
-        }
-    }
+    // else if (field_num == CAN_PAY_HK_HEAT_SP2) {
+    //     if (sim_local_actions) {
+    //         tx_data = random() & 0xFFF;
+    //     } else {
+    //         tx_data = dac.raw_voltage_b;
+    //     }
+    // }
 
     else {
         // Return before calling enqueue() so we don't send a message back
@@ -196,12 +176,12 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_HEAT_SP1) {
-        set_heaters_1_to_4_raw_setpoint(rx_data);
-    }
-    else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
-        set_heater_5_raw_setpoint(rx_data);
-    }
+    // else if (field_num == CAN_PAY_CTRL_SET_HEAT1_SP) {
+    //     set_heaters_1_to_4_raw_setpoint(rx_data);
+    // }
+    // else if (field_num == CAN_PAY_CTRL_SET_HEAT2_SP) {
+    //     set_heater_5_raw_setpoint(rx_data);
+    // }
 
     else if (field_num == CAN_PAY_CTRL_ACT_UP) {
         // forwards - up
