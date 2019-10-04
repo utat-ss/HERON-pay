@@ -15,11 +15,6 @@ queue_t rx_msg_queue;
 // CAN messages to transmit
 queue_t tx_msg_queue;
 
-// Set this to true to simulate performing all local actions (e.g. fetching
-// data, actuating motors) - this allows testing just the PAY command handling
-// system on any PCB without any peripherals
-bool sim_local_actions = false;
-
 void handle_hk(uint8_t field_num);
 void handle_opt(uint8_t field_num);
 void handle_ctrl(uint8_t field_num, uint32_t rx_data);
@@ -75,20 +70,11 @@ void handle_hk(uint8_t field_num) {
     // }
 
     if (field_num == CAN_PAY_HK_HUM) {
-        if (sim_local_actions) {
-            // 14 bit raw data
-            tx_data = random() & 0x3FFF;
-        } else {
-            tx_data = read_hum_raw_data();
-        }
+        tx_data = read_hum_raw_data();
     }
 
     else if (field_num == CAN_PAY_HK_PRES) {
-        if (sim_local_actions) {
-            tx_data = random() & 0xFFFFFF;
-        } else {
-            tx_data = read_pres_raw_data();
-        }
+        tx_data = read_pres_raw_data();
     }
 
     // else if ((CAN_PAY_HK_THERM0 <= field_num) &&
@@ -148,14 +134,8 @@ void handle_opt(uint8_t field_num) {
         return;
     }
 
-    uint32_t tx_data = 0;
-    if (sim_local_actions) {
-        // 24 bit raw data
-        tx_data = random() & 0xFFFFFF;
-    } else {
-        // Get data from PAY-Optical over SPI
-        tx_data = read_opt_spi(field_num);
-    }
+    // Get data from PAY-Optical over SPI
+    uint32_t tx_data = read_opt_spi(field_num);
 
     // Add a message to transmit back
     uint8_t tx_msg[8] = { 0x00 };
