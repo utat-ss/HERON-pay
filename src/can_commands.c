@@ -134,9 +134,11 @@ void handle_hk(uint8_t field_num) {
     tx_msg[5] = (tx_data >> 16) & 0xFF;
     tx_msg[6] = (tx_data >> 8) & 0xFF;
     tx_msg[7] = tx_data & 0xFF;
-
     // Add message to transmit
     enqueue(&tx_msg_queue, tx_msg);
+
+    // Restart the timer for not receiving a command
+    restart_cmd_timer();
 }
 
 
@@ -166,6 +168,9 @@ void handle_opt(uint8_t field_num) {
     tx_msg[6] = (tx_data >> 8) & 0xFF;
     tx_msg[7] = tx_data & 0xFF;
     enqueue(&tx_msg_queue, tx_msg);
+
+    // Restart the timer for not receiving a command
+    restart_cmd_timer();
 }
 
 
@@ -224,7 +229,9 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     tx_msg[5] = (tx_data >> 16) & 0xFF;
     tx_msg[6] = (tx_data >> 8) & 0xFF;
     tx_msg[7] = tx_data & 0xFF;
-
     // Enqueue TX message to transmit
     enqueue(&tx_msg_queue, tx_msg);
+
+    // Restart the timer for not receiving a command
+    restart_cmd_timer();
 }
