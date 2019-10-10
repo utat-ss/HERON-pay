@@ -32,6 +32,7 @@
 #include "optical_spi.h"
 #include "env_sensors.h"
 #include "commands.h"
+#include "boost.h"
 
 extern adc_t adc;
 extern pex_t pex;
