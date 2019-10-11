@@ -16,7 +16,7 @@ INCLUDES = -I$(LIB_COMMON)/include
 # or else gives an error for undefined reference
 LIB = -L$(LIB_COMMON)/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -lstack -ltest -luptime -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
 # Name of microcontroller ("32m1" or "64m1")
-MCU = 32m1
+MCU = 64m1
 #-------------------------------------------------------------------------------
 
 

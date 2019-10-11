@@ -9,11 +9,11 @@
 # For some reason, conversions needs to come after dac or else it gives an error
 # Need to put dac before conversions, uptime before timer, heartbeat before can,
 # or else gives an error for undefined reference
-LIB = -L./lib-common/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -luptime -ltimer -luart -lutilities -lwatchdog
+LIB = -L./lib-common/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -luptime -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
 # Program name
 PROG = pay
 # Name of microcontroller ("32m1" or "64m1")
-MCU = 32m1
+MCU = 64m1
 #-------------------------------------------------------------------------------
 
 

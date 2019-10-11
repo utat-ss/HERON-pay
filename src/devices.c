@@ -17,6 +17,24 @@ adc_t adc = {
     .cs = &adc_cs
 };
 
+// DAC
+pin_info_t dac_cs = {
+    .pin = DAC_CS_PIN,
+    .ddr = &DAC_CS_DDR,
+    .port = &DAC_CS_PORT
+};
+pin_info_t dac_clr = {
+    .pin = DAC_CLR_PIN,
+    .ddr = &DAC_CLR_DDR,
+    .port = &DAC_CLR_PORT
+};
+dac_t dac = {
+    .cs = &dac_cs,
+    .clr = &dac_clr,
+    .raw_voltage_a = 0,
+    .raw_voltage_b = 0
+};
+
 // PEX
 pin_info_t pex_cs = {
     .port = &PEX_CS_PORT,
