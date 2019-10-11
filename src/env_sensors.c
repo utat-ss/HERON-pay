@@ -1,9 +1,5 @@
 /*
-Environmental sensors (temperature, pressure, humidity) on the PAY-SSM.
-
-Temperature sensor - LM95071
-http://www.ti.com/lit/ds/symlink/lm95071.pdf
-- default continuous conversion mode (p. 8)
+Environmental sensors (pressure, humidity) on the PAY-SSM v4.
 
 Humidity sensor - HIH7131
 https://sensing.honeywell.com/honeywell-sensing-humidicon-hih7000-series-product-sheet-009074-6-en.pdf
@@ -15,37 +11,6 @@ AUTHORS: Russel Brown, Shimi Smith, Bruno Almeida, Dylan Vogel
 */
 
 #include "env_sensors.h"
-
-
-/*
-Initializes the temperature sensor.
-*/
-void init_temp(void) {
-    init_cs(TEMP_CS_PIN, &TEMP_CS_DDR);
-    set_cs_high(TEMP_CS_PIN, &TEMP_CS_PORT);
-}
-
-/*
-Reads 16 bits of raw data from the temperature sensor
-(INCLUDING the 0b11 on the right that is always there).
-*/
-uint16_t read_temp_raw_data(void) {
-    // Typical temperature conversion time (p.3)
-    _delay_ms(130);
-
-    uint16_t raw_data = 0;
-
-    set_cs_low(TEMP_CS_PIN, &TEMP_CS_PORT);
-    raw_data |= send_spi(0x00);
-    raw_data <<= 8;
-    raw_data |= send_spi(0x00);
-    set_cs_high(TEMP_CS_PIN, &TEMP_CS_PORT);
-
-    return raw_data;
-}
-
-
-
 
 /*
 Initializes the humidity sensor.

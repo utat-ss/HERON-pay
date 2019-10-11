@@ -8,24 +8,11 @@
 #include <spi/spi.h>
 #include <uart/uart.h>
 
-
-/* Temperature Sensor */
-
-#define TEMP_CS_PIN     PC5
-#define TEMP_CS_PORT    PORTC
-#define TEMP_CS_DDR     DDRC
-
-// TODO - what is THM_DIS/TM_DIS?
-
-void init_temp(void);
-uint16_t read_temp_raw_data(void);
-
-
 /* Humidity Sensor */
 
-#define HUM_CS_PIN  PC4
-#define HUM_CS_PORT PORTC
-#define HUM_CS_DDR  DDRC
+#define HUM_CS_PIN  PD0
+#define HUM_CS_PORT PORTD
+#define HUM_CS_DDR  DDRD
 
 void init_hum(void);
 uint16_t read_hum_raw_data(void);
@@ -33,7 +20,7 @@ uint16_t read_hum_raw_data(void);
 
 /* Pressure Sensor */
 
-#define PRES_CS_PIN     PC6
+#define PRES_CS_PIN     PC1
 #define PRES_CS_PORT    PORTC
 #define PRES_CS_DDR     DDRC
 
