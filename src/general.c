@@ -20,7 +20,6 @@ void init_pay(void) {
     init_dac(&dac);
 
     // Environmental sensors
-    init_temp();
     init_hum();
     init_pres();
 
