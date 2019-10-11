@@ -11,7 +11,6 @@ int main(void) {
     init_spi();
     print("SPI Initialized\n");
 
-    init_temp();
     init_hum();
     init_pres();
     print("Sensors Initialized\n");
@@ -19,10 +18,6 @@ int main(void) {
     print("\nStarting test\n\n");
 
     while (1) {
-        uint16_t temp_raw = read_temp_raw_data();
-        double temp = temp_raw_data_to_temperature(temp_raw);
-        print("Temperature: 0x%04X = %d C\n", temp_raw, (int8_t) temp);
-
         uint16_t hum_raw = read_hum_raw_data();
         double hum = hum_raw_data_to_humidity(hum_raw);
         print("Humidity: 0x%04X = %d %%RH\n", hum_raw, (int8_t) hum);
