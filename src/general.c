@@ -41,7 +41,7 @@ void init_pay(void) {
     init_tx_mob(&data_tx_mob);
 
     init_uptime();
-    init_cmd_timer();
+    init_com_timeout();
 }
 
 

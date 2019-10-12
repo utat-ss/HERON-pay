@@ -359,13 +359,13 @@ int main(void) {
 
     // Change these as necessary for testing
     sim_obc = true;
-    cmd_timer_period_s = 600;
+    com_timeout_period_s = 600;
     hb_ping_period_s = 30;
     disable_hb = false;
     print_can_msgs = true;
 
     print("sim_obc = %u\n", sim_obc);
-    print("cmd_timer_period_s = %lu\n", cmd_timer_period_s);
+    print("com_timeout_period_s = %lu\n", com_timeout_period_s);
     print("hb_ping_period_s = %lu\n", hb_ping_period_s);
     print("disable_hb = %u\n", disable_hb);
     print("print_can_msgs = %u\n", print_can_msgs);

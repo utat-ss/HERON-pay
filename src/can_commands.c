@@ -157,7 +157,7 @@ void handle_hk(uint8_t field_num) {
     enqueue(&tx_msg_queue, tx_msg);
 
     // Restart the timer for not receiving a command
-    restart_cmd_timer();
+    restart_com_timeout();
 }
 
 
@@ -183,7 +183,7 @@ void handle_opt(uint8_t field_num) {
     enqueue(&tx_msg_queue, tx_msg);
 
     // Restart the timer for not receiving a command
-    restart_cmd_timer();
+    restart_com_timeout();
 }
 
 
@@ -319,5 +319,5 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     enqueue(&tx_msg_queue, tx_msg);
 
     // Restart the timer for not receiving a command
-    restart_cmd_timer();
+    restart_com_timeout();
 }
