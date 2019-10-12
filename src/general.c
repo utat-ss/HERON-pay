@@ -9,16 +9,13 @@ General-use functions for PAY.
 void init_pay(void) {
     // UART
     init_uart();
-
     // SPI
     init_spi();
 
     // PEX
     init_pex(&pex);
-
     // ADC
     init_adc(&adc);
-
     // DAC
     init_dac(&dac);
 
@@ -44,6 +41,7 @@ void init_pay(void) {
     init_tx_mob(&data_tx_mob);
 
     init_uptime();
+    init_com_timeout();
 }
 
 
