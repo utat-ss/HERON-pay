@@ -271,21 +271,11 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_EEPROM) {
-        // Received rx_data as a uint32_t but need to represent it as a uint32_t*, which the eeprom function requires
-        // Note that sizeof(uint32_t) = 4, sizeof(uint32_t*) = 2
-        // Need to case to uint16_t first or else we get
-        // warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-        uint32_t* ptr = (uint32_t*) ((uint16_t) rx_data);
-        tx_data = eeprom_read_dword(ptr);
+        tx_data = read_eeprom((uint16_t) rx_data);
     }
 
     else if (field_num == CAN_PAY_CTRL_ERASE_EEPROM) {
-        // Received rx_data as a uint32_t but need to represent it as a uint32_t*, which the eeprom function requires
-        // Note that sizeof(uint32_t) = 4, sizeof(uint32_t*) = 2
-        // Need to case to uint16_t first or else we get
-        // warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-        uint32_t* ptr = (uint32_t*) ((uint16_t) rx_data);
-        eeprom_update_dword(ptr, EEPROM_DEF_DWORD);
+        write_eeprom((uint16_t) rx_data, EEPROM_DEF_DWORD);
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_RAM_BYTE) {

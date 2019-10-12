@@ -39,14 +39,14 @@ void start_low_power_mode(void) {
 // raw_data - 12 bit DAC raw data for setpoint
 void set_heaters_1_to_4_raw_setpoint(uint16_t raw_data) {
     set_dac_raw_voltage(&dac, DAC_A, raw_data);
-    eeprom_write_dword(HEATER_1_TO_4_RAW_SETPOINT_ADDR, raw_data);
+    write_eeprom(HEATER_1_TO_4_RAW_SETPOINT_ADDR, raw_data);
 }
 
 // Sets temperature setpoint of heater 5 (connected to DAC B)
 // raw_data - 12 bit DAC raw data for setpoint
 void set_heater_5_raw_setpoint(uint16_t raw_data) {
     set_dac_raw_voltage(&dac, DAC_B, raw_data);
-    eeprom_write_dword(HEATER_5_RAW_SETPOINT_ADDR, raw_data);
+    write_eeprom(HEATER_5_RAW_SETPOINT_ADDR, raw_data);
 }
 
 // temp - in C
@@ -66,14 +66,8 @@ void set_heater_5_temp_setpoint(double temp) {
 }
 
 void update_heater_setpoint_to_previous_values(void) {
-    uint16_t heater_1_to_4_last_setpoint = eeprom_read_dword(HEATER_1_TO_4_RAW_SETPOINT_ADDR);
-    if (heater_1_to_4_last_setpoint == EEPROM_DEF_DWORD){
-        heater_1_to_4_last_setpoint = 0;
-    }
-    uint16_t heater_5_last_setpoint = eeprom_read_dword(HEATER_5_RAW_SETPOINT_ADDR);
-    if (heater_5_last_setpoint == EEPROM_DEF_DWORD){
-        heater_5_last_setpoint = 0;
-    }
+    uint16_t heater_1_to_4_last_setpoint = read_eeprom_or_default(HEATER_1_TO_4_RAW_SETPOINT_ADDR, 0);
+    uint16_t heater_5_last_setpoint = read_eeprom_or_default(HEATER_5_RAW_SETPOINT_ADDR, 0);
 
     set_heaters_1_to_4_raw_setpoint(heater_1_to_4_last_setpoint);
     set_heater_5_raw_setpoint(heater_5_last_setpoint);

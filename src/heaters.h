@@ -5,13 +5,10 @@
 #include <uptime/uptime.h>
 
 #include "devices.h"
-#include <avr/eeprom.h>
-
-#define EEPROM_DEF_DWORD 0xFFFFFFFF
 
 //EEPROM address for storing raw data
-#define HEATER_1_TO_4_RAW_SETPOINT_ADDR ((uint32_t*) 0x80)
-#define HEATER_5_RAW_SETPOINT_ADDR ((uint32_t*) 0x84)
+#define HEATER_1_TO_4_RAW_SETPOINT_ADDR 0x80
+#define HEATER_5_RAW_SETPOINT_ADDR      0x84
 
 #define HEATER_LOW_POWER_TIMER 30
 
