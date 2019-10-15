@@ -6,33 +6,26 @@ that `general.c` requires.
 
 #include "devices.h"
 
-// ADC
-pin_info_t adc_cs = {
-    .port = &ADC_CS_PORT,
-    .ddr = &ADC_CS_DDR,
-    .pin = ADC_CS_PIN
+// ADC1
+pin_info_t adc1_cs = {
+    .port = &ADC1_CS_PORT,
+    .ddr = &ADC1_CS_DDR,
+    .pin = ADC1_CS_PIN
 };
-adc_t adc = {
+adc_t adc1 = {
     .auto_channels = 0x0fff, // channels 0-11
-    .cs = &adc_cs
+    .cs = &adc1_cs
 };
 
-// DAC
-pin_info_t dac_cs = {
-    .pin = DAC_CS_PIN,
-    .ddr = &DAC_CS_DDR,
-    .port = &DAC_CS_PORT
+// ADC2
+pin_info_t adc2_cs = {
+    .port = &ADC2_CS_PORT,
+    .ddr = &ADC2_CS_DDR,
+    .pin = ADC2_CS_PIN
 };
-pin_info_t dac_clr = {
-    .pin = DAC_CLR_PIN,
-    .ddr = &DAC_CLR_DDR,
-    .port = &DAC_CLR_PORT
-};
-dac_t dac = {
-    .cs = &dac_cs,
-    .clr = &dac_clr,
-    .raw_voltage_a = 0,
-    .raw_voltage_b = 0
+adc_t adc2 = {
+    .auto_channels = 0x0fff, // channels 0-11
+    .cs = &adc2_cs
 };
 
 // PEX
@@ -46,8 +39,14 @@ pin_info_t pex_rst = {
     .ddr = &PEX_RST_DDR,
     .pin = PEX_RST_PIN
 };
-pex_t pex = {
-    .addr = PEX_ADDR,
+pex_t pex1 = {
+    .addr = PEX1_ADDR,
+    .cs = &pex_cs,
+    .rst = &pex_rst
+};
+
+pex_t pex2 = {
+    .addr = PEX2_ADDR,
     .cs = &pex_cs,
     .rst = &pex_rst
 };

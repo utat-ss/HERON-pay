@@ -14,13 +14,12 @@ void init_pay(void) {
     init_spi();
 
     // PEX
-    init_pex(&pex);
+    init_pex(&pex1);
+    init_pex(&pex2);
 
     // ADC
-    init_adc(&adc);
-
-    // DAC
-    init_dac(&dac);
+    init_adc(&adc1);
+    init_adc(&adc2);
 
     // Environmental sensors
     init_hum();

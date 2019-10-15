@@ -2,7 +2,6 @@
 #include <uart/uart.h>
 
 #include "../../src/boost.h"
-#include "../../src/boost.c"
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     if (len == 0) {
