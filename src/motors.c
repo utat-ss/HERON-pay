@@ -5,8 +5,9 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 
 - phase/enable mode
 
-TODO - sleep motors
+TODO - sleep motors - can achieve by disable boost 10V
 TODO - test faults - INT2
+TODO - change function calls based on pins re-mapping
 */
 
 #include "motors.h"
