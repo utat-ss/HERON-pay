@@ -34,8 +34,10 @@
 #include "commands.h"
 #include "boost.h"
 
-extern adc_t adc;
-extern pex_t pex;
+extern adc_t adc1;
+extern adc_t adc2;
+extern pex_t pex1;
+extern pex_t pex2;
 
 void init_pay(void);
 void process_next_rx_msg(void);

@@ -10,7 +10,7 @@
 #include "devices.h"
 
 /* PEX pins definition */
-#define BST_TEN_ENBL   0 //GPIOA0
+#define BST_TEN_ENBL    0 //GPIOA0
 #define BST_SIX_ENBL    7 //GPIOB7
 
 void init_boosts(void);
