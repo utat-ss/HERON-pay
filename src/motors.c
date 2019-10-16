@@ -25,7 +25,7 @@ void delay_ms(uint32_t ms) {
 
 void init_motors(void) {
     // M1, M0, decay tied to both
-
+    /*
     // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_A, MOT_SLP, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT_SLP, OUTPUT);
@@ -60,6 +60,7 @@ void init_motors(void) {
     // BENBL = 0
     init_cs(MOT_BENBL_PIN, &MOT_BENBL_DDR);
     set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+     */
 }
 
 void enable_motors(void) {
@@ -68,11 +69,13 @@ void enable_motors(void) {
     // nSLEEP = 1
 
     // AENBL = 1
+    /*
     set_pex_pin(&pex1, PEX_A, MOT_AENBL, 1);
     set_pex_pin(&pex1, PEX_B, MOT_AENBL, 1);
 
     // BENBL = 1
     set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+     */
 }
 
 void disable_motors(void) {
@@ -81,11 +84,13 @@ void disable_motors(void) {
     // nSLEEP = 0
 
     // AENBL = 0
+    /*
     set_pex_pin(&pex1, PEX_A, MOT_AENBL, 0);
     set_pex_pin(&pex1, PEX_B, MOT_AENBL, 0);
 
     // BENBL = 0
     set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
+     */
 }
 
 
@@ -97,6 +102,7 @@ forward - true to go "forward", false to go "backward"
         - these are arbitrary and just mean opposite directions
 */
 void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
+    /*
     enable_motors();
 
     uint16_t delay = period / 4;
@@ -144,12 +150,14 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
     }
 
     disable_motors();
+     */
 }
 
 
 
 
 ISR(INT2_vect) {
+    /*
     print("INT2 - Motor Fault (PEX INTA)\n");
 
     // Check if either of the motor FLTn (fault) pins is low
@@ -165,4 +173,5 @@ ISR(INT2_vect) {
     if (motor_fault) {
         disable_motors();
     }
+     */
 }
