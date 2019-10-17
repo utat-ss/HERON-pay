@@ -20,10 +20,10 @@
 #define OPT_RST_PORT    PORTB
 #define OPT_RST_DDR     DDRB
 
-// OPT_DATA_RDY pin on schematic
-#define OPT_RST_PIN     PC7
-#define OPT_RST_PORT    PORTC
-#define OPT_RST_DDR     DDRC
+// OPT_DATA_RDY pin on PAY-SSM
+#define OPT_DATA_RDY_PIN     PC7
+#define OPT_DATA_RDY_PORT    PORTC
+#define OPT_DATA_RDY_DDR     DDRC
 
 void init_opt_spi(void);
 void rst_opt_spi(void);
