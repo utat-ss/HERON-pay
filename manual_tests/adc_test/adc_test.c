@@ -65,16 +65,16 @@ int main(void){
 
         //-----ADC1-----------------------------------------
 
-        read_therm("ADC1 GEN THM",                 ADC1_GEN_THM);
+        read_therm_adc1("ADC1 GEN THM",            ADC1_GEN_THM);
 
-        read_voltage("ADC1 BOOST6 VOLT MON",       ADC1_BOOST6_VOLT_MON);
         read_therm_adc1("ADC1 MOTOR TEMP 1",       ADC1_MOTOR_TEMP_1);
         read_therm_adc1("ADC1 MOTOR TEMP 2",       ADC1_MOTOR_TEMP_2);
-        read_therm_adc1("ADC1 BOOST6 TEMP",        ADC1_BOOST6_TEMP);
-        read_voltage("ADC1 TBOOST10 TEMP",         ADC1_TBOOST10_TEMP);
-        read_therm_adc1("ADC1 BOOST10 VOLT MON",   ADC1_BOOST10_VOLT_MON);
+        read_voltage("ADC1 BOOST10 VOLT MON",      ADC1_BOOST10_VOLT_MON);
         read_current("ADC1 BOOST10 CURR MON",      ADC1_BOOST10_CURR_MON);
+        read_therm_adc1("ADC1 BOOST10 TEMP",       ADC1_BOOST10_TEMP);
+        read_voltage("ADC1 BOOST6 VOLT MON",       ADC1_BOOST6_VOLT_MON);
         read_current("ADC1 BOOST6 CURR MON",       ADC1_BOOST6_CURR_MON);
+        read_therm_adc1("ADC1 BOOST6 TEMP",        ADC1_BOOST6_TEMP);
 
         read_voltage("ADC1 BATT VOLT MON",         ADC1_BATT_VOLT_MON);
         
