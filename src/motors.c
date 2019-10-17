@@ -5,7 +5,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 
 - phase/enable mode
 
-TODO - test faults - INT2 - Can manually force signal HIGH and see what happens
+TODO - test faults - INT2 - Can manually force signal LOW and see what happens
 */
 
 #include "motors.h"
