@@ -5,9 +5,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 
 - phase/enable mode
 
-TODO - sleep motors - can achieve by disable boost 10V
-TODO - test faults - INT2
-TODO - change function calls based on pins re-mapping
+TODO - test faults - INT2 - Can manually force signal HIGH and see what happens
 */
 
 #include "motors.h"
@@ -24,75 +22,145 @@ void delay_ms(uint32_t ms) {
 }
 
 void init_motors(void) {
-    // M1, M0, decay tied to both
-    /*
     // nSLEEP = 1
-    set_pex_pin_dir(&pex1, PEX_A, MOT_SLP, OUTPUT);
-    set_pex_pin_dir(&pex1, PEX_B, MOT_SLP, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_SLP, 1);
-    set_pex_pin(&pex1, PEX_B, MOT_SLP, 1);
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
+    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
-    // ADECAY = 1 (fast decay)
-    // TODO - might need to connect BDECAY high in hardware (currently tied to ground)
-    set_pex_pin_dir(&pex1, PEX_A, MOT_ADECAY, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_ADECAY, 1);
+    // ADECAY = 1 & BDECAY = 1
+    // TODO - double check datasheet about setting DECAY, might want slow DECAY
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_ADECAY, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 1);
+    set_pex_pin_dir(&pex1, PEX_A, MOT2_ADECAY, OUTPUT);
+    set_pex_pin(&pex1, PEX_A, MOT2_ADECAY, 1);
+
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_BDECAY, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 1);
+    set_pex_pin_dir(&pex1, PEX_A, MOT2_BDECAY, OUTPUT);
+    set_pex_pin(&pex1, PEX_A, MOT2_BDECAY, 1);
 
     // M1 = 1 (async fast decay)
-    set_pex_pin_dir(&pex1, PEX_A, MOT_M1, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_M1, 1);
-
-    // APHASE = 0
-    set_pex_pin_dir(&pex1, PEX_A, MOT_APHASE, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_APHASE, 0);
-
-    // BPHASE = 0
-    set_pex_pin_dir(&pex1, PEX_A, MOT_BPHASE, OUTPUT);
-    set_pex_pin_dir(&pex1, PEX_B, MOT_BPHASE, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_BPHASE, 0);
-    set_pex_pin(&pex1, PEX_B, MOT_BPHASE, 0);
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_M1, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_M1, 1);
+    set_pex_pin_dir(&pex1, PEX_A, MOT2_M1, OUTPUT);
+    set_pex_pin(&pex1, PEX_A, MOT2_M1, 1);
 
     // AENBL = 0
-    set_pex_pin_dir(&pex1, PEX_A, MOT_AENBL, OUTPUT);
-    set_pex_pin_dir(&pex1, PEX_B, MOT_AENBL, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT_AENBL, 0);
-    set_pex_pin(&pex1, PEX_B, MOT_AENBL, 0);
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_AENBL, OUTPUT);
+    set_pex_pin_dir(&pex1, PEX_A, MOT2_AENBL, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
+    set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);
 
     // BENBL = 0
-    init_cs(MOT_BENBL_PIN, &MOT_BENBL_DDR);
-    set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
-     */
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_BENBL, OUTPUT);
+    set_pex_pin_dir(&pex1, PEX_A, MOT2_BENBL, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 0);
+    set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 0);
+
+    // APHASE = 0 & BPHASE = 0
+    init_cs(MOT1_APHASE_PIN, &MOT1_APHASE_DDR);
+    set_cs_low(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+    init_cs(MOT1_BPHASE_PIN, &MOT1_BPHASE_DDR);
+    set_cs_low(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+
+    init_cs(MOT2_APHASE_PIN, &MOT2_APHASE_DDR);
+    set_cs_low(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+    init_cs(MOT2_BPHASE_PIN, &MOT2_BPHASE_DDR);
+    set_cs_low(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
 }
 
 void enable_motors(void) {
     // Enable motors and disable sleep
 
-    // nSLEEP = 1
+    // nSLEEP = 0
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
+    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
     // AENBL = 1
-    /*
-    set_pex_pin(&pex1, PEX_A, MOT_AENBL, 1);
-    set_pex_pin(&pex1, PEX_B, MOT_AENBL, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 1);
+    set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 1);
 
     // BENBL = 1
-    set_cs_high(MOT_BENBL_PIN, &MOT_BENBL_PORT);
-     */
+    set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 1);
+    set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 1);
+}
+
+void enable_motor1(void) {
+    // Enable motor1 only
+
+    // nSLEEP = 0
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
+
+    // AENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 1);
+
+    // BENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 1);
+}
+
+void enable_motor2(void) {
+    // Enable motor2 only
+
+    // nSLEEP = 0
+    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
+
+    // AENBL = 1
+    set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 1);
+
+    // BENBL = 1
+    set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 1);
 }
 
 void disable_motors(void) {
     // Disable motors and enable sleep
 
-    // nSLEEP = 0
+    // nSLEEP = 1
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
+    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
-    // AENBL = 0
-    /*
-    set_pex_pin(&pex1, PEX_A, MOT_AENBL, 0);
-    set_pex_pin(&pex1, PEX_B, MOT_AENBL, 0);
+    // AENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
+    set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);
 
-    // BENBL = 0
-    set_cs_low(MOT_BENBL_PIN, &MOT_BENBL_PORT);
-     */
+    // BENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 0);
+    set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 0);
 }
 
+void disable_motor1(void) {
+    // Disable motor1 only
+
+    // nSLEEP = 1
+    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
+
+    // AENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
+
+    // BENBL = 1
+    set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 0);
+}
+
+void disable_motor2(void) {
+    // Disable motor2 only
+
+    // nSLEEP = 1
+    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
+
+    // AENBL = 1
+    set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);
+
+    // BENBL = 1
+    set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 0);
+}
 
 /*
 period - time for one cycle (in ms)
@@ -102,7 +170,7 @@ forward - true to go "forward", false to go "backward"
         - these are arbitrary and just mean opposite directions
 */
 void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
-    /*
+
     enable_motors();
 
     uint16_t delay = period / 4;
@@ -111,67 +179,160 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward) {
         if (forward) {
             // BPHASE = 1
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_BPHASE, 1);
-            set_pex_pin(&pex1, PEX_B, MOT_BPHASE, 1);
+            set_cs_high(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+            set_cs_high(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
 
             // APHASE = 1
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_APHASE, 1);
+            set_cs_high(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+            set_cs_high(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
 
             // BPHASE = 0
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_BPHASE, 0);
-            set_pex_pin(&pex1, PEX_B, MOT_BPHASE, 0);
+            set_cs_low(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+            set_cs_low(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
 
             // APHASE = 0
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_APHASE, 0);
+            set_cs_low(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+            set_cs_low(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
         }
 
         else {
-            // APHASE = 1
-            delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_APHASE, 1);
-
-            // BPHASE = 1
-            delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_BPHASE, 1);
-            set_pex_pin(&pex1, PEX_B, MOT_BPHASE, 1);
-
             // APHASE = 0
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_APHASE, 0);
+            set_cs_low(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+            set_cs_low(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
 
             // BPHASE = 0
             delay_ms(delay);
-            set_pex_pin(&pex1, PEX_A, MOT_BPHASE, 0);
-            set_pex_pin(&pex1, PEX_B, MOT_BPHASE, 0);
+            set_cs_low(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+            set_cs_low(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
+
+            // APHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+            set_cs_high(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+
+            // BPHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+            set_cs_high(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
         }
     }
 
     disable_motors();
-     */
 }
 
+void actuate_motor1(uint16_t period, uint16_t num_cycles, bool forward) {
 
+    enable_motor1();
 
+    uint16_t delay = period / 4;
+
+    for (uint16_t i = 0; i < num_cycles; i++) {
+        if (forward) {
+            // BPHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+
+            // APHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+
+            // BPHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+
+            // APHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+        }
+
+        else {
+            // APHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+
+            // BPHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+
+            // APHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_APHASE_PIN, &MOT1_APHASE_PORT);
+
+            // BPHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT1_BPHASE_PIN, &MOT1_BPHASE_PORT);
+        }
+    }
+
+    disable_motor1();
+}
+
+void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
+
+    enable_motor2();
+
+    uint16_t delay = period / 4;
+
+    for (uint16_t i = 0; i < num_cycles; i++) {
+        if (forward) {
+            // BPHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
+
+            // APHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+
+            // BPHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
+
+            // APHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+        }
+
+        else {
+            // APHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+
+            // BPHASE = 0
+            delay_ms(delay);
+            set_cs_low(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
+
+            // APHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT2_APHASE_PIN, &MOT2_APHASE_PORT);
+
+            // BPHASE = 1
+            delay_ms(delay);
+            set_cs_high(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
+        }
+    }
+
+    disable_motor2();
+}
 
 ISR(INT2_vect) {
-    /*
+
     print("INT2 - Motor Fault (PEX INTA)\n");
 
     // Check if either of the motor FLTn (fault) pins is low
-    if (get_pex_pin(&pex1, PEX_A, MOT_FLT_A) == 0) {
+    if (get_pex_pin(&pex1, PEX_B, MOT1_FLT_N) == 0) {
         motor_fault = true;
-        print("MOTOR A\n");
+        print("MOTOR 1 IN FAULT\n");
     }
-    if (get_pex_pin(&pex1, PEX_A, MOT_FLT_B)  == 0) {
+    if (get_pex_pin(&pex1, PEX_A, MOT2_FLT_N)  == 0) {
         motor_fault = true;
-        print("MOTOR B\n");
+        print("MOTOR 2 IN FAULT\n");
     }
 
     if (motor_fault) {
         disable_motors();
     }
-     */
 }
