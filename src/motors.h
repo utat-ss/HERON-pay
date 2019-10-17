@@ -52,4 +52,12 @@ void enable_motors(void);
 void disable_motors(void);
 void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward);
 
+// Add in functions for driving individual motors
+void enable_motor1(void);
+void disable_motor1(void);
+void enable_motor2(void);
+void disable_motor2(void);
+void actuate_motor1(uint16_t period, uint16_t num_cycles, bool forward);
+void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward);
+
 #endif
