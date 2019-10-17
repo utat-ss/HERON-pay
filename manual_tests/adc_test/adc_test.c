@@ -7,8 +7,8 @@
 
 
 void read_voltage(char* name, uint8_t channel) {
-    fetch_adc_channel(&adc, channel);
-    uint16_t raw_data = read_adc_channel(&adc, channel);
+    fetch_adc_channel(&adc1, channel);
+    uint16_t raw_data = read_adc_channel(&adc1, channel);
     double raw_voltage = adc_raw_data_to_raw_vol(raw_data);
     double voltage = adc_raw_data_to_eps_vol(raw_data);
     print("%s, %u, 0x%04x, %.6f V, %.6f V\n",
@@ -16,17 +16,26 @@ void read_voltage(char* name, uint8_t channel) {
 }
 
 void read_current(char* name, uint8_t channel) {
-    fetch_adc_channel(&adc, channel);
-    uint16_t raw_data = read_adc_channel(&adc, channel);
+    fetch_adc_channel(&adc1, channel);
+    uint16_t raw_data = read_adc_channel(&adc1, channel);
     double raw_voltage = adc_raw_data_to_raw_vol(raw_data);
     double current = adc_raw_data_to_eps_cur(raw_data);
     print("%s, %u, 0x%04x, %.6f V, %.6f A\n",
             name, channel, raw_data, raw_voltage, current);
 }
 
+void read_therm_adc1(char* name, uint8_t channel) {
+    fetch_adc_channel(&adc1, channel);
+    uint16_t raw_data = read_adc_channel(&adc1, channel);
+    double raw_voltage = adc_raw_data_to_raw_vol(raw_data);
+    double temp = adc_raw_data_to_therm_temp(raw_data);
+    print("%s, %u, 0x%04x, %.6f V, %.6f C\n",
+            name, channel, raw_data, raw_voltage, temp);
+}
+
 void read_therm(char* name, uint8_t channel) {
-    fetch_adc_channel(&adc, channel);
-    uint16_t raw_data = read_adc_channel(&adc, channel);
+    fetch_adc_channel(&adc2, channel);
+    uint16_t raw_data = read_adc_channel(&adc2, channel);
     double raw_voltage = adc_raw_data_to_raw_vol(raw_data);
     double temp = adc_raw_data_to_therm_temp(raw_data);
     print("%s, %u, 0x%04x, %.6f V, %.6f C\n",
@@ -41,31 +50,33 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    init_adc(&adc);
+    init_adc(&adc1);
+    init_adc(&adc2);
     print("ADC Initialized\n");
 
-    print("\nStarting test\n\n");
+    print("\nStarting ADC Reading Test\n\n");
 
     while (1) {
 
-        fetch_all_adc_channels(&adc);
+        fetch_all_adc_channels(&adc1);
+        fetch_all_adc_channels(&adc2);
 
         print("Name, Channel, Raw Data, Raw Voltage, Converted Data\n");
 
         //-----ADC1-----------------------------------------
 
-        read_therm("ADC1 GEN THM",            ADC1_GEN_THM);
+        read_therm("ADC1 GEN THM",                 ADC1_GEN_THM);
 
-        read_voltage("ADC1 BOOST6 VOLT MON",  ADC1_BOOST6_VOLT_MON);
-        read_therm("ADC1 MOTOR TEMP 1",       ADC1_MOTOR_TEMP_1);
-        read_therm("ADC1 MOTOR TEMP 2",       ADC1_MOTOR_TEMP_2);
-        read_therm("ADC1 BOOST6 TEMP",        ADC1_BOOST6_TEMP);
-        read_voltage("ADC1 TBOOST10 TEMP",    ADC1_TBOOST10_TEMP);
-        read_therm("ADC1 BOOST10 VOLT MON",   ADC1_BOOST10_VOLT_MON);
-        read_current("ADC1 BOOST10 CURR MON", ADC1_BOOST10_CURR_MON);
-        read_current("ADC1 BOOST6 CURR MON",  ADC1_BOOST6_CURR_MON);
+        read_voltage("ADC1 BOOST6 VOLT MON",       ADC1_BOOST6_VOLT_MON);
+        read_therm_adc1("ADC1 MOTOR TEMP 1",       ADC1_MOTOR_TEMP_1);
+        read_therm_adc1("ADC1 MOTOR TEMP 2",       ADC1_MOTOR_TEMP_2);
+        read_therm_adc1("ADC1 BOOST6 TEMP",        ADC1_BOOST6_TEMP);
+        read_voltage("ADC1 TBOOST10 TEMP",         ADC1_TBOOST10_TEMP);
+        read_therm_adc1("ADC1 BOOST10 VOLT MON",   ADC1_BOOST10_VOLT_MON);
+        read_current("ADC1 BOOST10 CURR MON",      ADC1_BOOST10_CURR_MON);
+        read_current("ADC1 BOOST6 CURR MON",       ADC1_BOOST6_CURR_MON);
 
-        read_voltage("ADC1 BATT VOLT MON",    ADC1_BATT_VOLT_MON);
+        read_voltage("ADC1 BATT VOLT MON",         ADC1_BATT_VOLT_MON);
         
         //-----ADC2-----------------------------------------
 
@@ -85,7 +96,7 @@ int main(void){
         //--------------------------------------------------
 
         print("\n");
-        _delay_ms(2000);
+        _delay_ms(5000);
     }
 
     return 0;
