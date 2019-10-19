@@ -279,6 +279,15 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_RAM_BYTE) {
+        // See lib-common/examples/read_registers for an MMIO example
+        // https://arduino.stackexchange.com/questions/56304/how-do-i-directly-access-a-memory-mapped-register-of-avr-with-c
+        // http://download.mikroe.com/documents/compilers/mikroc/avr/help/avr_memory_organization.htm
+
+        // Need to represent address as volatile uint8_t* to read RAM
+        // Must first cast to uint16_t or else we get warning: cast to pointer
+        // from integer of different size -Wint-to-pointer-cast]
+        volatile uint8_t* pointer = (volatile uint8_t*) ((uint16_t) rx_data);
+        tx_data = (uint32_t) (*pointer);
     }
 
     else if (field_num == CAN_PAY_CTRL_START_TEMP_LPM) {
