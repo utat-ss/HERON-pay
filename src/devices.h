@@ -22,9 +22,12 @@
 #define ADC1_TBOOST10_TEMP      7
 =======
 #define ADC1_BOOST6_TEMP        5
-#define ADC1_BOOST10_TEMP      7
 >>>>>>> re-write boost test
 #define ADC1_BOOST10_VOLT_MON   6
+=======
+#define ADC1_BOOST10_TEMP       6
+#define ADC1_BOOST10_VOLT_MON   7
+>>>>>>> minor mapping fix
 #define ADC1_BOOST10_CURR_MON   8
 #define ADC1_BOOST6_CURR_MON    9
 =======
