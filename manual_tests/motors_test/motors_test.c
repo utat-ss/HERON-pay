@@ -7,7 +7,7 @@ int main(void){
     init_uart();
     print("\n\nUART initialized\n");
 
-    init_pex(&pex);
+    init_pex(&pex1);
     print("PEX Initialized\n");
 
     print("Starting test\n");
