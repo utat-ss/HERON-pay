@@ -1,6 +1,6 @@
 #include <adc/adc.h>
 #include <conversions/conversions.h>
-#include <spi/spi.h>
+#include <pex/pex.h>
 #include <uart/uart.h>
 
 #include "../../src/boost.h"
@@ -103,8 +103,8 @@ int main(void) {
     init_uart();
     print("\n\nUART initialized\n");
 
-    init_spi();
-    print("SPI Initialized\n");
+    init_pex(&pex2);
+    print("\n\nPEX2 initialized\n");
 
     init_boosts();
     print("Boost PEX initialized\n");

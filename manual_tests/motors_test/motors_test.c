@@ -1,5 +1,4 @@
 #include <pex/pex.h>
-#include <spi/spi.h>
 #include <uart/uart.h>
 
 #include "../../src/motors.h"
@@ -8,12 +7,8 @@ int main(void){
     init_uart();
     print("\n\nUART initialized\n");
 
-    init_spi();
-    print("SPI Initialized\n");
-
     init_pex(&pex);
     print("PEX Initialized\n");
-
 
     print("Starting test\n");
 
