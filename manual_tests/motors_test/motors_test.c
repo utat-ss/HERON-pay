@@ -1,11 +1,15 @@
 #include <pex/pex.h>
 #include <uart/uart.h>
+#include <spi/spi.h>
 
 #include "../../src/motors.h"
 
 int main(void){
     init_uart();
     print("\n\nUART initialized\n");
+
+    init_spi();
+    print("I2C initialized\n");
 
     init_pex(&pex1);
     print("PEX Initialized\n");
