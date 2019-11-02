@@ -39,6 +39,7 @@ pin_info_t pex_rst = {
     .ddr = &PEX_RST_DDR,
     .pin = PEX_RST_PIN
 };
+
 pex_t pex1 = {
     .addr = PEX1_ADDR,
     .cs = &pex_cs,

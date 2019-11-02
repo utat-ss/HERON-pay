@@ -16,15 +16,15 @@ Author: Lorna Lan
 =======
 
 void init_heaters(void){
-  set_pex_pin_dir(&pex1, PEX_B, HEATER_EN_N, OUTPUT);
-  set_pex_pin(&pex1, PEX_B, HEATER_EN_N, 1);
+  set_pex_pin_dir(&pex1, PEX_A, HEATER_EN_N, OUTPUT);
+  set_pex_pin(&pex1, PEX_A, HEATER_EN_N, 1);
 }
 
 void heater_all_on(void) {
-    set_pex_pin(&pex1, PEX_B, HEATER_EN_N, 0);
+    set_pex_pin(&pex1, PEX_A, HEATER_EN_N, 0);
 }
 
 void heater_all_off(void) {
-    set_pex_pin(&pex1, PEX_B, HEATER_EN_N, 1);
+    set_pex_pin(&pex1, PEX_A, HEATER_EN_N, 1);
 }
 >>>>>>> Heaters control src
