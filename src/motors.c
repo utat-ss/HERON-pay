@@ -25,8 +25,8 @@ void init_motors(void) {
     // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
-    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
     // ADECAY = 1 & BDECAY = 1
     // TODO - double check datasheet about setting DECAY, might want slow DECAY
@@ -76,8 +76,8 @@ void enable_motors(void) {
     // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
-    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 1);
@@ -93,7 +93,7 @@ void enable_motor1(void) {
 
     // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 1);
@@ -107,7 +107,7 @@ void enable_motor2(void) {
 
     // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 1);
@@ -122,8 +122,8 @@ void disable_motors(void) {
     // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
-    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
@@ -139,7 +139,7 @@ void disable_motor1(void) {
 
     // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
@@ -153,7 +153,7 @@ void disable_motor2(void) {
 
     // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
+    set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
     // AENBL = 1
     set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);

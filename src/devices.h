@@ -2,7 +2,6 @@
 #define DEVICES_H
 
 #include <adc/adc.h>
-#include <dac/dac.h>
 #include <pex/pex.h>
 
 
@@ -54,8 +53,8 @@
 #define PEX_RST_DDR     DDRC
 
 // PEX address
-#define PEX1_ADDR        4
-#define PEX2_ADDR        2
+#define PEX1_ADDR       0b100
+#define PEX2_ADDR       0b010
 
 
 extern adc_t adc1;
