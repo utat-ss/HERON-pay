@@ -42,6 +42,8 @@ WINDOWS := false
 MAC_OS := false
 LINUX := false
 
+REMOTE := false
+
 ifeq ($(OS),Windows_NT)
 	WINDOWS := true
 else
@@ -69,8 +71,11 @@ ifeq ($(MAC_OS), true)
 endif
 ifeq ($(LINUX), true)
 	# lower number
-	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
-	UART = $(shell find /dev -name 'ttyS[0-9]*' | sort | sed -n 2p)
+	PORT = $(shell pavr2cmd --prog-port)
+	UART = $(shell pavr2cmd --ttl-port)
+	ifeq ($(shell whoami),ss)
+		REMOTE := true
+	endif
 endif
 
 # If automatic port detection fails,
@@ -200,4 +205,12 @@ endif
 
 # Upload program to board
 upload: $(PROG)
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 IN
+	gpio -g mode 15 IN
+endif
 	avrdude -c $(PGMR) -C ./lib-common/avrdude.conf -p $(DEVICE) -P $(PORT) -U flash:w:./build/$^.hex
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 ALT0
+	gpio -g mode 15 ALT0
+endif
