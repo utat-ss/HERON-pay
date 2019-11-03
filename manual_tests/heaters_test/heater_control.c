@@ -31,10 +31,13 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
 
 int main(void){
     init_uart();
-    print("\n\nUART initialized\n");
+    print("\nUART initialized\n");
+
+    init_spi();
+    print("\nSPI initialized\n");
 
     init_pex(&pex1);
-    print("\n\nPEX initialized\n");
+    print("\nPEX initialized\n");
 
     init_heaters();
     print("Heaters Initialized\n");

@@ -22,7 +22,7 @@ void delay_ms(uint32_t ms) {
 }
 
 void init_motors(void) {
-    // nSLEEP = 1
+    // nSLEEP = 0, logic LOW for device to sleep
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
@@ -73,7 +73,7 @@ void init_motors(void) {
 void enable_motors(void) {
     // Enable motors and disable sleep
 
-    // nSLEEP = 0
+    // nSLEEP = 1, logic HIGH to enable device
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
@@ -91,7 +91,7 @@ void enable_motors(void) {
 void enable_motor1(void) {
     // Enable motor1 only
 
-    // nSLEEP = 0
+    // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
 
@@ -105,7 +105,7 @@ void enable_motor1(void) {
 void enable_motor2(void) {
     // Enable motor2 only
 
-    // nSLEEP = 0
+    // nSLEEP = 1
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
@@ -119,7 +119,7 @@ void enable_motor2(void) {
 void disable_motors(void) {
     // Disable motors and enable sleep
 
-    // nSLEEP = 1
+    // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
@@ -137,7 +137,7 @@ void disable_motors(void) {
 void disable_motor1(void) {
     // Disable motor1 only
 
-    // nSLEEP = 1
+    // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
 
@@ -151,7 +151,7 @@ void disable_motor1(void) {
 void disable_motor2(void) {
     // Disable motor2 only
 
-    // nSLEEP = 1
+    // nSLEEP = 0
     set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
