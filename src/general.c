@@ -38,7 +38,7 @@ void init_pay(void) {
     // CAN and MOBs
     init_can();
     init_rx_mob(&cmd_rx_mob);
-    init_tx_mob(&data_tx_mob);
+    init_tx_mob(&cmd_tx_mob);
 
     init_uptime();
     init_com_timeout();
@@ -64,6 +64,6 @@ When resume_mob(mob name) is called, it:
 */
 void send_next_tx_msg(void) {
     if (!queue_empty(&tx_msg_queue)) {
-        resume_mob(&data_tx_mob);
+        resume_mob(&cmd_tx_mob);
     }
 }
