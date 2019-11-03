@@ -9,8 +9,8 @@ Test the motors where you can press 'w' to move the platform up or 's' to move t
 
 #include "../../src/motors.h"
 
-#define PERIOD_MS   40
-#define NUM_CYCLES  15
+#define PERIOD_MS   50
+#define NUM_CYCLES  100
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     if (len == 0) {
@@ -28,6 +28,14 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
             print("Actuating down\n");
             actuate_motors(PERIOD_MS, NUM_CYCLES, false);
             break;
+        case 'o':
+            print("Actuating Motor1 forwards\n");
+            actuate_motor1(PERIOD_MS, NUM_CYCLES, true);
+            break;
+        case 't':
+            print("Actuating Motor2 forwards\n");
+            actuate_motor2(PERIOD_MS, NUM_CYCLES, false);
+            break;
         default:
             print("Invalid command\n");
             break;
@@ -43,9 +51,8 @@ int main(void){
     init_spi();
     print("SPI Initialized\n");
 
-    init_pex(&pex);
+    init_pex(&pex1);
     print("PEX Initialized\n");
-
 
     print("Starting test\n");
 
@@ -53,6 +60,7 @@ int main(void){
     print("Motors Initialized\n");
 
     print("Press 'w' to actuate forwards or 's' to actuate backwards\n");
+    print("Press 'o' to actuate motor1 or 't' to actuate motor2 forwards\n");
 
     // Wait for key press interrupts
     // Register callback for key presses
