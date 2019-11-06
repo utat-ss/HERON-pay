@@ -129,7 +129,7 @@ void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
     // else if ((CAN_PAY_HK_THERM0 <= field_num) &&
     //         (field_num < CAN_PAY_HK_THERM0 + 10)) {
     //     uint8_t channel = field_num - CAN_PAY_HK_THERM0;
-    //     double vol = adc_raw_data_to_raw_vol(tx_data);
+    //     double vol = adc_raw_to_ch_vol(tx_data);
     //     double res = therm_vol_to_res(vol);
     //     double temp = therm_res_to_temp(res);
     //     print("Thermistor %u: 0x%.3X", channel, tx_data);

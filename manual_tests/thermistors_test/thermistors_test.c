@@ -40,7 +40,7 @@ int main(void){
         for (uint8_t i = 0; i < adc_channels_len; i++) {
             uint8_t channel = adc_channels[i];
             uint16_t raw_data = read_adc_channel(&adc, channel);
-            double voltage = adc_raw_data_to_raw_vol(raw_data);
+            double voltage = adc_raw_to_ch_vol(raw_data);
             //Convert adc voltage to resistance of thermistor
             double resistance = therm_vol_to_res(voltage);
             //Convert resistance to temperature of thermistor

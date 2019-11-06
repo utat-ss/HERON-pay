@@ -68,7 +68,7 @@ int main(void){
         for (uint8_t i = 0; i < thermister_channel_num; i++) {
             print("Channel %d\n", i);
             uint16_t raw_data = read_adc_channel(&adc, i);
-            double voltage = adc_raw_data_to_raw_vol(raw_data);
+            double voltage = adc_raw_to_ch_vol(raw_data);
             double resistance = therm_vol_to_res(voltage);
             double thermis_temp = therm_res_to_temp(resistance);
             // Print temperature/resistance/voltage of thermistors

@@ -109,7 +109,7 @@ void calibration(){
         for (uint8_t j = 0; j < sample_size; j++){
           uint16_t raw_data = read_adc_channel(&adc, channel);
           readings[2*i] = readings[2*i] + raw_data;
-          double voltage = adc_raw_data_to_raw_vol(raw_data);
+          double voltage = adc_raw_to_ch_vol(raw_data);
           readings[2*i+1] = readings[2*i+1] + voltage;
         }  
       }
@@ -156,7 +156,7 @@ void sensor_reading(){
     print("Channel %d\n", channel);
     uint16_t raw_data = read_adc_channel(&adc, channel);
     readings[i] = raw_data;
-    double voltage = adc_raw_data_to_raw_vol(raw_data);
+    double voltage = adc_raw_to_ch_vol(raw_data);
     print("Raw Data: %d, Voltage: %f V\n", raw_data, voltage);
   }
 }
