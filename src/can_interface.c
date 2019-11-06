@@ -38,20 +38,20 @@ void data_tx_callback(uint8_t* data, uint8_t* len) {
 /* MOBs */
 
 mob_t cmd_rx_mob = {
-    .mob_num = 3,
+    .mob_num = PAY_CMD_MOB_NUM,
     .mob_type = RX_MOB,
     .dlc = 8,
-    .id_tag = PAY_CMD_RX_MOB_ID,
-    .id_mask = CAN_RX_MASK_ID,
+    .id_tag = { PAY_PAY_CMD_MOB_ID },
+    .id_mask = { CAN_RX_MASK_ID },
     .ctrl = default_rx_ctrl,
 
     .rx_cb = cmd_rx_callback
 };
 
-mob_t data_tx_mob = {
-    .mob_num = 5,
+mob_t cmd_tx_mob = {
+    .mob_num = OBC_CMD_MOB_NUM,
     .mob_type = TX_MOB,
-    .id_tag = PAY_DATA_TX_MOB_ID,
+    .id_tag = { PAY_OBC_CMD_MOB_ID },
     .ctrl = default_tx_ctrl,
 
     .tx_data_cb = data_tx_callback
