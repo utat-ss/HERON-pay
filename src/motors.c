@@ -74,8 +74,6 @@ void enable_motors(void) {
     // Enable motors and disable sleep
 
     // nSLEEP = 1, logic HIGH to enable device
-    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
-    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
@@ -92,7 +90,6 @@ void enable_motor1(void) {
     // Enable motor1 only
 
     // nSLEEP = 1
-    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 1);
 
     // AENBL = 1
@@ -106,7 +103,6 @@ void enable_motor2(void) {
     // Enable motor2 only
 
     // nSLEEP = 1
-    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 1);
 
     // AENBL = 1
@@ -120,16 +116,14 @@ void disable_motors(void) {
     // Disable motors and enable sleep
 
     // nSLEEP = 0
-    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
-    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
-    // AENBL = 1
+    // AENBL = 0
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
     set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);
 
-    // BENBL = 1
+    // BENBL = 0
     set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 0);
     set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 0);
 }
@@ -138,13 +132,12 @@ void disable_motor1(void) {
     // Disable motor1 only
 
     // nSLEEP = 0
-    set_pex_pin_dir(&pex1, PEX_B, MOT1_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
 
-    // AENBL = 1
+    // AENBL = 0
     set_pex_pin(&pex1, PEX_B, MOT1_AENBL, 0);
 
-    // BENBL = 1
+    // BENBL = 0
     set_pex_pin(&pex1, PEX_B, MOT1_BENBL, 0);
 }
 
@@ -152,13 +145,12 @@ void disable_motor2(void) {
     // Disable motor2 only
 
     // nSLEEP = 0
-    set_pex_pin_dir(&pex1, PEX_B, MOT2_SLP_N, OUTPUT);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
-    // AENBL = 1
+    // AENBL = 0
     set_pex_pin(&pex1, PEX_A, MOT2_AENBL, 0);
 
-    // BENBL = 1
+    // BENBL = 0
     set_pex_pin(&pex1, PEX_A, MOT2_BENBL, 0);
 }
 
@@ -279,7 +271,7 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
 
     for (uint16_t i = 0; i < num_cycles; i++) {
         if (forward) {
-            // BPHASE = 1
+           // BPHASE = 1
             delay_ms(delay);
             set_cs_high(MOT2_BPHASE_PIN, &MOT2_BPHASE_PORT);
 
