@@ -126,9 +126,10 @@ void loop() {
   // put your main code here, to run repeatedly:
   read_thermistors_arr(thermistors);
 
-  float middle_avg = (thermistors[1] + thermistors[4])/2;
-  float top_avg = (thermistors[1]+thermistors[2])/2;
-  float bottom_avg = (thermistors[3] + thermistors[4] + thermistors[5])/3;
+  // be careful of indexing - it starts with 0
+  float middle_avg = (thermistors[0] + thermistors[3])/2;
+  float top_avg = (thermistors[0]+thermistors[1])/2;
+  float bottom_avg = (thermistors[2] + thermistors[3] + thermistors[4])/3;
 
   print_results(cycle_count, middle_avg, top_avg, bottom_avg);
 
