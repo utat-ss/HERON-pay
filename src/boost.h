@@ -11,7 +11,7 @@
 
 /* PEX pins definition */
 #define BST_TEN_ENBL    0 //GPIOA0
-#define BST_SIX_ENBL    7 //GPIOB7
+#define BST_SIX_ENBL    2 //GPIOB2
 
 void init_boosts(void);
 void enable_10V_boost(void);
