@@ -42,6 +42,8 @@ WINDOWS := false
 MAC_OS := false
 LINUX := false
 
+REMOTE := false
+
 ifeq ($(OS),Windows_NT)
 	WINDOWS := true
 else
@@ -69,16 +71,12 @@ ifeq ($(MAC_OS), true)
 endif
 ifeq ($(LINUX), true)
 	# lower number
-	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
-	UART = $(shell find /dev -name 'ttyS[0-9]*' | sort | sed -n 2p)
+	PORT = $(shell pavr2cmd --prog-port)
+	UART = $(shell pavr2cmd --ttl-port)
+	ifeq ($(shell whoami),ss)
+		REMOTE := true
+	endif
 endif
-
-# If automatic port detection fails,
-# uncomment one of these lines and change it to set the port manually
-# PORT = COM3						# Windows
-# PORT = /dev/tty.usbmodem00208212	# macOS
-# PORT = /dev/ttyS3					# Linux
-
 
 # Set the PYTHON variable - Python interpreter
 # Windows uses `python` for either Python 2 or 3,
@@ -153,9 +151,10 @@ debug:
 
 # Need to cd into lib-common and refer back up one directory to the harness_tests folder
 # because harness.py has the `include` and `src` paths hardcoded
+# If multi-board testing, PORT2 and UART2 must both be specified
 harness:
 	cd lib-common && \
-	$(PYTHON) ./bin/harness.py -p $(PORT) -u $(UART) -d ../$(TEST) $(HARNESS_ARGS)
+	$(PYTHON) ./bin/harness.py -m $(MCU) -p $(PORT) $(PORT2) -u $(UART) $(UART2) -d ../$(TEST) $(HARNESS_ARGS)
 
 # Help shows available commands
 help:
@@ -200,4 +199,12 @@ endif
 
 # Upload program to board
 upload: $(PROG)
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 IN
+	gpio -g mode 15 IN
+endif
 	avrdude -c $(PGMR) -C ./lib-common/avrdude.conf -p $(DEVICE) -P $(PORT) -U flash:w:./build/$^.hex
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 ALT0
+	gpio -g mode 15 ALT0
+endif

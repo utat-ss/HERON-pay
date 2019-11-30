@@ -12,9 +12,9 @@ LIB_COMMON = ../../lib-common
 INCLUDES = -I$(LIB_COMMON)/include
 # Libraries from lib-common to link
 # For some reason, conversions needs to come after dac or else it gives an error
-# Need to put dac before conversions, uptime before timer,
+# Need to put dac before conversions, uptime before timer, heartbeat before can,
 # or else gives an error for undefined reference
-LIB = -L$(LIB_COMMON)/lib -ladc -lcan -ldac -lconversions -lheartbeat -lpex -lqueue -lspi -lstack -ltest -luptime -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
+LIB = -L$(LIB_COMMON)/lib -ladc -lheartbeat -lcan -ldac -lconversions -lpex -lqueue -lspi -lstack -ltest -luptime -ltimer -luart -lutilities -lwatchdog -lprintf_flt -lm
 # Name of microcontroller ("32m1" or "64m1")
 MCU = 32m1
 #-------------------------------------------------------------------------------
@@ -37,6 +37,8 @@ DEVICE = m$(MCU)
 WINDOWS := false
 MAC_OS := false
 LINUX := false
+
+REMOTE := false
 
 ifeq ($(OS),Windows_NT)
 	WINDOWS := true
@@ -63,16 +65,12 @@ ifeq ($(MAC_OS), true)
 endif
 ifeq ($(LINUX), true)
 	# lower number
-	# TODO - test this
-	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
+	PORT = $(shell pavr2cmd --prog-port)
+	UART = $(shell pavr2cmd --ttl-port)
+	ifeq ($(shell whoami),ss)
+		REMOTE := true
+	endif
 endif
-
-# If automatic port detection fails,
-# uncomment one of these lines and change it to set the port manually
-# PORT = COM3						# Windows
-# PORT = /dev/tty.usbmodem00208212	# macOS
-# PORT = /dev/ttyS3					# Linux
-
 
 # Special commands
 .PHONY: all clean debug help lib-common read-eeprom upload
@@ -148,4 +146,18 @@ endif
 
 # Upload .hex program to device
 upload: $(PROG)
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 IN
+	gpio -g mode 15 IN
+endif
 	avrdude -p $(DEVICE) -c $(PGMR) -C $(LIB_COMMON)/avrdude.conf -P $(PORT) -U flash:w:./$^.hex
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 ALT0
+	gpio -g mode 15 ALT0
+endif
+
+# Upload .hex program to device, using a precompiled binary that must already be
+# in the folder and be named $(PROG).hex
+# (does not compile anything, just uploads the hex file)
+upload_bin:
+	avrdude -p $(DEVICE) -c $(PGMR) -C $(LIB_COMMON)/avrdude.conf -P $(PORT) -U flash:w:./$(PROG).hex
