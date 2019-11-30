@@ -38,6 +38,8 @@ WINDOWS := false
 MAC_OS := false
 LINUX := false
 
+REMOTE := false
+
 ifeq ($(OS),Windows_NT)
 	WINDOWS := true
 else
@@ -63,15 +65,12 @@ ifeq ($(MAC_OS), true)
 endif
 ifeq ($(LINUX), true)
 	# lower number
-	PORT = $(shell find /dev -name 'ttyS[0-9]*' | sort | head -n1)
+	PORT = $(shell pavr2cmd --prog-port)
+	UART = $(shell pavr2cmd --ttl-port)
+	ifeq ($(shell whoami),ss)
+		REMOTE := true
+	endif
 endif
-
-# If automatic port detection fails,
-# uncomment one of these lines and change it to set the port manually
-PORT = COM6						# Windows
-# PORT = /dev/tty.usbmodem00208212	# macOS
-# PORT = /dev/ttyS3					# Linux
-
 
 # Special commands
 .PHONY: all clean debug help lib-common read-eeprom upload
@@ -147,4 +146,18 @@ endif
 
 # Upload .hex program to device
 upload: $(PROG)
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 IN
+	gpio -g mode 15 IN
+endif
 	avrdude -p $(DEVICE) -c $(PGMR) -C $(LIB_COMMON)/avrdude.conf -P $(PORT) -U flash:w:./$^.hex
+ifeq ($(REMOTE),true)
+	gpio -g mode 14 ALT0
+	gpio -g mode 15 ALT0
+endif
+
+# Upload .hex program to device, using a precompiled binary that must already be
+# in the folder and be named $(PROG).hex
+# (does not compile anything, just uploads the hex file)
+upload_bin:
+	avrdude -p $(DEVICE) -c $(PGMR) -C $(LIB_COMMON)/avrdude.conf -P $(PORT) -U flash:w:./$(PROG).hex

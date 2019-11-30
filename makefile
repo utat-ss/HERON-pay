@@ -78,13 +78,6 @@ ifeq ($(LINUX), true)
 	endif
 endif
 
-# If automatic port detection fails,
-# uncomment one of these lines and change it to set the port manually
-# PORT = COM3						# Windows
-# PORT = /dev/tty.usbmodem00208212	# macOS
-# PORT = /dev/ttyS3					# Linux
-
-
 # Set the PYTHON variable - Python interpreter
 # Windows uses `python` for either Python 2 or 3,
 # while macOS/Linux use `python3` to explicitly use Python 3
@@ -158,9 +151,10 @@ debug:
 
 # Need to cd into lib-common and refer back up one directory to the harness_tests folder
 # because harness.py has the `include` and `src` paths hardcoded
+# If multi-board testing, PORT2 and UART2 must both be specified
 harness:
 	cd lib-common && \
-	$(PYTHON) ./bin/harness.py -p $(PORT) -u $(UART) -d ../$(TEST) $(HARNESS_ARGS)
+	$(PYTHON) ./bin/harness.py -m $(MCU) -p $(PORT) $(PORT2) -u $(UART) $(UART2) -d ../$(TEST) $(HARNESS_ARGS)
 
 # Help shows available commands
 help:
