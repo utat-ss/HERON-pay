@@ -11,15 +11,33 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     }
 
     switch (buf[0]) {
-        case 'o':
-            //"o"n
+        case 'a':
             print("Enabled all heaters\n");
             heater_all_on();
             break;
-        case 'f':
-            //o"f"f
+        case 's':
             print("Disabled all heaters\n");
             heater_all_off();
+            break;
+        case 'q':
+            print("Enabled heater1\n");
+            heater_on(1);
+            break;
+        case 'w':
+            print("Enabled heater2\n");
+            heater_on(2);
+            break;
+        case 'e':
+            print("Enabled heater3\n");
+            heater_on(3);
+            break;
+        case 'r':
+            print("Enabled heater4\n");
+            heater_on(4);
+            break;
+        case 't':
+            print("Enabled heater5\n");
+            heater_on(5);
             break;
         default:
             print("Invalid command\n");
@@ -36,11 +54,15 @@ int main(void){
     init_spi();
     print("\nSPI initialized\n");
 
-    init_pex(&pex1);
+    init_pex(&pex2);
     print("\nPEX initialized\n");
 
     init_heaters();
     print("Heaters Initialized\n");
+
+    init_boosts ();
+    enable_6V_boost ();
+    print("6V boost turned on\n");
 
     print("\nStarting Heaters test\n\n");
 =======

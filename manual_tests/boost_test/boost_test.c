@@ -103,6 +103,9 @@ int main(void) {
     init_uart();
     print("\n\nUART initialized\n");
 
+    init_spi();
+    print("\n\nSPI initialized\n");
+
     init_pex(&pex2);
     print("\n\nPEX2 initialized\n");
 

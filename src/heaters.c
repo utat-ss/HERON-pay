@@ -71,7 +71,7 @@ void heater_on(uint8_t heater_num){
     }
 }
 
-void heater_on(uint8_t heater_num){
+void heater_off(uint8_t heater_num){
     switch(heater_num){
     case 1:
         set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
