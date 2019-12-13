@@ -3,6 +3,7 @@
 #include <pex/pex.h>
 #include <uart/uart.h>
 
+#include "../../src/boost.h"
 #include "../../src/heaters.h"
 
 //define global variables
@@ -39,7 +40,7 @@ uint16_t count_ones(uint16_t num){
     uint16_t one_count = 0;
     //TO-DO: need a timer for this while loop
     while(num != 0){
-        if (num & 0x01 == 1){
+        if ((num & 0x01) == 1){
             one_count += 1;
         }
         num = num >> 1;
@@ -55,7 +56,7 @@ void init_control_loop(void){
     // 0 means OFF, 1 means ON
     HEATERS_STATUS = 0x00;
     for (uint8_t i = 0; i < 12; i++){
-        THERM_READINGS[i] = 0.07 //some specific double, this number doesn't matter anyway
+        THERM_READINGS[i] = 0.07; //some specific double, this number doesn't matter anyway
         THERM_ERR_CODE[i] = 0;
     }
 }
@@ -67,8 +68,9 @@ void acquire_therm_data(void){
 
     //convert to temperature and store in THERM_READINGS
     for (uint8_t i = 0; i < 12; i++){
-        double temp = adc_raw_to_therm_temp(adc2->channel_data[i]);
-        THERM_READINGS[i] = temp;
+        uint16_t raw_data = read_adc_channel(&adc2, i);
+        double therm_temp = adc_raw_to_therm_temp(raw_data);
+        THERM_READINGS[i] = therm_temp;
     }
 }
 
@@ -109,11 +111,151 @@ void eliminate_bad_therm(){
     double variance = sum/(valid_therm_num - 1);*/
 }
 
+void heater_toggle(double calc_num, uint8_t heater_num){
+    //NOTE: heater_num here is the physical heater number - 1
+
+    // hot case
+    if(calc_num > SETPOINT){
+        if((HEATERS_STATUS & (0x01 << heater_num)) == 1){
+            //heater ON, need to turn it OFF
+            heater_off(heater_num);
+            HEATERS_STATUS = HEATERS_STATUS & ~(0x01 << heater_num);
+        }
+    }
+    // cold case
+    else if(calc_num < SETPOINT){
+        if((HEATERS_STATUS & (0x01 << heater_num)) == 0){
+            //heater OFF, need to turn it ON
+            heater_off(heater_num);
+            HEATERS_STATUS = HEATERS_STATUS | (0x01 << heater_num);
+        }
+    }
+}
+
+// fine I decided to hardcode the heaters based on physical setup
+void heater_3in_ctrl(void){
+    //looking at heater1 & 3, remember to minus one for bit shift in function argument
+    double avg_reading = 0.0;
+    double sum = 0.0;
+    uint8_t normal_therm_num = 0;
+
+    // heater 1
+    for(uint8_t i = 0; i < 3; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 0);
+
+    // heater 3
+    sum = 0.0;
+    normal_therm_num = 0;
+    for(uint8_t i = 6; i < 9; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 2);
+
+}
+
+void heater_4in_ctrl(void){
+    //looking at heater2 & 4, remember to minus one for bit shift in function argument
+    //
+    // if want to introduce weighted average should do it here
+    // could incorporate the weight into error code
+    double avg_reading = 0.0;
+    double sum = 0.0;
+    uint8_t normal_therm_num = 0;
+
+    // heater 2
+    for(uint8_t i = 2; i < 6; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 1);
+
+    // heater 4
+    sum = 0.0;
+    normal_therm_num = 0;
+    for(uint8_t i = 8; i < 12; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 3);
+
+
+}
+
+void heater_5in_ctrl(void){
+    // looking at heater 5 here, average everything
+    double avg_reading = 0.0;
+    double sum = 0.0;
+    uint8_t normal_therm_num = 0;
+
+    for(uint8_t i = 0; i < 12; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 4);
+}
+
+void average_heaters(void){
+    heater_3in_ctrl();
+    heater_4in_ctrl();
+    heater_5in_ctrl();
+}
+
+void heater_ctrl_status(void){
+    //print thermistors status
+    for(uint8_t i = 0; i < 12; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            print("Thermistor #: %d, Reading: %.5f\n", i, THERM_READINGS[i]);
+        }
+        else{
+            print("Thermistor #: %d, Reading: %.5f, Err Status: %d\n", i, THERM_READINGS[i], THERM_ERR_CODE[i]);
+        }
+    }
+
+    //print heater status
+    for(uint8_t i = 0; i < 5; i++){
+        if((HEATERS_STATUS & (0x01 << i)) == 1){
+            print("Heater #: %d, Status: ON\n", i+1);
+        }
+        else{
+            print("Heater #: %d, Status: OFF\n", i+1);
+        }
+    }
+}
+
 void heater_control(void){
     acquire_therm_data();
     eliminate_bad_therm();
     average_heaters();
-    control_output();
+
+    // a debugging function full of print statements
+    heater_ctrl_status();
+
+    // current delay, every 10 seconds
+    _delay_ms(10000);
 }
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
