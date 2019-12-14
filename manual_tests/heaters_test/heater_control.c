@@ -118,7 +118,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
     if(calc_num > SETPOINT){
         if((HEATERS_STATUS & (0x01 << heater_num)) == 1){
             //heater ON, need to turn it OFF
-            heater_off(heater_num);
+            heater_off(heater_num+1);
             HEATERS_STATUS = HEATERS_STATUS & ~(0x01 << heater_num);
         }
     }
@@ -126,7 +126,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
     else if(calc_num < SETPOINT){
         if((HEATERS_STATUS & (0x01 << heater_num)) == 0){
             //heater OFF, need to turn it ON
-            heater_off(heater_num);
+            heater_on(heater_num+1);
             HEATERS_STATUS = HEATERS_STATUS | (0x01 << heater_num);
         }
     }
@@ -236,8 +236,10 @@ void heater_ctrl_status(void){
     }
 
     //print heater status
+    //print("heater status %d\n", HEATERS_STATUS);
     for(uint8_t i = 0; i < 5; i++){
-        if((HEATERS_STATUS & (0x01 << i)) == 1){
+        uint8_t heater_check = HEATERS_STATUS;
+        if(heater_check & (0x01 << i)){
             print("Heater #: %d, Status: ON\n", i+1);
         }
         else{
@@ -247,15 +249,17 @@ void heater_ctrl_status(void){
 }
 
 void heater_control(void){
-    acquire_therm_data();
-    eliminate_bad_therm();
-    average_heaters();
+    while(1){
+        acquire_therm_data();
+        eliminate_bad_therm();
+        average_heaters();
 
-    // a debugging function full of print statements
-    heater_ctrl_status();
+        // a debugging function full of print statements
+        heater_ctrl_status();
 
-    // current delay, every 10 seconds
-    _delay_ms(10000);
+        // current delay, every 10 seconds
+        _delay_ms(10000);
+    }
 }
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
