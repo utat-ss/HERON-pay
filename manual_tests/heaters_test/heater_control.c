@@ -116,7 +116,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
 
     // hot case
     if(calc_num > SETPOINT){
-        if((HEATERS_STATUS & (0x01 << heater_num)) == 1){
+        if(HEATERS_STATUS & (0x01 << heater_num)){
             //heater ON, need to turn it OFF
             heater_off(heater_num+1);
             HEATERS_STATUS = HEATERS_STATUS & ~(0x01 << heater_num);
@@ -124,7 +124,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
     }
     // cold case
     else if(calc_num < SETPOINT){
-        if((HEATERS_STATUS & (0x01 << heater_num)) == 0){
+        if(!(HEATERS_STATUS & (0x01 << heater_num))){
             //heater OFF, need to turn it ON
             heater_on(heater_num+1);
             HEATERS_STATUS = HEATERS_STATUS | (0x01 << heater_num);
