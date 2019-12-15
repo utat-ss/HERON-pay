@@ -228,10 +228,12 @@ void heater_ctrl_status(void){
     //print thermistors status
     for(uint8_t i = 0; i < 12; i++){
         if(THERM_ERR_CODE[i] == 0){
-            print("Thermistor #: %d, Reading: %.5f\n", i, THERM_READINGS[i]);
+            //print("Thermistor #: %d, Reading: %.5f\n", i, THERM_READINGS[i]);
+            print("%.5f,",THERM_READINGS[i]);
         }
         else{
-            print("Thermistor #: %d, Reading: %.5f, Err Status: %d\n", i, THERM_READINGS[i], THERM_ERR_CODE[i]);
+            //print("Thermistor #: %d, Reading: %.5f, Err Status: %d\n", i, THERM_READINGS[i], THERM_ERR_CODE[i]);
+            print("Err%d,", THERM_ERR_CODE[i]);
         }
     }
 
@@ -240,15 +242,19 @@ void heater_ctrl_status(void){
     for(uint8_t i = 0; i < 5; i++){
         uint8_t heater_check = HEATERS_STATUS;
         if(heater_check & (0x01 << i)){
-            print("Heater #: %d, Status: ON\n", i+1);
+            //print("Heater #: %d, Status: ON\n", i+1);
+            print("%d,", 1);
         }
         else{
-            print("Heater #: %d, Status: OFF\n", i+1);
+            //print("Heater #: %d, Status: OFF\n", i+1);
+            print("%d,", 0);
         }
     }
+    print("\n");
 }
 
 void heater_control(void){
+    print("TH1,TH2,TH3,TH4,TH5,TH6,TH7,TH8,TH9,TH10,TH11,TH12,H1,H2,H3,H4,H5\n");
     while(1){
         acquire_therm_data();
         eliminate_bad_therm();
@@ -258,7 +264,7 @@ void heater_control(void){
         heater_ctrl_status();
 
         // current delay, every 10 seconds
-        _delay_ms(10000);
+        _delay_ms(5000);
     }
 }
 
