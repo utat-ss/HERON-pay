@@ -62,6 +62,18 @@
 #define DAC_CLR_DDR     DDRD
 >>>>>>> added func that prints adc channel's values
 
+// Resistor divider values (for voltage monitors)
+// Sense resistor and voltage reference values (for current monitors)
+#define ADC1_BOOST10_LOW_RES    1000
+#define ADC1_BOOST10_HIGH_RES   3000
+#define ADC1_BOOST10_SENSE_RES  0.008
+#define ADC1_BOOST10_REF_VOL    0.0
+#define ADC1_BOOST6_LOW_RES     1000
+#define ADC1_BOOST6_HIGH_RES    1400
+#define ADC1_BOOST6_SENSE_RES   0.008
+#define ADC1_BOOST6_REF_VOL     0.0
+#define ADC1_BATT_LOW_RES       2200
+#define ADC1_BATT_HIGH_RES      1000
 
 // PEX CS pin
 #define PEX_CS_PIN      PC4
