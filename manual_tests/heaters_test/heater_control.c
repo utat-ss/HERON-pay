@@ -143,7 +143,8 @@ void heater_3in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 2
-    for(uint8_t i = 0; i < 3; i++){
+    // averaging TH3-5
+    for(uint8_t i = 3; i < 6; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
@@ -154,9 +155,10 @@ void heater_3in_ctrl(void){
     heater_toggle(avg_reading, 1);
 
     // heater 4
+    // averaging TH9-11
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 6; i < 9; i++){
+    for(uint8_t i = 9; i < 12; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
@@ -178,20 +180,27 @@ void heater_4in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 1
-    for(uint8_t i = 2; i < 6; i++){
+    // averaging TH0-2 and TH11
+    for(uint8_t i = 0; i < 3; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
         }
     }
 
+    if(THERM_ERR_CODE[11] == 0){
+        sum += THERM_READINGS[11];
+        normal_therm_num += 1;
+    }
+
     avg_reading = (sum/normal_therm_num);
     heater_toggle(avg_reading, 0);
 
     // heater 3
+    // averaging TH5-8
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 8; i < 12; i++){
+    for(uint8_t i = 5; i < 9; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
