@@ -84,6 +84,9 @@ void eliminate_bad_therm(){
         else if(THERM_READINGS[i] > UHL){
             THERM_STATUS = THERM_STATUS & (~(0x1 << i));
             THERM_ERR_CODE[i] = 2;
+        }else{
+            //otherwise assume normal, recovery
+            THERM_ERR_CODE[i] = 0;
         }
     }
 
@@ -139,43 +142,8 @@ void heater_3in_ctrl(void){
     double sum = 0.0;
     uint8_t normal_therm_num = 0;
 
-    // heater 1
-    for(uint8_t i = 0; i < 3; i++){
-        if(THERM_ERR_CODE[i] == 0){
-            sum += THERM_READINGS[i];
-            normal_therm_num += 1;
-        }
-    }
-
-    avg_reading = (sum/normal_therm_num);
-    heater_toggle(avg_reading, 0);
-
-    // heater 3
-    sum = 0.0;
-    normal_therm_num = 0;
-    for(uint8_t i = 6; i < 9; i++){
-        if(THERM_ERR_CODE[i] == 0){
-            sum += THERM_READINGS[i];
-            normal_therm_num += 1;
-        }
-    }
-
-    avg_reading = (sum/normal_therm_num);
-    heater_toggle(avg_reading, 2);
-
-}
-
-void heater_4in_ctrl(void){
-    //looking at heater2 & 4, remember to minus one for bit shift in function argument
-    //
-    // if want to introduce weighted average should do it here
-    // could incorporate the weight into error code
-    double avg_reading = 0.0;
-    double sum = 0.0;
-    uint8_t normal_therm_num = 0;
-
     // heater 2
-    for(uint8_t i = 2; i < 6; i++){
+    for(uint8_t i = 0; i < 3; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
@@ -188,7 +156,7 @@ void heater_4in_ctrl(void){
     // heater 4
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 8; i < 12; i++){
+    for(uint8_t i = 6; i < 9; i++){
         if(THERM_ERR_CODE[i] == 0){
             sum += THERM_READINGS[i];
             normal_therm_num += 1;
@@ -198,6 +166,40 @@ void heater_4in_ctrl(void){
     avg_reading = (sum/normal_therm_num);
     heater_toggle(avg_reading, 3);
 
+}
+
+void heater_4in_ctrl(void){
+    //looking at heater2 & 4, remember to minus one for bit shift in function argument
+    //
+    // if want to introduce weighted average should do it here
+    // could incorporate the weight into error code
+    double avg_reading = 0.0;
+    double sum = 0.0;
+    uint8_t normal_therm_num = 0;
+
+    // heater 1
+    for(uint8_t i = 2; i < 6; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 0);
+
+    // heater 3
+    sum = 0.0;
+    normal_therm_num = 0;
+    for(uint8_t i = 8; i < 12; i++){
+        if(THERM_ERR_CODE[i] == 0){
+            sum += THERM_READINGS[i];
+            normal_therm_num += 1;
+        }
+    }
+
+    avg_reading = (sum/normal_therm_num);
+    heater_toggle(avg_reading, 2);
 
 }
 
@@ -263,8 +265,8 @@ void heater_control(void){
         // a debugging function full of print statements
         heater_ctrl_status();
 
-        // current delay, every 10 seconds
-        _delay_ms(5000);
+        // current delay, every 20 seconds
+        _delay_ms(20000);
     }
 }
 
