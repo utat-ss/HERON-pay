@@ -9,7 +9,7 @@
 //define global variables
 
 //temperature constants, all in degree Celsius
-#define SETPOINT 37
+#define SETPOINT 33
 #define ULL -40
 #define UHL 120
 
@@ -61,7 +61,7 @@ void init_control_loop(void){
     }
 }
 
-// TO-DO: not sure if this need to be atomic when polling ADC data, will see
+// TODO: not sure if this need to be atomic when polling ADC data, will see
 void acquire_therm_data(void){
     // poll all ADC2 channels
     fetch_all_adc_channels(&adc2);

@@ -4,6 +4,7 @@
 #include <uart/uart.h>
 
 #include "../../src/heaters.h"
+#include "../../src/boost.h"
 
 uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
     if (len == 0) {
@@ -50,6 +51,10 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
 int main(void){
     init_uart();
     print("\nUART initialized\n");
+
+    print("%.2x\n", MCUSR);
+    MCUSR = 0x00;
+    print("%.2x\n", MCUSR);
 
     init_spi();
     print("\nSPI initialized\n");
