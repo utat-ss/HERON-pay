@@ -53,8 +53,8 @@ int main(void){
     print("\nUART initialized\n");
 
     print("%.2x\n", MCUSR);
-    MCUSR = 0x00;
-    print("%.2x\n", MCUSR);
+    //MCUSR = 0x00;
+    //print("%.2x\n", MCUSR);
 
     init_spi();
     print("\nSPI initialized\n");

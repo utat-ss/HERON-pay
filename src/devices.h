@@ -86,7 +86,7 @@
 #define PEX_RST_DDR     DDRC
 
 // PEX address
-#define PEX1_ADDR       0b100
+#define PEX1_ADDR       0b001
 #define PEX2_ADDR       0b010
 
 

@@ -43,9 +43,13 @@
 #define MOT2_APHASE_PORT  PORTB
 #define MOT2_APHASE_DDR   DDRB
 
-// Fault interrupt pins
+// Fault interrupt pins on PEX1
 #define MOT1_FLT_N       4  // B4
 #define MOT2_FLT_N       2  // A2
+
+// Limit switch interrupt pins on PEX2
+#define LIM_SWT1_PRESSED        2 //  A2
+#define LIM_SWT2_PRESSED        1 //  A1
 
 void init_motors(void);
 void enable_motors(void);

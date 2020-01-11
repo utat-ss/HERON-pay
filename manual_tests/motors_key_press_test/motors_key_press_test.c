@@ -8,6 +8,7 @@ Test the motors where you can press 'w' to move the platform up or 's' to move t
 #include <uart/uart.h>
 
 #include "../../src/motors.h"
+#include "../../src/boost.h""
 
 #define PERIOD_MS   100
 #define NUM_CYCLES  100
@@ -58,9 +59,14 @@ int main(void){
     print("SPI Initialized\n");
 
     init_pex(&pex1);
+    init_pex(&pex2);
     print("PEX Initialized\n");
 
     print("Starting test\n");
+
+    init_boosts();
+    enable_10V_boost ();
+    print("10V boost enabled\n");
 
     init_motors();
     print("Motors Initialized\n");
