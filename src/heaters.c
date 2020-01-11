@@ -105,6 +105,7 @@ void heater_off(uint8_t heater_num){
 
 // TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
 // TODO: include math.h for sqrt function (and log for temperature conversion)
+// TODO: how to distinguish the ground overwrite therm status and the automatic therm status generated in code? Need to indefinitely set it to something
 
 /*
  * ABOUT THERM_ERR_CODE
@@ -116,8 +117,9 @@ void heater_off(uint8_t heater_num){
  * The following are some future consideration
  * 3 - lower than mean (miu) of all 12 thermistors by 3 standard deviation (sigma)
  * 4 - higher than miu by 3 sigma
- * 5, 6, 7 - should not happen
- *
+ * 5 - ground manual set to invalid
+ * 6 - ground manual set to valid
+ * 7 - unused
  */
 
 /*
