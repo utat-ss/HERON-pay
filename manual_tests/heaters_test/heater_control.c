@@ -18,6 +18,9 @@ uint8_t HEATERS_STATUS;
 double THERM_READINGS[12];
 uint8_t THERM_ERR_CODE[12];
 
+// TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
+// TODO: include math.h for sqrt function (and log for temperature conversion)
+
 /*
  * ABOUT THERM_ERR_CODE
  *

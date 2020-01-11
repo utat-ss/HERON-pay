@@ -1,7 +1,7 @@
 /*
-Main functions to be implemented on the PAY 32M1
+Main functions to be implemented on the PAY 64M1
 
-AUTHORS: Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown
+AUTHORS: Dylan Vogel, Shimi Smith, Bruno Almeida, Russel Brown, Lorna Lan
 */
 
 #include "general.h"
@@ -19,6 +19,7 @@ int main(void) {
         run_hb();
         send_next_tx_msg();
         process_next_rx_msg();
+        heater_ctrl_main ();
     }
 
     return 0;
