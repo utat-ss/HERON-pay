@@ -16,9 +16,7 @@
 #define HEATER4_EN_N       6
 #define HEATER5_EN_N       7
 
-// TODO make setpoint a variable instead of a constant since it can't be controlled
-// TODO have a function to reject invalid setpoint
-#define SETPOINT 33
+// TODO have a function to reject invalid setpoint - in CAN
 #define ULL -40
 #define UHL 120
 
@@ -30,6 +28,7 @@ void heater_off(uint8_t);
 
 //heater control loop stuff
 uint16_t count_ones(uint16_t);
+float fast_inverse_square_root(double);
 void init_control_loop (void);
 void acquire_therm_data (void);
 void eliminate_bad_therm (void);
