@@ -4,9 +4,7 @@
 #include <uptime/uptime.h>
 
 #include "devices.h"
-=======
 #include <avr/eeprom.h>
->>>>>>> devices re-mapping/overhaul
 
 // Heaters all ON/OFF only (no PWM), controlled by PEX2
 // All on Bank B

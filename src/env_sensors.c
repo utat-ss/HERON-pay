@@ -44,8 +44,6 @@ uint16_t read_hum_raw_data(void) {
 }
 
 
-
-
 uint16_t pres_prom_data[8];
 
 /*
@@ -63,6 +61,7 @@ void init_pres(void) {
     }
 }
 
+
 /*
 Resets the pressure sensor.
 */
@@ -73,6 +72,7 @@ void reset_pres(void) {
     _delay_ms(3);
     set_cs_high(PRES_CS_PIN, &PRES_CS_PORT);
 }
+
 
 /*
 Reads the calibration coefficients from the pressure sensor's PROM.
@@ -90,6 +90,7 @@ uint16_t read_pres_prom(uint8_t address) {
 
     return data;
 }
+
 
 /*
 Reads 24 bits of raw uncompensated pressure or temperature data from the
@@ -116,6 +117,7 @@ uint32_t read_pres_raw_uncomp_data(uint8_t cmd) {
 
     return data;
 }
+
 
 /*
 Converts pressure sensor register data (calibration data, digital pressure/temperature)
@@ -198,6 +200,7 @@ uint32_t pres_reg_data_to_raw_data(
 
     return (uint32_t) P;
 }
+
 
 /*
 Reads 24 bits of raw data from the pressure sensor - 0-6000 mbar with 0.01mbar resolution per bit

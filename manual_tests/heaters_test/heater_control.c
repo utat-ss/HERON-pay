@@ -321,12 +321,8 @@ int main(void){
     enable_6V_boost ();
     print("\n6V boost turned on\n");
 
-=======
-=======
     print("\nStarting Heaters control test\n\n");
 
->>>>>>> skeleton of control loop
     set_uart_rx_cb(key_pressed);
     while (1) {}
->>>>>>> heaters manual test done
 }

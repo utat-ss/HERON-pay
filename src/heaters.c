@@ -25,9 +25,6 @@ Author: Lorna Lan
  */
 
 #include "heaters.h"
-=======
->>>>>>> devices re-mapping/overhaul
-=======
 
 uint8_t SETPOINT;
 uint16_t THERM_STATUS;
@@ -114,11 +111,9 @@ void heater_off(uint8_t heater_num){
         break;
     }
 }
->>>>>>> Heaters control src
-=======
+
 
 //manual test copy in manual_tests/heaters_test/heater_ctrl.c
-
 /*
  * Utility function: return number of 1s in a binary string
  */
@@ -133,6 +128,7 @@ uint16_t count_ones(uint16_t num){
     }
     return one_count;
 }
+
 
 /*
  * Utility function: fast inverse square root
@@ -165,6 +161,7 @@ void init_control_loop(void){
     }
 }
 
+
 // TODO: not sure if this need to be atomic when polling ADC data, will see
 void acquire_therm_data(void){
     // poll all ADC2 channels
@@ -177,6 +174,7 @@ void acquire_therm_data(void){
         THERM_READINGS[i] = therm_temp;
     }
 }
+
 
 void eliminate_bad_therm(void){
     for(uint8_t i = 0; i < 12; i++){
@@ -251,6 +249,7 @@ void eliminate_bad_therm(void){
         }
 }
 
+
 void heater_toggle(double calc_num, uint8_t heater_num){
     //NOTE: heater_num here is the physical heater number - 1
 
@@ -271,6 +270,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
         }
     }
 }
+
 
 // fine I decided to hardcode the heaters based on physical setup
 void heater_3in_ctrl(void){
@@ -316,6 +316,7 @@ void heater_3in_ctrl(void){
     }
 
 }
+
 
 void heater_4in_ctrl(void){
     //looking at heater2 & 4, remember to minus one for bit shift in function argument
@@ -367,6 +368,7 @@ void heater_4in_ctrl(void){
 
 }
 
+
 void heater_5in_ctrl(void){
     // looking at heater 5 here, average everything
     double avg_reading = 0.0;
@@ -388,11 +390,13 @@ void heater_5in_ctrl(void){
     }
 }
 
+
 void average_heaters(void){
     heater_3in_ctrl();
     heater_4in_ctrl();
     heater_5in_ctrl();
 }
+
 
 //TODO: need to do something difference for status function - comm thru CAN
 void heater_ctrl_status(void){
@@ -450,4 +454,3 @@ void heater_ctrl_main(void){
         last_exec_time = uptime_s;
     }
 }
->>>>>>> migrate heater control loop code to src, long list of TODOs

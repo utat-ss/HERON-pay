@@ -26,13 +26,14 @@
 #include <conversions/conversions.h>
 
 // PAY libraries
-#include "thermistors.h"
+#include "general.h"
 #include "can_interface.h"
+#include "can_commands.h"
+#include "boost.h"
 #include "motors.h"
+#include "heaters.h"
 #include "optical_spi.h"
 #include "env_sensors.h"
-#include "commands.h"
-#include "boost.h"
 
 extern adc_t adc1;
 extern adc_t adc2;

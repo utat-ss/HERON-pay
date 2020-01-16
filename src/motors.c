@@ -310,6 +310,9 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
     disable_motor2();
 }
 
+/*
+ * TODO this function is no longer valid as interrupt vector not connected
+ * might do IO poll if necessary
 ISR(INT2_vect) {
 
     print("INT2 - Motor Fault (PEX INTA)\n");
@@ -328,3 +331,4 @@ ISR(INT2_vect) {
         disable_motors();
     }
 }
+ */
