@@ -4,11 +4,14 @@
 #include <adc/adc.h>
 #include <pex/pex.h>
 
-
 // ADC CS pin
-#define ADC_CS_PIN  PB6
-#define ADC_CS_PORT PORTB
-#define ADC_CS_DDR  DDRB
+#define ADC1_CS_PIN  PB5
+#define ADC1_CS_PORT PORTB
+#define ADC1_CS_DDR  DDRB
+
+#define ADC2_CS_PIN  PB6
+#define ADC2_CS_PORT PORTB
+#define ADC2_CS_DDR  DDRB
 
 // ADC channels - for thermistors and distance sensors
 #define ADC1_GEN_THM            0
@@ -16,7 +19,7 @@
 #define ADC1_BOOST6_VOLT_MON    2
 #define ADC1_MOTOR_TEMP_1       3
 #define ADC1_MOTOR_TEMP_2       4
-#define ADC1_TBOOST10_TEMP      7
+#define ADC1_BOOST10_TEMP       7
 #define ADC1_BOOST6_TEMP        5
 #define ADC1_BOOST10_VOLT_MON   6
 #define ADC1_BOOST10_TEMP       6
