@@ -73,16 +73,16 @@ void handle_hk(uint8_t field_num) {
     else if (field_num == CAN_PAY_HK_AMB_TEMP) {
     }
 
-    else if (field_num == CAN_PAY_HK_MOT1_TEMP) {
-    }
-
-    else if (field_num == CAN_PAY_HK_MOT2_TEMP) {
+    else if (field_num == CAN_PAY_HK_6V_TEMP) {
     }
 
     else if (field_num == CAN_PAY_HK_10V_TEMP) {
     }
 
-    else if (field_num == CAN_PAY_HK_6V_TEMP) {
+    else if (field_num == CAN_PAY_HK_MOT1_TEMP) {
+    }
+
+    else if (field_num == CAN_PAY_HK_MOT2_TEMP) {
     }
 
     else if (field_num == CAN_PAY_HK_MF1_TEMP) {
@@ -121,10 +121,28 @@ void handle_hk(uint8_t field_num) {
     else if (field_num == CAN_PAY_HK_MF12_TEMP) {
     }
 
-    else if (field_num == CAN_PAY_HK_HEAT_EN) {
+    else if (field_num == CAN_PAY_HK_BAT_VOL) {
     }
 
-    else if (field_num == CAN_PAY_HK_LIM_PRESS) {
+    else if (field_num == CAN_PAY_HK_6V_VOL) {
+    }
+
+    else if (field_num == CAN_PAY_HK_6V_CUR) {
+    }
+
+    else if (field_num == CAN_PAY_HK_10V_VOL) {
+    }
+
+    else if (field_num == CAN_PAY_HK_10V_CUR) {
+    }
+
+    else if (field_num == CAN_PAY_HK_THERM_STAT) {
+    }
+
+    else if (field_num == CAN_PAY_HK_HEAT_STAT) {
+    }
+
+    else if (field_num == CAN_PAY_HK_LSW_STAT) {
     }
 
     else if (field_num == CAN_PAY_HK_UPTIME) {
@@ -196,43 +214,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_HEAT1_OFF) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT1_ON) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT2_OFF) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT2_ON) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT3_OFF) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT3_ON) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT4_OFF) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT4_ON) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT5_OFF) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_HEAT5_ON) {
+    else if (field_num == CAN_PAY_CTRL_ENABLE_6V) {
         // Don't do anything, just handle the field number so we send something back
     }
 
@@ -240,7 +222,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_ENABLE_6V) {
+    else if (field_num == CAN_PAY_CTRL_ENABLE_10V) {
         // Don't do anything, just handle the field number so we send something back
     }
 
@@ -248,26 +230,44 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_ENABLE_10V) {
+    else if (field_num == CAN_PAY_CTRL_GET_HEAT_SP) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_ACT_UP) {
+    else if (field_num == CAN_PAY_CTRL_SET_HEAT_SP) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_POLL_THERM_READINGS) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_POLL_THERM_STAT) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_SET_THERM_STAT_OVERRIDE) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_DISABLE_THERM_STAT_OVERRIDE) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {
+        // Don't do anything, just handle the field number so we send something back
+    }
+
+    else if (field_num == CAN_PAY_CTRL_MOTOR_UP) {
+        // Don't do anything, just handle the field number so we send something back
         // forwards - up
         actuate_motors(40, 15, true);
     }
 
-    else if (field_num == CAN_PAY_CTRL_ACT_DOWN) {
+    else if (field_num == CAN_PAY_CTRL_MOTOR_DOWN) {
+        // Don't do anything, just handle the field number so we send something back
         // backwards - down
         actuate_motors(40, 15, false);
-    }
-
-    else if (field_num == CAN_PAY_CTRL_BLIST_DEP_SEQ) {
-    }
-
-    else if (field_num == CAN_PAY_CTRL_RESET) {
-        reset_self_mcu(UPTIME_RESTART_REASON_RESET_CMD);
-        // Note the program will stop here and restart
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_EEPROM) {
@@ -290,7 +290,12 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         tx_data = (uint32_t) (*pointer);
     }
 
-    else if (field_num == CAN_PAY_CTRL_START_TEMP_LPM) {
+    else if (field_num == CAN_PAY_CTRL_RESET_SSM) {
+        reset_self_mcu(UPTIME_RESTART_REASON_RESET_CMD);
+        // Note the program will stop here and restart
+    }
+
+    else if (field_num == CAN_PAY_CTRL_RESET_OPT) {
     }
 
     else if (field_num == CAN_PAY_CTRL_ENABLE_INDEF_LPM) {
