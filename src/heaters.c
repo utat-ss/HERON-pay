@@ -24,6 +24,8 @@ Author: Lorna Lan
  * 7 - unused
  */
 
+#include <conversions/conversions.h>
+
 #include "heaters.h"
 
 uint8_t SETPOINT;
@@ -133,7 +135,7 @@ uint16_t count_ones(uint16_t num){
 /*
  * Utility function: fast inverse square root
  */
-float fast_inverse_square_root(double num){
+float fast_inverse_square_root(double number){
     long i;
     float x2, y;
     const float threehalfs = 1.5F;
@@ -179,7 +181,7 @@ void acquire_therm_data(void){
 void eliminate_bad_therm(void){
     for(uint8_t i = 0; i < 12; i++){
         //bypass ground-set thermistors
-        if((THERM_ERR_CODE[i] != 5)|| (THERM_ERR_CODE[i] !=6)){
+        if((THERM_ERR_CODE[i] != 5)||(THERM_ERR_CODE[i] !=6)){
             //compare with both lower and upper limits first
             if(THERM_READINGS[i] < ULL){
                 THERM_STATUS = THERM_STATUS & (~(0x1 << i));
@@ -233,7 +235,8 @@ void eliminate_bad_therm(void){
 
     // elimination based on standard deviation
     // again, bypass ground-set thermistors
-    if((THERM_ERR_CODE[i] != 5)|| (THERM_ERR_CODE[i] !=6)){
+    for(uint8_t i = 0; i < 12; i++){
+        if((THERM_ERR_CODE[i] != 5)|| (THERM_ERR_CODE[i] !=6)){
             //compare with both lower and upper limits first
             if(THERM_READINGS[i] < (miu-3*sigma)){
                 THERM_STATUS = THERM_STATUS & (~(0x1 << i));
@@ -247,6 +250,7 @@ void eliminate_bad_therm(void){
                 THERM_ERR_CODE[i] = 0;
             }
         }
+    }
 }
 
 
@@ -274,7 +278,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
 
 // fine I decided to hardcode the heaters based on physical setup
 void heater_3in_ctrl(void){
-    //looking at heater1 & 3, remember to minus one for bit shift in function argument
+    //looking at heater 2 & 4, remember to minus one for bit shift in function argument
     double avg_reading = 0.0;
     double sum = 0.0;
     uint8_t normal_therm_num = 0;
@@ -319,7 +323,7 @@ void heater_3in_ctrl(void){
 
 
 void heater_4in_ctrl(void){
-    //looking at heater2 & 4, remember to minus one for bit shift in function argument
+    //looking at heater 1 & 3, remember to minus one for bit shift in function argument
     //
     // if want to introduce weighted average should do it here
     // could incorporate the weight into error code
