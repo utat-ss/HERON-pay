@@ -24,6 +24,14 @@ PAY now has the 24 bit ADC reading (raw data) from PAY-Optical, which was sent
 as big-endian/network order (most significant byte first)
 
 TODO - maybe put protocol and constants in lib-common?
+
+TODO - new SPI comm
+- setup DATA_RDY pin
+- PAY has to know how many spi-frames each command should take
+    - need directory -> enum?
+- should be able to handle arbitrary number of bytes
+    - while (current_spi_frame < expected_spi_frame)
+        - keep waiting for more external interrupts coming from OPT
 */
 
 #include "optical_spi.h"
@@ -39,11 +47,13 @@ volatile uint32_t opt_spi_data = 0;
 
 /*
 Initializes the microcontroller to communicate with the PAY-Optical microcontroller over SPI.
+- setup external interrupts (INT1 will trigger on rising edge)
+- initialize OPT SS and RST pins
 */
 void init_opt_spi(void) {
     // set behaviour of INT1 to trigger on rising edge
     EICRA |= (1 << ISC10) | (1 << ISC11);
-    // enable external interrupt 0
+    // enable external interrupt 1
     EIMSK |= (1 << INT1);
     // enable global interrupts
     sei();
@@ -66,6 +76,7 @@ void rst_opt_spi(void) {
     _delay_ms(1000);
     set_cs_high(OPT_RST_PIN, &OPT_RST_PORT);
 }
+
 
 // Reads 24 bits of raw data from the PAY-Optical microcontroller over optical SPI
 // (Sends the request command, then blocks until it gets 3 bytes back)
@@ -104,6 +115,7 @@ uint32_t read_opt_spi(uint8_t field_num) {
     return 0;
 }
 
+
 /*
 Sends a command to read data for the specified field number from PAY-Optical.
 */
@@ -114,8 +126,8 @@ void send_opt_spi_cmd(uint8_t field_num) {
     opt_spi_num_bytes = 0;
 
     // Send the command to PAY-Optical to start reading data
-    set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
     uint8_t spi_tx = (0b11 << 6) | field_num;
+    set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
     send_spi(spi_tx);
     set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
 
