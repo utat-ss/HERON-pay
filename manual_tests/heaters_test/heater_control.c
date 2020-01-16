@@ -1,14 +1,18 @@
-#include <adc/adc.h>
+#include <uptime/uptime.h>
+#include <avr/eeprom.h>
 #include <conversions/conversions.h>
-#include <pex/pex.h>
-#include <uart/uart.h>
 
-#include "../../src/boost.h"
-#include "../../src/heaters.h"
+#include "../../src/devices.h"
 
-//define global variables
+// Heaters all ON/OFF only (no PWM), controlled by PEX2
+// All on Bank B
+#define HEATER1_EN_N       3
+#define HEATER2_EN_N       4
+#define HEATER3_EN_N       5
+#define HEATER4_EN_N       6
+#define HEATER5_EN_N       7
 
-//temperature constants, all in degree Celsius
+// TODO have a function to reject invalid setpoint - in CAN
 #define SETPOINT 33
 #define ULL -40
 #define UHL 120
@@ -18,8 +22,84 @@ uint8_t HEATERS_STATUS;
 double THERM_READINGS[12];
 uint8_t THERM_ERR_CODE[12];
 
-// TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
-// TODO: include math.h for sqrt function (and log for temperature conversion)
+void init_heaters(void){
+  set_pex_pin_dir(&pex2, PEX_B, HEATER1_EN_N, OUTPUT);
+  set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
+
+  set_pex_pin_dir(&pex2, PEX_B, HEATER2_EN_N, OUTPUT);
+  set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 1);
+
+  set_pex_pin_dir(&pex2, PEX_B, HEATER3_EN_N, OUTPUT);
+  set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 1);
+
+  set_pex_pin_dir(&pex2, PEX_B, HEATER4_EN_N, OUTPUT);
+  set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 1);
+
+  set_pex_pin_dir(&pex2, PEX_B, HEATER5_EN_N, OUTPUT);
+  set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+}
+
+void heater_all_on(void) {
+    set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 0);
+    set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 0);
+    set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 0);
+    set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 0);
+    set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 0);
+}
+
+void heater_all_off(void) {
+    set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
+    set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 1);
+    set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 1);
+    set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 1);
+    set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+}
+
+void heater_on(uint8_t heater_num){
+    switch(heater_num){
+    case 1:
+        set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 0);
+        break;
+    case 2:
+        set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 0);
+        break;
+    case 3:
+        set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 0);
+        break;
+    case 4:
+        set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 0);
+        break;
+    case 5:
+        set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 0);
+        break;
+    default:
+        return;
+        break;
+    }
+}
+
+void heater_off(uint8_t heater_num){
+    switch(heater_num){
+    case 1:
+        set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
+        break;
+    case 2:
+        set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 1);
+        break;
+    case 3:
+        set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 1);
+        break;
+    case 4:
+        set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 1);
+        break;
+    case 5:
+        set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+        break;
+    default:
+        return;
+        break;
+    }
+}
 
 /*
  * ABOUT THERM_ERR_CODE
@@ -34,23 +114,6 @@ uint8_t THERM_ERR_CODE[12];
  * 5, 6, 7 - should not happen
  *
  */
-
-/*
- * Utility function: return number of 1s in a binary string
- */
-
-uint16_t count_ones(uint16_t num){
-    uint16_t one_count = 0;
-    //TO-DO: need a timer for this while loop
-    while(num != 0){
-        if ((num & 0x01) == 1){
-            one_count += 1;
-        }
-        num = num >> 1;
-    }
-    return one_count;
-}
-
 
 void init_control_loop(void){
     // 0 means elminated, 1 means normal
