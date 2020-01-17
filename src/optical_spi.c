@@ -40,7 +40,7 @@ TODO - new SPI comm
 // from the blocking function
 
 // Number of bytes already received from PAY-Optical
-volatile uint8_t opt_spi_num_bytes = 0;
+volatile uint8_t spi_frame_number = 0;
 // Data already received from PAY-Optical, always right-aligned
 volatile uint32_t opt_spi_data = 0;
 
@@ -78,24 +78,27 @@ void rst_opt_spi(void) {
 }
 
 
+
+
+
 // Reads 24 bits of raw data from the PAY-Optical microcontroller over optical SPI
 // (Sends the request command, then blocks until it gets 3 bytes back)
-uint32_t read_opt_spi(uint8_t field_num) {
+uint32_t read_opt_spi(uint8_t cmd_opcode) {
     // Must make this block non-atomic to ensure interrupts are enabled, in case
     // this function executes within an atomic block (e.g. in main() of main_test)
     NONATOMIC_BLOCK(NONATOMIC_RESTORESTATE) {
-        send_opt_spi_cmd(field_num);
+        send_opt_spi_cmd(cmd_opcode);
 
         // Wait until we get 3 bytes, with a timeout
         // In testing, timeout always ended at the original value minus 7 or 8
         uint32_t timeout = UINT32_MAX;
-        while ((timeout > 0) && (opt_spi_num_bytes < 3)) {
+        while ((timeout > 0) && (spi_frame_number < 3)) {
             timeout--;
         }
         print("timeout = %u\n", timeout);
 
         // If we didn't get 3 bytes
-        if (opt_spi_num_bytes < 3) {
+        if (spi_frame_number < 3) {
             //_delay_ms(5000); // long delay = timeout, used for testing
             return 0;
         }
@@ -105,7 +108,7 @@ uint32_t read_opt_spi(uint8_t field_num) {
         // print ("Received optical data: 0x%06lx\n", read_data);
 
         // Clear SPI request variables
-        opt_spi_num_bytes = 0;
+        spi_frame_number = 0;
         opt_spi_data = 0;
 
         return read_data;
@@ -119,16 +122,15 @@ uint32_t read_opt_spi(uint8_t field_num) {
 /*
 Sends a command to read data for the specified field number from PAY-Optical.
 */
-void send_opt_spi_cmd(uint8_t field_num) {
-    // print("Sending optical command - field #%u\n", field_num);
+void send_opt_spi_cmd(uint8_t cmd_opcode) {
+    // print("Sending optical command - field #%u\n", cmd_opcode);
 
     opt_spi_data = 0;
-    opt_spi_num_bytes = 0;
+    spi_frame_number = 0;
 
-    // Send the command to PAY-Optical to start reading data
-    uint8_t spi_tx = (0b11 << 6) | field_num;
+    // Send the command to PAY-Optical to start reading data    
     set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
-    send_spi(spi_tx);
+    send_spi(cmd_opcode);
     set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
 
     // After this, PAY-Optical should set DATA_RDY high, which will trigger the
@@ -152,5 +154,5 @@ ISR(INT1_vect) {
     // Add new byte to received data
     opt_spi_data = (opt_spi_data << 8) | new_byte;
     // Received one more byte
-    opt_spi_num_bytes++;
+    spi_frame_number++;
 }

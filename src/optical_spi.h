@@ -30,4 +30,7 @@ void rst_opt_spi(void);
 uint32_t read_opt_spi(uint8_t field_num);
 void send_opt_spi_cmd(uint8_t field_num);
 
+// associate command with how many spi_frames should be sent
+
+
 #endif
