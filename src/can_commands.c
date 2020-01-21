@@ -289,12 +289,6 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     else if (field_num == CAN_PAY_CTRL_RESET_OPT) {
     }
 
-    else if (field_num == CAN_PAY_CTRL_ENABLE_INDEF_LPM) {
-    }
-
-    else if (field_num == CAN_PAY_CTRL_DISABLE_INDEF_LPM) {
-    }
-
     else {
         *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
     }
