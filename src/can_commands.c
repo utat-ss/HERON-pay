@@ -15,10 +15,10 @@ queue_t rx_msg_queue;
 // CAN messages to transmit
 queue_t tx_msg_queue;
 
-void handle_hk(uint8_t field_num);
-void handle_opt(uint8_t field_num);
-void handle_ctrl(uint8_t field_num, uint32_t rx_data);
-
+void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data);
+void handle_opt(uint8_t field_num, uint8_t* tx_status);
+void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
+        uint32_t* tx_data);
 
 void handle_rx_msg(void) {
     // Get received message from queue
@@ -30,44 +30,65 @@ void handle_rx_msg(void) {
         dequeue(&rx_msg_queue, rx_msg);
     }
 
-    uint8_t opcode = rx_msg[2];
-    uint8_t field_num = rx_msg[3];
+    uint8_t opcode = rx_msg[0];
+    uint8_t field_num = rx_msg[1];
     uint32_t rx_data =
         ((uint32_t) rx_msg[4] << 24) |
         ((uint32_t) rx_msg[5] << 16) |
         ((uint32_t) rx_msg[6] << 8) |
         ((uint32_t) rx_msg[7]);
+    
+    // By default assume success
+    uint8_t tx_status = CAN_STATUS_OK;
+    uint32_t tx_data = 0;
 
     // Check message type
     switch (opcode) {
         case CAN_PAY_HK:
-            handle_hk(field_num);
+            handle_hk(field_num, &tx_status, &tx_data);
             break;
         case CAN_PAY_OPT:
-            handle_opt(field_num);
+            handle_opt(field_num, &tx_status);
+            // TODO - return here to not sent a TX message if tx_status is OK?
             break;
         case CAN_PAY_CTRL:
-            handle_ctrl(field_num, rx_data);
+            handle_ctrl(field_num, rx_data, &tx_status, &tx_data);
             break;
         default:
-            return;
+            tx_status = CAN_STATUS_INVALID_OPCODE;
+            break;
     }
+
+    // TODO - only do this if PAY-Optical read is not in progress
+
+    uint8_t tx_msg[8] = { 0x00 };
+    tx_msg[0] = opcode;
+    tx_msg[1] = field_num;
+    tx_msg[2] = tx_status;
+    tx_msg[3] = 0x00;
+    tx_msg[4] = (tx_data >> 24) & 0xFF;
+    tx_msg[5] = (tx_data >> 16) & 0xFF;
+    tx_msg[6] = (tx_data >> 8) & 0xFF;
+    tx_msg[7] = tx_data & 0xFF;
+    // Add message to transmit
+    enqueue(&tx_msg_queue, tx_msg);
+
+    // Restart the timer for not receiving a command
+    restart_com_timeout();
 }
 
 
 // Assuming a housekeeping request was received,
 // retrieves and places the appropriate data in the tx_data buffer
-void handle_hk(uint8_t field_num) {
-    uint32_t tx_data = 0;
-
+void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
     // TODO - fill in field implementations
 
     if (field_num == CAN_PAY_HK_HUM) {
-        tx_data = read_hum_raw_data();
+        *tx_data = read_hum_raw_data();
     }
 
     else if (field_num == CAN_PAY_HK_PRES) {
-        tx_data = read_pres_raw_data();
+        *tx_data = read_pres_raw_data();
     }
 
     else if (field_num == CAN_PAY_HK_AMB_TEMP) {
@@ -146,68 +167,38 @@ void handle_hk(uint8_t field_num) {
     }
 
     else if (field_num == CAN_PAY_HK_UPTIME) {
-        tx_data = uptime_s;
+        *tx_data = uptime_s;
     }
 
     else if (field_num == CAN_PAY_HK_RESTART_COUNT) {
-        tx_data = restart_count;
+        *tx_data = restart_count;
     }
 
     else if (field_num == CAN_PAY_HK_RESTART_REASON) {
-        tx_data = restart_reason;
+        *tx_data = restart_reason;
     }
 
     else {
-        // Return before calling enqueue() so we don't send a message back
-        return;
+        *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
     }
-
-    uint8_t tx_msg[8] = { 0x00 };
-    tx_msg[0] = 0x00;
-    tx_msg[1] = 0x00;
-    tx_msg[2] = CAN_PAY_HK;
-    tx_msg[3] = field_num;
-    tx_msg[4] = (tx_data >> 24) & 0xFF;
-    tx_msg[5] = (tx_data >> 16) & 0xFF;
-    tx_msg[6] = (tx_data >> 8) & 0xFF;
-    tx_msg[7] = tx_data & 0xFF;
-    // Add message to transmit
-    enqueue(&tx_msg_queue, tx_msg);
-
-    // Restart the timer for not receiving a command
-    restart_com_timeout();
 }
 
 
-void handle_opt(uint8_t field_num) {
+void handle_opt(uint8_t field_num, uint8_t* tx_status) {
     // Check the field number is valid
     if (field_num >= CAN_PAY_OPT_FIELD_COUNT) {
+        *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
         return;
     }
 
+    // TODO - refactor to be asynchronous
     // Get data from PAY-Optical over SPI
-    uint32_t tx_data = read_opt_spi(field_num);
-
-    // Add a message to transmit back
-    uint8_t tx_msg[8] = { 0x00 };
-    tx_msg[0] = 0x00;
-    tx_msg[1] = 0x00;
-    tx_msg[2] = CAN_PAY_OPT;
-    tx_msg[3] = field_num;
-    tx_msg[4] = (tx_data >> 24) & 0xFF;
-    tx_msg[5] = (tx_data >> 16) & 0xFF;
-    tx_msg[6] = (tx_data >> 8) & 0xFF;
-    tx_msg[7] = tx_data & 0xFF;
-    enqueue(&tx_msg_queue, tx_msg);
-
-    // Restart the timer for not receiving a command
-    restart_com_timeout();
+    // uint32_t tx_data = read_opt_spi(field_num);
 }
 
 
-void handle_ctrl(uint8_t field_num, uint32_t rx_data) {    
-    uint32_t tx_data = 0;
-
+void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
+        uint32_t* tx_data) {
     // TODO - fill in field implementations
 
     if (field_num == CAN_PAY_CTRL_PING) {
@@ -271,7 +262,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_EEPROM) {
-        tx_data = read_eeprom((uint16_t) rx_data);
+        *tx_data = read_eeprom((uint16_t) rx_data);
     }
 
     else if (field_num == CAN_PAY_CTRL_ERASE_EEPROM) {
@@ -287,7 +278,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
         // Must first cast to uint16_t or else we get warning: cast to pointer
         // from integer of different size -Wint-to-pointer-cast]
         volatile uint8_t* pointer = (volatile uint8_t*) ((uint16_t) rx_data);
-        tx_data = (uint32_t) (*pointer);
+        *tx_data = (uint32_t) (*pointer);
     }
 
     else if (field_num == CAN_PAY_CTRL_RESET_SSM) {
@@ -305,23 +296,6 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data) {
     }
 
     else {
-        return;
+        *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
     }
-    
-
-    // Send back the same message type and field number
-    uint8_t tx_msg[8] = { 0x00 };
-    tx_msg[0] = 0x00;
-    tx_msg[1] = 0x00;
-    tx_msg[2] = CAN_PAY_CTRL;
-    tx_msg[3] = field_num;
-    tx_msg[4] = (tx_data >> 24) & 0xFF;
-    tx_msg[5] = (tx_data >> 16) & 0xFF;
-    tx_msg[6] = (tx_data >> 8) & 0xFF;
-    tx_msg[7] = tx_data & 0xFF;
-    // Enqueue TX message to transmit
-    enqueue(&tx_msg_queue, tx_msg);
-
-    // Restart the timer for not receiving a command
-    restart_com_timeout();
 }

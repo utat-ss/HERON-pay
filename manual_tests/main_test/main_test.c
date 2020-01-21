@@ -84,12 +84,12 @@ const uint8_t all_cmds_len = sizeof(all_cmds) / sizeof(all_cmds[0]);
 
 
 // Enqueues a message for PAY to receive
-void enqueue_rx_msg(uint8_t msg_type, uint8_t field_number, uint32_t raw_data) {
+void enqueue_rx_msg(uint8_t opcode, uint8_t field_number, uint32_t raw_data) {
     uint8_t rx_msg[8] = { 0x00 };
-    rx_msg[0] = 0x00;
-    rx_msg[1] = 0x00;
-    rx_msg[2] = msg_type;
-    rx_msg[3] = field_number;
+    rx_msg[0] = opcode;
+    rx_msg[1] = field_number;
+    rx_msg[2] = 0x00;
+    rx_msg[3] = 0x00;
     rx_msg[4] = (raw_data >> 24) & 0xFF;
     rx_msg[5] = (raw_data >> 16) & 0xFF;
     rx_msg[6] = (raw_data >> 8) & 0xFF;
@@ -152,7 +152,6 @@ void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
     //     print(" = %.3f C\n", temp);
     // }
 
-
     else {
         return;
     }
@@ -181,9 +180,9 @@ void process_pay_ctrl_tx(uint8_t field_num) {
     // } else if (field_num == CAN_PAY_CTRL_HEAT_SP2) {
     //     print("Set heater 5 setpoint\n");
     // }
-    if (field_num == CAN_PAY_CTRL_ACT_UP) {
+    if (field_num == CAN_PAY_CTRL_MOTOR_UP) {
         print("Actuated plate up\n");
-    } else if (field_num == CAN_PAY_CTRL_ACT_DOWN) {
+    } else if (field_num == CAN_PAY_CTRL_MOTOR_DOWN) {
         print("Actuated plate down\n");
     }
 }
@@ -198,15 +197,15 @@ void sim_send_next_tx_msg(void) {
         dequeue(&tx_msg_queue, tx_msg);
     }
 
-    uint8_t msg_type = tx_msg[2];
-    uint8_t field_num = tx_msg[3];
+    uint8_t opcode = tx_msg[0];
+    uint8_t field_num = tx_msg[1];
     uint32_t tx_data =
         ((uint32_t) tx_msg[4] << 24) |
         ((uint32_t) tx_msg[5] << 16) |
         ((uint32_t) tx_msg[6] << 8) |
         ((uint32_t) tx_msg[7]);
 
-    switch (msg_type) {
+    switch (opcode) {
         case CAN_PAY_HK:
             process_pay_hk_tx(field_num, tx_data);
             break;
@@ -301,11 +300,11 @@ void set_heater_5_100c_fn(void) {
 }
 
 void req_act_up_fn(void) {
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_UP, 0);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_MOTOR_UP, 0);
 }
 
 void req_act_down_fn(void) {
-    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_ACT_DOWN, 0);
+    enqueue_rx_msg(CAN_PAY_CTRL, CAN_PAY_CTRL_MOTOR_DOWN, 0);
 }
 
 
