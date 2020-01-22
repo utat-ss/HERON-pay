@@ -4,6 +4,8 @@
 
 #include "../../src/optical_spi.h"
 
+// need global variable for spi_in_progress
+
 int main(void){
     init_uart();
     print("UART Initialized\n");
@@ -22,44 +24,17 @@ int main(void){
 
     print("\nStarting test\n\n");
 
-    // 0 = fluores, 1 = LED
-    uint8_t test_type = 1;
 
-    uint8_t field_num = 0;
-    uint32_t data = 0;
+    // SPI transfer parameters
+    uint8_t well_data = 0b10000000; // bit7 optical=0, 1=LED;  bit5-0 = 0-31 well number
 
     while (1) {
-        for (uint8_t bank = 0; bank < 4; bank ++){
-            for (uint8_t channel = 0; channel < 8; channel++){
-                // clear field_num
-                field_num = 0;
+        // print("\nhello world");
+        // _delay_ms(500);
 
-                if (test_type == 0){
-                    // bit 5 is set to 0 (fluorescence)
-                    field_num = (0b11 << 6) |((bank & 0b11) << 3) | (channel & 0b111);
-                    field_num = field_num & ~_BV(5);
-                }
-
-                else if (test_type == 1){
-                    // bit 5 is set to 1 (optical density)
-                    field_num = (0b11 << 6) | (0x1<<5) | ((bank & 0b11) << 3) | (channel & 0b111);
-                }
-
-                data = read_opt_spi(field_num);
-                print("A%d_%d = 0x%06lx--> %-4.2f%\n", bank+1, channel+1, data, (float)data/(float)0xffffff * 100);
-                print("\n");
-
-                _delay_ms(1000);
-            }
-            print("\n");
-        }
-
-        /*
-        for (uint8_t field_num = 0; field_num < CAN_PAY_OPT_FIELD_COUNT; field_num++) {
-            uint32_t data = read_opt_spi(field_num);
-            print("Field #%u = 0x%06lx\n", field_num, data);
-        }
-        */
-
+        uint32_t data = get_measurement(well_data);
+        print("Data in well number %d: %U\n", well_data & 0x1F, data);
     }
+
+    return 0;
 }
