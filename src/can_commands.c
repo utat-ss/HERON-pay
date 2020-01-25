@@ -182,9 +182,11 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
     }
 
     else if (field_num == CAN_PAY_HK_THERM_EN) {
+        *tx_data = enables_to_uint(therm_enables, THERMISTOR_COUNT);
     }
 
     else if (field_num == CAN_PAY_HK_HEAT_EN) {
+        *tx_data = enables_to_uint(heater_enables, HEATER_COUNT);
     }
 
     else if (field_num == CAN_PAY_HK_LSW_STAT) {
@@ -246,37 +248,49 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_HEAT_SP) {
-        // Don't do anything, just handle the field number so we send something back
+        *tx_data = heaters_setpoint_raw;
     }
 
     else if (field_num == CAN_PAY_CTRL_SET_HEAT_SP) {
-        // Don't do anything, just handle the field number so we send something back
+        set_heaters_setpoint_raw((uint16_t) rx_data);
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_THERM_READING) {
-        // Don't do anything, just handle the field number so we send something back
+        if (rx_data < THERMISTOR_COUNT) {
+            *tx_data = therm_readings_raw[rx_data];
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_THERM_ERR_CODE) {
-        // Don't do anything, just handle the field number so we send something back
+        if (rx_data < THERMISTOR_COUNT) {
+            *tx_data = therm_err_codes[rx_data];
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
     }
 
     else if (field_num == CAN_PAY_CTRL_SET_THERM_ERR_CODE) {
-        // Don't do anything, just handle the field number so we send something back
+        uint8_t therm_num = (rx_data >> 8) & 0xFF;  // byte 1
+        uint8_t err_code = rx_data & 0xFF;          // byte 0
+
+        if (therm_num < THERMISTOR_COUNT) {
+            therm_err_codes[therm_num] = err_code;
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {
-        // Don't do anything, just handle the field number so we send something back
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_UP) {
-        // Don't do anything, just handle the field number so we send something back
         // forwards - up
         actuate_motors(40, 15, true);
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_DOWN) {
-        // Don't do anything, just handle the field number so we send something back
         // backwards - down
         actuate_motors(40, 15, false);
     }

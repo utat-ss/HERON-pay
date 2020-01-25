@@ -52,6 +52,17 @@
 #define THERM_ERR_CODE_MANUAL_VALID     0x06
 
 
+extern uint16_t therm_readings_raw[];
+extern double therm_readings_conv[];
+extern uint8_t therm_err_codes[];
+extern uint8_t therm_enables[];
+
+extern uint16_t heaters_setpoint_raw;
+extern uint8_t heater_enables[];
+
+extern uint32_t heater_ctrl_last_exec_time;
+
+
 void init_heater_ctrl(void);
 void heater_all_on(void);
 void heater_all_off(void);
@@ -59,7 +70,9 @@ void heater_on(uint8_t);
 void heater_off(uint8_t);
 
 //heater control loop stuff
+void set_heaters_setpoint_raw(uint16_t setpoint);
 uint16_t count_ones(uint8_t* array, uint8_t size);
+uint32_t enables_to_uint(uint8_t* enables, uint32_t count);
 void acquire_therm_data (void);
 void update_therm_statuses (void);
 void heater_toggle(double, uint8_t);

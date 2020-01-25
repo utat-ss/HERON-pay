@@ -131,6 +131,11 @@ void heater_off(uint8_t heater_num){
 }
 
 
+void set_heaters_setpoint_raw(uint16_t setpoint) {
+    heaters_setpoint_raw = setpoint;
+    write_eeprom(HEATERS_SETPOINT_EEPROM_ADDR, heaters_setpoint_raw);
+}
+
 //manual test copy in manual_tests/heaters_test/heater_ctrl.c
 /*
  * Utility function: return number of 1s in a binary string
@@ -144,6 +149,17 @@ uint16_t count_ones(uint8_t* array, uint8_t size){
     }
 
     return one_count;
+}
+
+// TODO - unit test
+uint32_t enables_to_uint(uint8_t* enables, uint32_t count) {
+    uint32_t ret = 0;
+    for (uint32_t i = 0; i < count; i++) {
+        if (enables[i]) {
+            ret |= (1 << i);
+        }
+    }
+    return ret;
 }
 
 
