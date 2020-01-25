@@ -19,7 +19,7 @@ int main(void){
     init_pex(&pex2);
     print("\nPEX2 initialized\n");
 
-    init_heaters();
+    init_heater_ctrl();
     print("\nHeaters Initialized\n");
 
     init_boosts ();
@@ -28,7 +28,6 @@ int main(void){
 
     print("\nStarting Heaters control test\n\n");
 
-    init_control_loop ();
     while (1) {
         run_heater_control();
 

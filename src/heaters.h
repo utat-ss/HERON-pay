@@ -25,6 +25,10 @@
 #define THERM_CONV_ULL -40
 #define THERM_CONV_UHL 120
 
+#define HEATERS_SETPOINT_EEPROM_ADDR    0x300
+// This is for thermistor 0, for each thermistor add 4
+#define THERM_ERR_CODE_EEPROM_ADDR_BASE 0x310
+
 /*
  * ABOUT therm_err_codes
  *
@@ -47,7 +51,7 @@
 #define THERM_ERR_CODE_MANUAL_VALID     0x06
 
 
-void init_heaters(void);
+void init_heater_ctrl(void);
 void heater_all_on(void);
 void heater_all_off(void);
 void heater_on(uint8_t);
@@ -56,7 +60,6 @@ void heater_off(uint8_t);
 //heater control loop stuff
 uint16_t count_ones(uint8_t* array, uint8_t size);
 float fast_inverse_square_root(double);
-void init_control_loop (void);
 void acquire_therm_data (void);
 void eliminate_bad_therm (void);
 void heater_toggle(double, uint8_t);

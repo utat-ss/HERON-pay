@@ -17,21 +17,21 @@ Author: Lorna Lan
 
 #include "heaters.h"
 
-uint16_t heaters_setpoint_raw;
-
-// 0 means elminated, 1 means normal
-uint8_t therm_enables[THERMISTOR_COUNT];
-// 0 means OFF, 1 means ON
-uint8_t heater_enables[HEATER_COUNT];
-
 uint16_t therm_readings_raw[THERMISTOR_COUNT];
 // in C
 double therm_readings_conv[THERMISTOR_COUNT];
 uint8_t therm_err_codes[THERMISTOR_COUNT];
+// 0 means elminated, 1 means normal
+uint8_t therm_enables[THERMISTOR_COUNT];
 
-uint32_t heaters_last_exec_time = 0;
+uint16_t heaters_setpoint_raw = HEATERS_SETPOINT_RAW_DEFAULT;
+// 0 means OFF, 1 means ON
+uint8_t heater_enables[HEATER_COUNT];
 
-void init_heaters(void){
+uint32_t heater_ctrl_last_exec_time = 0;
+
+
+void init_heater_ctrl(void){
     set_pex_pin_dir(&pex2, PEX_B, HEATER1_EN_N, OUTPUT);
     set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
 
@@ -46,6 +46,25 @@ void init_heaters(void){
 
     set_pex_pin_dir(&pex2, PEX_B, HEATER5_EN_N, OUTPUT);
     set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+
+    for (uint8_t i = 0; i < THERMISTOR_COUNT; i++) {
+        therm_readings_raw[i] = 0;
+        //some specific double, this number doesn't matter anyway
+        therm_readings_conv[i] = 0.07;
+        // TODO - only write to EEPROM when this is changed by CAN command
+        therm_err_codes[i] = (uint8_t) read_eeprom_or_default(
+            THERM_ERR_CODE_EEPROM_ADDR_BASE + (4 * i), THERM_ERR_CODE_NORMAL);
+        therm_enables[i] = 1;
+    }
+
+    heaters_setpoint_raw = (uint16_t) read_eeprom_or_default(
+        HEATERS_SETPOINT_EEPROM_ADDR, HEATERS_SETPOINT_RAW_DEFAULT);
+
+    for (uint8_t i = 0; i < HEATER_COUNT; i++) {
+        heater_enables[i] = 0;
+    }
+    
+    // TODO - maybe run control once?
 }
 
 void heater_all_on(void) {
@@ -143,19 +162,6 @@ float fast_inverse_square_root(double number){
     y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
 
     return y;
-}
-
-
-void init_control_loop(void){
-    for (uint8_t i = 0; i < THERMISTOR_COUNT; i++) {
-        therm_enables[i] = 1;
-        therm_readings_conv[i] = 0.07; //some specific double, this number doesn't matter anyway
-        therm_err_codes[i] = 0;
-    }
-
-    for (uint8_t i = 0; i < HEATER_COUNT; i++) {
-        heater_enables[i] = 0;
-    }
 }
 
 
@@ -455,10 +461,10 @@ void run_heater_control(void){
 // TODO: can also permanently disable this function if don't care about temperature regulation anymore
 void heater_ctrl_main(void){
     // currently update every 5 minutes
-    if((uptime_s - heaters_last_exec_time) < 300){
+    if((uptime_s - heater_ctrl_last_exec_time) < 300){
         return;
     } else {
         run_heater_control ();
-        heaters_last_exec_time = uptime_s;
+        heater_ctrl_last_exec_time = uptime_s;
     }
 }
