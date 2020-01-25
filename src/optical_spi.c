@@ -22,9 +22,9 @@ as necessary until all the data is sent from OPTICAL to PAY.
 The SPI Transmission Flag (SPIF) is set at the end of every SPI transmission. It is
 automatically cleared when the SPDR register is accessed.
 
-well_data interpreted as:
+well_info interpreted as:
 bit 7 - optical density = 0, fluorescent LED = 1
-bit 5-0 = well number (0-31)
+bit 4-0 = well number (0-31)
 
 
 TODO:
@@ -37,6 +37,8 @@ TODO:
 volatile uint8_t spi_frame_number = 0;  // number of bytes received from OPTICAL
 volatile uint32_t opt_spi_data = 0;     // Data received from OPTICAL, always right-aligned
 
+// tracking if SPI in progress
+bool spi_in_progress = false;
 
 // set up slave select, reset, and DATA_RDYn pins
 void init_opt_spi(void) {
@@ -66,14 +68,14 @@ void rst_opt_spi(void) {
 
 // returns status of DATA_RDY pin
 uint8_t get_data_pin(void){
-    return OPT_DATA_PIN & _BV(OPT_DATA);
+    return OPT_DATA_PIN >> OPT_DATA;
 }
 
 
 // sends 2 bytes to request reading
 // byte 1 = cmd_byte
-// byte 2 = well data
-void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_data) {
+// byte 2 = well_into
+void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     // print("Sending optical the command code %X\n", cmd_opcode);
 
     opt_spi_data = 0;
@@ -86,31 +88,51 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_data) {
 
     // wait for DATA_RDYn to go LOW, signaling optical is done reading byte 1
     // --> aka loop until DATA_RDYn is no longer HIGH
-    while (get_data_pin() == 1);
+    uint16_t timeout = UINT16_MAX;
+    while (get_data_pin() == 1 && timeout>0){
+        timeout--;
+    }
 
-    // print("Sending optical the well data %X\n", well_data);
+    // print("Sending optical the well data %X\n", well_info);
+    // send PAY-OPTICAL the 2nd byte, containing details about the well and type of reading to take
     set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
-    send_spi(well_data);
+    send_spi(well_info);
     set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
+
+    // set SPI status to "waiting for OPTICAL to respond"
+    spi_in_progress = true;
 }
 
 
-void receive_opt_data(uint8_t num_expected_bytes){
-    
-    // still expecting more data from SSM
-    while (num_expected_bytes > spi_frame_number){
+// function called by PAY-SSM in its main loop 'every once in a while' to check up on OPTICAL after it sent it a command
+// if PAY-OPTICAL responded properly, proceed with multiple byte SPI transmission
+// otherwise, do nothing
+uint32_t check_received_opt_data(uint8_t num_expected_bytes){
+    // if currently waiting for OPTICAL response
+    if (spi_in_progress){
+        // clear previously received data
+        opt_spi_data = 0;
 
-        // OPTICAL ready to send data
-        if (get_data_pin() == 1){
-            uint8_t new_opt_data = SPDR;
-            opt_spi_data = opt_spi_data<<8 | new_opt_data;
+        // OPTICAL responded by pulling it's DATA_RDYn line low
+        if (get_data_pin()==0){
+            // exchange all the required bytes
+            while (num_expected_bytes > spi_frame_number){
+                // OPTICAL ready to send data
+                uint8_t new_opt_data = SPDR;
+                opt_spi_data = opt_spi_data<<8 | new_opt_data;
 
-            spi_frame_number++;
+                spi_frame_number++;
+            }
         }
+
+        // successfully sent command, and received all bytes from OPTICAL
+        spi_in_progress = false;
+
+        return opt_spi_data;
     }
 
-    // reset counter
-    spi_frame_number = 0;
+    else // no response from OPTICAL -> do nothing
+        return 0;
 }
 
 
@@ -122,19 +144,4 @@ uint8_t opcode_to_num_bytes(uint8_t opcode){
         default:
             return 0;
     }
-}
-
-
-// driver function to return 24-bit ADC data from wells
-// well_data = 
-uint32_t get_measurement(uint8_t well_data){
-    opt_spi_data = 0;       // clear previous data
-
-    uint8_t opcode = CMD_GET_READING;        // implied opcode is get reading
-    uint8_t num_expected_bytes = opcode_to_num_bytes(opcode);   // get number of bytes PAY is expectings
-
-    send_opt_spi_cmd(opcode, well_data);
-    receive_opt_data(num_expected_bytes);
-
-    return opt_spi_data;
 }
