@@ -11,6 +11,7 @@ Author: Lorna Lan
  */
 
 // TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
+// TODO: default heaters on/off mode?
 // TODO: include math.h for sqrt function (and log for temperature conversion)
 
 #include <conversions/conversions.h>
@@ -146,25 +147,6 @@ uint16_t count_ones(uint8_t* array, uint8_t size){
 }
 
 
-/*
- * Utility function: fast inverse square root
- */
-float fast_inverse_square_root(double number){
-    long i;
-    float x2, y;
-    const float threehalfs = 1.5F;
-
-    x2 = number * 0.5F;
-    y  = number;
-    i  = * ( long * ) &y;                       // evil floating point bit level hacking
-    i  = 0x5f3759df - ( i >> 1 );               // MAGIC NUMBER 
-    y  = * ( float * ) &i;
-    y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-
-    return y;
-}
-
-
 // does not need to be atomic when polling ADC data
 void acquire_therm_data(void){
     // poll all ADC2 channels
@@ -177,12 +159,43 @@ void acquire_therm_data(void){
     }
 }
 
+bool is_therm_valid(uint8_t err_code) {
+    if (err_code == THERM_ERR_CODE_NORMAL ||
+            err_code == THERM_ERR_CODE_MANUAL_VALID) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
-void eliminate_bad_therm(void){
+bool is_therm_manual(uint8_t err_code) {
+    if (err_code == THERM_ERR_CODE_MANUAL_INVALID ||
+            err_code == THERM_ERR_CODE_MANUAL_VALID) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void update_therm_statuses(void){
+    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+        // For any manually controlled thermistors, directly set the enable
+        if(therm_err_codes[i] == THERM_ERR_CODE_MANUAL_INVALID){
+            therm_enables[i] = 0;
+        }
+        else if(therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID){
+            therm_enables[i] = 1;
+        }
+        // If not manually controlled, default assume normal
+        else {
+            therm_enables[i] = 1;
+            therm_err_codes[i] = THERM_ERR_CODE_NORMAL;
+        }
+    }
+
     for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
         //bypass ground-set thermistors
-        if((therm_err_codes[i] != THERM_ERR_CODE_MANUAL_INVALID) &&
-                (therm_err_codes[i] != THERM_ERR_CODE_MANUAL_VALID)){
+        if(!is_therm_manual(therm_err_codes[i])){
             //compare with both lower and upper limits first
             if(therm_readings_conv[i] < THERM_CONV_ULL){
                 therm_enables[i] = 0;
@@ -191,69 +204,51 @@ void eliminate_bad_therm(void){
             else if(therm_readings_conv[i] > THERM_CONV_UHL){
                 therm_enables[i] = 0;
                 therm_err_codes[i] = THERM_ERR_CODE_ABOVE_UHL;
-            }else{
-                //otherwise assume normal, recovery
-                // TODO - set enable to 1?
-                therm_err_codes[i] = THERM_ERR_CODE_NORMAL;
             }
         }
     }
 
-    //compute mean
-    //
-    double sum = 0.0;
-    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
-            sum += therm_readings_conv[i];
-        }
-    }
     uint16_t valid_therm_num = count_ones(therm_enables, THERMISTOR_COUNT);
-    double miu = 0.0;
     if(valid_therm_num > 0){
-        miu = sum/valid_therm_num;
-    } else {
-        //TODO some sort of warning about no valid thermistors
-        return;
-    }
-
-    //compute standard deviation
-    sum = 0.0;
-    double variance = 0.0;
-    double sigma = 0.0;
-    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
-            double diff = therm_readings_conv[i] - miu;
-            sum += diff * diff;
+        //compute mean
+        //
+        double sum = 0.0;
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(is_therm_valid(therm_err_codes[i])){
+                sum += therm_readings_conv[i];
+            }
         }
-    }
-    if(valid_therm_num > 0){
+
+        double miu = sum/valid_therm_num;
+
+        //compute standard deviation
+        sum = 0.0;
+        double variance = 0.0;
+        double sigma = 0.0;
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(is_therm_valid(therm_err_codes[i])){
+                double diff = therm_readings_conv[i] - miu;
+                sum += diff * diff;
+            }
+        }
+        
         //population std doesn't need -1
         variance = sum/valid_therm_num;
-        sigma = (double) (fast_inverse_square_root(variance));
-    } else {
-        //TODO some sort of warning about not enough valid thermistors
-        return;
-    }
+        sigma = 1.0 / sqrt(variance);
 
-    // elimination based on standard deviation
-    // again, bypass ground-set thermistors
-    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-        if((therm_err_codes[i] != THERM_ERR_CODE_MANUAL_INVALID) &&
-                (therm_err_codes[i] !=THERM_ERR_CODE_MANUAL_VALID)){
-            //compare with both lower and upper limits first
-            if(therm_readings_conv[i] < (miu-3*sigma)){
-                therm_enables[i] = 0;
-                therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU_3SIG;
-            }
-            else if(therm_readings_conv[i] > (miu+3*sigma)){
-                therm_enables[i] = 0;
-                therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU_3SIG;
-            }else{
-                //otherwise assume normal, recovery
-                // TODO - set enable to 1?
-                therm_err_codes[i] = 0;
+        // elimination based on standard deviation
+        // again, bypass ground-set thermistors
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(!is_therm_manual(therm_err_codes[i])){
+                //compare with both lower and upper limits first
+                if(therm_readings_conv[i] < (miu-3*sigma)){
+                    therm_enables[i] = 0;
+                    therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU_3SIG;
+                }
+                else if(therm_readings_conv[i] > (miu+3*sigma)){
+                    therm_enables[i] = 0;
+                    therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU_3SIG;
+                }
             }
         }
     }
@@ -263,8 +258,10 @@ void eliminate_bad_therm(void){
 void heater_toggle(double calc_num, uint8_t heater_num){
     //NOTE: heater_num here is the physical heater number - 1
 
+    double setpoint_conv = dac_raw_data_to_heater_setpoint(heaters_setpoint_raw);
+
     // hot case
-    if(calc_num > heaters_setpoint_raw){
+    if(calc_num > setpoint_conv){
         if(heater_enables[heater_num]){
             //heater ON, need to turn it OFF
             heater_off(heater_num+1);
@@ -272,7 +269,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
         }
     }
     // cold case
-    else if(calc_num < heaters_setpoint_raw){
+    else if(calc_num < setpoint_conv){
         if(!heater_enables[heater_num]){
             //heater OFF, need to turn it ON
             heater_on(heater_num+1);
@@ -292,8 +289,7 @@ void heater_3in_ctrl(void){
     // heater 2
     // averaging TH3-5
     for(uint8_t i = 3; i < 6; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
+        if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
@@ -313,8 +309,7 @@ void heater_3in_ctrl(void){
     sum = 0.0;
     normal_therm_num = 0;
     for(uint8_t i = 9; i < 12; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
+        if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
@@ -342,15 +337,13 @@ void heater_4in_ctrl(void){
     // heater 1
     // averaging TH0-2 and TH11
     for(uint8_t i = 0; i < 3; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
+        if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
 
-    if((therm_err_codes[11] == THERM_ERR_CODE_NORMAL) ||
-            (therm_err_codes[11] == THERM_ERR_CODE_MANUAL_VALID)){
+    if(is_therm_valid(therm_err_codes[11])){
         sum += therm_readings_conv[11];
         normal_therm_num += 1;
     }
@@ -367,8 +360,7 @@ void heater_4in_ctrl(void){
     sum = 0.0;
     normal_therm_num = 0;
     for(uint8_t i = 5; i < 9; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
+        if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
@@ -391,8 +383,7 @@ void heater_5in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     for(uint8_t i = 0; i < 12; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
+        if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
@@ -418,38 +409,26 @@ void average_heaters(void){
 void print_heater_ctrl_status(void){
     //print thermistors status
     for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-        if((therm_err_codes[i] == THERM_ERR_CODE_NORMAL) ||
-                (therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID)){
-            print("Thermistor #: %d, Reading: %.5f\n", i, therm_readings_conv[i]);
-            print("%.5f,",therm_readings_conv[i]);
-        }
-        else{
-            print("Thermistor #: %d, Reading: %.5f, Err Status: %d\n", i, therm_readings_conv[i], therm_err_codes[i]);
-            print("Err%d,", therm_err_codes[i]);
-        }
+        print("Thermistor #: %u, Reading: 0x%x (%.5f C), Status: 0x%.2x, Enabled: %u\n",
+            i, therm_readings_raw[i], therm_readings_conv[i],
+            therm_err_codes[i], therm_enables[i]);
+
     }
+
+    print("Heater setpoint: 0x%x (%.5f C)\n", heaters_setpoint_raw,
+        dac_raw_data_to_heater_setpoint(heaters_setpoint_raw));
 
     //print heater status
     for(uint8_t i = 0; i < HEATER_COUNT; i++){
-        if(heater_enables[i]){
-            print("Heater #: %d, Status: ON\n", i+1);
-            print("%d,", 1);
-        }
-        else{
-            print("Heater #: %d, Status: OFF\n", i+1);
-            print("%d,", 0);
-        }
+        print("Heater #: %u, Enabled: %u\n", i+1, heater_enables[i]);
     }
     print("\n");
 }
 
 
-// TODO: need to modify this, no print statement
-void run_heater_control(void){
-    //print("TH1,TH2,TH3,TH4,TH5,TH6,TH7,TH8,TH9,TH10,TH11,TH12,H1,H2,H3,H4,H5\n");
-
+void run_heater_ctrl(void){
     acquire_therm_data();
-    eliminate_bad_therm();
+    update_therm_statuses();
     average_heaters();
 
     // store status to the correct place
@@ -464,7 +443,7 @@ void heater_ctrl_main(void){
     if((uptime_s - heater_ctrl_last_exec_time) < 300){
         return;
     } else {
-        run_heater_control ();
+        run_heater_ctrl ();
         heater_ctrl_last_exec_time = uptime_s;
     }
 }

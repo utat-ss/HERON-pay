@@ -29,7 +29,7 @@ int main(void){
     print("\nStarting Heaters control test\n\n");
 
     while (1) {
-        run_heater_control();
+        run_heater_ctrl();
 
         // current delay, every 20 seconds
         _delay_ms(20000);

@@ -1,10 +1,11 @@
 #ifndef HEATERS_H
 #define HEATERS_H
 
-#include <uptime/uptime.h>
-
-#include "devices.h"
+#include <stdbool.h>
 #include <avr/eeprom.h>
+#include <uptime/uptime.h>
+#include "devices.h"
+
 
 #define THERMISTOR_COUNT    12
 #define HEATER_COUNT        5
@@ -59,16 +60,15 @@ void heater_off(uint8_t);
 
 //heater control loop stuff
 uint16_t count_ones(uint8_t* array, uint8_t size);
-float fast_inverse_square_root(double);
 void acquire_therm_data (void);
-void eliminate_bad_therm (void);
+void update_therm_statuses (void);
 void heater_toggle(double, uint8_t);
 void heater_3in_ctrl (void);
 void heater_4in_ctrl (void);
 void heater_5in_ctrl (void);
 void average_heaters (void);
 void print_heater_ctrl_status (void);
-void run_heater_control (void);
+void run_heater_ctrl (void);
 void heater_ctrl_main (void);
 
 #endif
