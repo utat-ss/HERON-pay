@@ -45,7 +45,7 @@ void init_opt_spi(void);
 void rst_opt_spi(void);
 uint8_t get_data_pin(void);
 void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info);
-uint32_t check_received_opt_data(uint8_t num_expected_bytes);
+void check_received_opt_data(uint8_t num_expected_bytes);
 uint8_t opcode_to_num_bytes(uint8_t opcode);
 
 #endif

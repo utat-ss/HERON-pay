@@ -50,7 +50,7 @@ int main(void){
                 // wait a while before checking OPTICAL
                 _delay_ms(10);
 
-                received_data = check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
+                check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
                 print("well_number %d, test_type %d: %X", well_number, test_type, received_data);
             }
         }

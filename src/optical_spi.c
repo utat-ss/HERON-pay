@@ -34,41 +34,39 @@ TODO:
 #include "optical_spi.h"
 
 // volatile needed?
-volatile uint8_t spi_frame_number = 0;  // number of bytes received from OPTICAL
-volatile uint32_t opt_spi_data = 0;     // Data received from OPTICAL, always right-aligned
 
 // tracking if SPI in progress
 bool spi_in_progress = false;
+uint8_t current_well_info = 0;
 
 // set up slave select, reset, and DATA_RDYn pins
 void init_opt_spi(void) {
     // Initialize PAY-Optical CS pin
-    init_cs(OPT_CS_PIN, &OPT_CS_DDR );
-    set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
+    init_cs(OPT_CS, &OPT_CS_DDR );
+    set_cs_high(OPT_CS, &OPT_CS_PORT);
 
     // Initialize PAY-Optical reset pin
-    init_cs(OPT_RST_PIN, &OPT_RST_DDR);
-    set_cs_high(OPT_RST_PIN, &OPT_RST_PORT);
+    init_cs(OPT_RST, &OPT_RST_DDR);
+    set_cs_high(OPT_RST, &OPT_RST_PORT);
 
     // Initialize PAY-Optical DATA_RDY pin
     OPT_DATA_DDR &= ~_BV(OPT_DATA);     // write 0, set as input pin
     OPT_DATA_PORT |= _BV(OPT_DATA);     // activate input pullup resistor
-
 }
 
 
 // Resets the PAY-Optical microcontroller
 void rst_opt_spi(void) {
     // TODO - check how many cycles is necessary
-    set_cs_low(OPT_RST_PIN, &OPT_RST_PORT);
+    set_cs_low(OPT_RST, &OPT_RST_PORT);
     _delay_ms(1000);
-    set_cs_high(OPT_RST_PIN, &OPT_RST_PORT);
+    set_cs_high(OPT_RST, &OPT_RST_PORT);
 }
 
 
 // returns status of DATA_RDY pin
 uint8_t get_data_pin(void){
-    return OPT_DATA_PIN >> OPT_DATA;
+    return (OPT_DATA_PIN >> OPT_DATA) & 0x1;
 }
 
 
@@ -76,15 +74,10 @@ uint8_t get_data_pin(void){
 // byte 1 = cmd_byte
 // byte 2 = well_into
 void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
-    // print("Sending optical the command code %X\n", cmd_opcode);
-
-    opt_spi_data = 0;
-    spi_frame_number = 0;
-
     // Send the command to PAY-Optical to start reading data    
-    set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
+    set_cs_low(OPT_CS, &OPT_CS_PORT);
     send_spi(cmd_opcode);
-    set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
+    set_cs_high(OPT_CS, &OPT_CS_PORT);
 
     // wait for DATA_RDYn to go LOW, signaling optical is done reading byte 1
     // --> aka loop until DATA_RDYn is no longer HIGH
@@ -95,24 +88,25 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
 
     // print("Sending optical the well data %X\n", well_info);
     // send PAY-OPTICAL the 2nd byte, containing details about the well and type of reading to take
-    set_cs_low(OPT_CS_PIN, &OPT_CS_PORT);
+    set_cs_low(OPT_CS, &OPT_CS_PORT);
     send_spi(well_info);
-    set_cs_high(OPT_CS_PIN, &OPT_CS_PORT);
+    set_cs_high(OPT_CS, &OPT_CS_PORT);
 
     // set SPI status to "waiting for OPTICAL to respond"
     spi_in_progress = true;
+    current_well_info = well_info;
 }
 
 
 // function called by PAY-SSM in its main loop 'every once in a while' to check up on OPTICAL after it sent it a command
 // if PAY-OPTICAL responded properly, proceed with multiple byte SPI transmission
 // otherwise, do nothing
-uint32_t check_received_opt_data(uint8_t num_expected_bytes){
+void check_received_opt_data(uint8_t num_expected_bytes){
+    uint8_t spi_frame_number = 0;  // number of bytes received from OPTICAL
+    uint32_t opt_spi_data = 0;     // Data received from OPTICAL, always right-aligned
+
     // if currently waiting for OPTICAL response
     if (spi_in_progress){
-        // clear previously received data
-        opt_spi_data = 0;
-
         // OPTICAL responded by pulling it's DATA_RDYn line low
         if (get_data_pin()==0){
             // exchange all the required bytes
@@ -123,25 +117,13 @@ uint32_t check_received_opt_data(uint8_t num_expected_bytes){
 
                 spi_frame_number++;
             }
+
+            // successfully sent command, and received all bytes from OPTICAL
+            spi_in_progress = false;
         }
 
-        // successfully sent command, and received all bytes from OPTICAL
-        spi_in_progress = false;
-
-        return opt_spi_data;
+        print("recieved data from well_info 0x%X: 0x%X", current_well_info, opt_spi_data);
     }
 
-    else // no response from OPTICAL -> do nothing
-        return 0;
-}
-
-
-// returns number of expected bytes to received from SPI, based on opcode cmd
-uint8_t opcode_to_num_bytes(uint8_t opcode){
-    switch (opcode){
-        case CMD_GET_READING:
-            return NUM_GET_READING;
-        default:
-            return 0;
-    }
+    // no response from OPTICAL -> do nothing
 }
