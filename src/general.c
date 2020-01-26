@@ -24,6 +24,8 @@ void init_pay(void) {
     init_hum();
     init_pres();
 
+    // TODO - init boosts and heaters?
+
     // Motors
     init_motors();
 

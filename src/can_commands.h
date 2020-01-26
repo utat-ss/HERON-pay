@@ -9,6 +9,7 @@
 #include <uptime/uptime.h>
 #include <utilities/utilities.h>
 
+#include "boost.h"
 #include "can_interface.h"
 #include "devices.h"
 #include "env_sensors.h"

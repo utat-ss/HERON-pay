@@ -92,75 +92,99 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
     }
 
     else if (field_num == CAN_PAY_HK_AMB_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_GEN_THM);
     }
 
     else if (field_num == CAN_PAY_HK_6V_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST6_TEMP);
     }
 
     else if (field_num == CAN_PAY_HK_10V_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST10_TEMP);
     }
 
     else if (field_num == CAN_PAY_HK_MOT1_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_MOTOR_TEMP_1);
     }
 
     else if (field_num == CAN_PAY_HK_MOT2_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_MOTOR_TEMP_2);
     }
 
+    // TODO - how are MF thermistors numbered?
+
     else if (field_num == CAN_PAY_HK_MF1_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_6);
     }
 
     else if (field_num == CAN_PAY_HK_MF2_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_5);
     }
 
     else if (field_num == CAN_PAY_HK_MF3_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_4);
     }
 
     else if (field_num == CAN_PAY_HK_MF4_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_3);
     }
 
     else if (field_num == CAN_PAY_HK_MF5_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_2);
     }
 
     else if (field_num == CAN_PAY_HK_MF6_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_1);
     }
 
     else if (field_num == CAN_PAY_HK_MF7_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_6);
     }
 
     else if (field_num == CAN_PAY_HK_MF8_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_5);
     }
 
     else if (field_num == CAN_PAY_HK_MF9_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_4);
     }
 
     else if (field_num == CAN_PAY_HK_MF10_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_3);
     }
 
     else if (field_num == CAN_PAY_HK_MF11_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_2);
     }
 
     else if (field_num == CAN_PAY_HK_MF12_TEMP) {
+        *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_1);
     }
 
     else if (field_num == CAN_PAY_HK_BAT_VOL) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BATT_VOLT_MON);
     }
 
     else if (field_num == CAN_PAY_HK_6V_VOL) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST6_VOLT_MON);
     }
 
     else if (field_num == CAN_PAY_HK_6V_CUR) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST6_CURR_MON);
     }
 
     else if (field_num == CAN_PAY_HK_10V_VOL) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST10_VOLT_MON);
     }
 
     else if (field_num == CAN_PAY_HK_10V_CUR) {
+        *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST10_CURR_MON);
     }
 
-    else if (field_num == CAN_PAY_HK_THERM_STAT) {
+    else if (field_num == CAN_PAY_HK_THERM_EN) {
     }
 
-    else if (field_num == CAN_PAY_HK_HEAT_STAT) {
+    else if (field_num == CAN_PAY_HK_HEAT_EN) {
     }
 
     else if (field_num == CAN_PAY_HK_LSW_STAT) {
@@ -206,19 +230,19 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     }
 
     else if (field_num == CAN_PAY_CTRL_ENABLE_6V) {
-        // Don't do anything, just handle the field number so we send something back
+        enable_6V_boost();
     }
 
     else if (field_num == CAN_PAY_CTRL_DISABLE_6V) {
-        // Don't do anything, just handle the field number so we send something back
+        disable_6V_boost();
     }
 
     else if (field_num == CAN_PAY_CTRL_ENABLE_10V) {
-        // Don't do anything, just handle the field number so we send something back
+        enable_10V_boost();
     }
 
     else if (field_num == CAN_PAY_CTRL_DISABLE_10V) {
-        // Don't do anything, just handle the field number so we send something back
+        disable_10V_boost();
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_HEAT_SP) {
@@ -229,19 +253,15 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_POLL_THERM_READINGS) {
+    else if (field_num == CAN_PAY_CTRL_GET_THERM_READING) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_POLL_THERM_STAT) {
+    else if (field_num == CAN_PAY_CTRL_GET_THERM_ERR_CODE) {
         // Don't do anything, just handle the field number so we send something back
     }
 
-    else if (field_num == CAN_PAY_CTRL_SET_THERM_STAT_OVERRIDE) {
-        // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_DISABLE_THERM_STAT_OVERRIDE) {
+    else if (field_num == CAN_PAY_CTRL_SET_THERM_ERR_CODE) {
         // Don't do anything, just handle the field number so we send something back
     }
 
@@ -287,6 +307,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     }
 
     else if (field_num == CAN_PAY_CTRL_RESET_OPT) {
+        rst_opt_spi();
     }
 
     else {
