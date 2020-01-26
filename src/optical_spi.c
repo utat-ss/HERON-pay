@@ -120,9 +120,11 @@ void check_received_opt_data(uint8_t num_expected_bytes){
 
             // successfully sent command, and received all bytes from OPTICAL
             spi_in_progress = false;
+
+            // creates a CAN message, but we'll use print statements for now
+            print("recieved data from well_info 0x%X: 0x%X", current_well_info, opt_spi_data);
         }
 
-        print("recieved data from well_info 0x%X: 0x%X", current_well_info, opt_spi_data);
     }
 
     // no response from OPTICAL -> do nothing
