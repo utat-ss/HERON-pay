@@ -26,11 +26,11 @@ Thermistor 1 corresponds to ADC channel 0, thermistor 2 to channel 1, etc.
 #include "../../src/devices.h"
 
 
-// TODO - need to increase if you get the warning (see below)
+// NOTE: need to increase if you get the warning (see below)
 #define DATA_PERIOD_MS 200UL   // in ms
 
 
-// TODO - kind of hacky, copied start_timer_8bit() from timer.c and modified
+// NOTE: kind of hacky, copied start_timer_8bit() from timer.c and modified
 // the first line because we need millisecond precision
 
 // Need visible declaration
