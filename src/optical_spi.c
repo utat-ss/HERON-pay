@@ -9,7 +9,7 @@ Protocol:
 
 PAY sends 2 bytes:
 byte 1 = command opcode
-byte 2 = well data (or other additional info)
+byte 2 = well info (or other additional info)
 
 PAY responds by interpreting the command opcode. OPTICAL performs the command.
 
@@ -23,26 +23,14 @@ The SPI Transmission Flag (SPIF) is set at the end of every SPI transmission. It
 automatically cleared when the SPDR register is accessed.
 
 well_info interpreted as:
-bit 5 - optical density = 0, fluorescent LED = 1
+bit 5 - optical density = 0, fluorescent = 1
 bit 4-0 = well number (0-31)
-
-
-TODO:
-- implement timeout
 */
 
 #include "optical_spi.h"
 
-// not sure if `optical_spi.c` should be creating the CAN messages
-// CAN messages to transmit
-queue_t tx_msg_queue;
-
-// don't need to handle CAN messages, since the main loop should handle them
-// -> use optical_spi.c to collect sensor readings and put them in a new CAN message
-
 // tracking if SPI in progress
 bool spi_in_progress = false;
-uint8_t current_cmd = 0;
 uint8_t current_well_info = 0;
 
 // set up slave select, reset, and DATA_RDYn pins
@@ -85,9 +73,6 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     send_spi(cmd_opcode);
     set_cs_high(OPT_CS, &OPT_CS_PORT);
 
-    // keep track of current command (for creating CAN message)
-    current_cmd = cmd_opcode;
-
     // wait for DATA_RDYn to go LOW, signaling optical is done reading byte 1
     // --> aka loop until DATA_RDYn is no longer HIGH
     uint16_t timeout = UINT16_MAX;
@@ -118,13 +103,18 @@ void check_received_opt_data(uint8_t num_expected_bytes){
     if (spi_in_progress){
         // OPTICAL responded by pulling it's DATA_RDYn line low
         if (get_data_pin()==0){
+            uint16_t timeout = UINT16_MAX;
             // exchange all the required bytes
-            while (num_expected_bytes > spi_frame_number){
+            while (num_expected_bytes > spi_frame_number && timeout>0){
                 // OPTICAL ready to send data
                 uint8_t new_opt_data = SPDR;
                 opt_spi_data = opt_spi_data<<8 | new_opt_data;
 
                 spi_frame_number++;
+
+                // small delay to give time for DATA_RDYn to go high
+                _delay_us(10);
+                timeout--;      // max wait time is ~0.65s
             }
 
             // successfully sent command, and received all bytes from OPTICAL
@@ -135,18 +125,17 @@ void check_received_opt_data(uint8_t num_expected_bytes){
         
             // create CAN message
             uint8_t tx_msg[8] = { 0x00 };
-            tx_msg[0] = current_cmd;            // opcode
+            tx_msg[0] = CAN_PAY_OPT;            // opcode
             tx_msg[1] = current_well_info;      // field number
-            tx_msg[2] = 0x00;                   // status, 0x00 = ok
+            tx_msg[2] = CAN_STATUS_OK;          // status, 0x00 = ok
             tx_msg[3] = 0x00;                   // unused
-            tx_msg[4] = (opt_spi_data >> 16) & 0xFF; // data=24 bits, MSB first, zeroes padded on end
-            tx_msg[5] = (opt_spi_data >> 8) & 0xFF;
-            tx_msg[6] = (opt_spi_data) & 0xFF;
-            tx_msg[7] = 0x00;
+            tx_msg[4] = 0x00;                   // data bits 4-7 read as uint32_t
+            tx_msg[5] = (opt_spi_data >> 16) & 0xFF; /
+            tx_msg[6] = (opt_spi_data >> 8) & 0xFF;
+            tx_msg[7] = (opt_spi_data) & 0xFF;
             // Enqueue TX message to transmit
             enqueue(&tx_msg_queue, tx_msg);
         }
-
     }
 
     // no response from OPTICAL -> do nothing

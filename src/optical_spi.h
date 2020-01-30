@@ -29,8 +29,8 @@
 #define OPT_DATA_DDR    DDRC
 
 // test type and field (well) number bits
-#define TEST_TYPE_BIT        5
-#define FIELD_NUMBER_BIT       4
+#define TEST_TYPE_BIT        5          // 0 = optical density, 1 = fluorescence
+#define FIELD_NUMBER_BIT     4
 
 // SPI OPCODES, copied from pay-optical/src/spi_comms.h
 #define CMD_GET_READING             0x03
