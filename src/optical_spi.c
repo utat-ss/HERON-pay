@@ -130,7 +130,7 @@ void check_received_opt_data(uint8_t num_expected_bytes){
             tx_msg[2] = CAN_STATUS_OK;          // status, 0x00 = ok
             tx_msg[3] = 0x00;                   // unused
             tx_msg[4] = 0x00;                   // data bits 4-7 read as uint32_t
-            tx_msg[5] = (opt_spi_data >> 16) & 0xFF; /
+            tx_msg[5] = (opt_spi_data >> 16) & 0xFF; 
             tx_msg[6] = (opt_spi_data >> 8) & 0xFF;
             tx_msg[7] = (opt_spi_data) & 0xFF;
             // Enqueue TX message to transmit

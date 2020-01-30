@@ -9,6 +9,7 @@
 #include <uart/uart.h>
 
 #include "can_interface.h"
+#include "can_commands.h"
 
 // OPT_CS_N pin on schematic
 #define OPT_CS          PB4
