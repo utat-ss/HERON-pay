@@ -357,9 +357,9 @@ int main(void) {
     print("\n\n\nStarting commands test\n\n");
 
     // Change these as necessary for testing
-    sim_obc = true;
+    sim_obc = false;
     com_timeout_period_s = 600;
-    hb_req_period_s = 30;
+    hb_req_period_s = 300;
     hb_resp_wait_time_s = 5;
     disable_hb = false;
     print_can_msgs = true;
