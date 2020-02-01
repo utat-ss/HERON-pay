@@ -142,7 +142,7 @@ void check_received_opt_data(uint8_t num_expected_bytes){
             spi_in_progress = false;
 
             // creates a CAN message, but we'll use print statements for now
-            print("received data from well_info 0x%x: 0x%lx\n", current_well_info, opt_spi_data);
+            // print("received data from well_info 0x%x: 0x%lx\n", current_well_info, opt_spi_data);
         
             // create CAN message
             uint8_t tx_msg[8] = { 0x00 };
