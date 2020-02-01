@@ -80,17 +80,7 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     send_spi(cmd_opcode);
     set_cs_high(OPT_CS, &OPT_CS_PORT);
 
-    _delay_ms(1);
-
-    // wait for DATA_RDYn to go LOW, signaling optical is done reading byte 1
-    // --> aka loop until DATA_RDYn is no longer HIGH
-    uint16_t timeout = UINT16_MAX;
-    while (get_data_pin() == 1 && timeout>0){
-        timeout--;
-    }
-    if (timeout == 0) {
-        print("TIMEOUT in send cmd\n");
-    }
+    _delay_ms(10);
 
     // print("Sending optical the well data %X\n", well_info);
     // send PAY-OPTICAL the 2nd byte, containing details about the well and type of reading to take
