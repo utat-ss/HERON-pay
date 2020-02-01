@@ -34,20 +34,18 @@
 #define FIELD_NUMBER_BIT     4
 
 // SPI OPCODES, copied from pay-optical/src/spi_comms.h
-#define CMD_GET_READING             0x03
-#define CMD_GET_POWER               0x0A
+#define CMD_GET_READING             0x01
+#define CMD_GET_POWER               0x02
 
 // unimplemented
 #define CMD_SET_LED_BANK            0x04
 #define CMD_GET_LED_BANK            0x05
 #define CMD_ENTER_SLEEP_MODE        0x06
 #define CMD_ENTER_NORMAL_MODE       0x07
-#define CMD_GET_CURRENT             0x08
-#define CMD_GET_VOLTAGE             0x09
 
 // Expected number of bytes to be returned from OPTICAL
 #define NUM_GET_READING             3
-#define NUM_GET_POWER               4
+#define NUM_GET_POWER               3
 
 void init_opt_spi(void);
 void rst_opt_spi(void);

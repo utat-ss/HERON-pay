@@ -106,32 +106,32 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
 // if PAY-OPTICAL responded properly, proceed with multiple byte SPI transmission
 // otherwise, do nothing
 void check_received_opt_data(uint8_t num_expected_bytes){
-    uint8_t spi_frame_number = 0;  // number of bytes received from OPTICAL
-    uint32_t opt_spi_data = 0;     // Data received from OPTICAL, always right-aligned
-
     // if currently waiting for OPTICAL response
     if (spi_in_progress){
         // OPTICAL responded by pulling it's DATA_RDYn line low
         if (get_data_pin()==0){
-            uint16_t timeout = UINT16_MAX;
-            // exchange all the required bytes
-            while (num_expected_bytes > spi_frame_number && timeout>0){
-                // OPTICAL ready to send data
-                uint8_t new_opt_data = SPDR;
-                opt_spi_data = opt_spi_data<<8 | new_opt_data;
+            print("Found DATA_RDYn low\n");
 
-                spi_frame_number++;
+            uint32_t opt_spi_data = 0;     // Data received from OPTICAL, always right-aligned
+
+            // exchange all the required bytes
+            for (uint8_t i = 0; i < num_expected_bytes; i++) {
+                set_cs_low(OPT_CS, &OPT_CS_PORT);
+                uint8_t new_opt_data = send_spi(0x00);
+                set_cs_high(OPT_CS, &OPT_CS_PORT);
+
+                // OPTICAL ready to send data
+                opt_spi_data = (opt_spi_data<<8) | new_opt_data;
 
                 // small delay to give time for DATA_RDYn to go high
-                _delay_us(10);
-                timeout--;      // max wait time is ~0.65s
+                _delay_ms(100);
             }
 
             // successfully sent command, and received all bytes from OPTICAL
             spi_in_progress = false;
 
             // creates a CAN message, but we'll use print statements for now
-            print("recieved data from well_info 0x%X: 0x%X", current_well_info, opt_spi_data);
+            print("recieved data from well_info 0x%X: 0x%X\n", current_well_info, opt_spi_data);
         
             // create CAN message
             uint8_t tx_msg[8] = { 0x00 };
