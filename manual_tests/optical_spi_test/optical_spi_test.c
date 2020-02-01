@@ -35,7 +35,8 @@ int main(void){
                 send_opt_spi_cmd(CMD_GET_READING, well_info);
 
                 // Loop until optical has data ready
-                for (uint32_t i = 0; i < 10000; i++) {
+                // TODO - 10,000
+                for (uint32_t i = 0; i < 1000; i++) {
                     check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
 
                     // Check if the message is in the TX queue

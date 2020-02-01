@@ -80,6 +80,8 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     send_spi(cmd_opcode);
     set_cs_high(OPT_CS, &OPT_CS_PORT);
 
+    _delay_ms(1);
+
     // wait for DATA_RDYn to go LOW, signaling optical is done reading byte 1
     // --> aka loop until DATA_RDYn is no longer HIGH
     uint16_t timeout = UINT16_MAX;
@@ -95,6 +97,8 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     set_cs_low(OPT_CS, &OPT_CS_PORT);
     send_spi(well_info);
     set_cs_high(OPT_CS, &OPT_CS_PORT);
+
+    _delay_ms(100);
 
     // set SPI status to "waiting for OPTICAL to respond"
     spi_in_progress = true;
@@ -131,7 +135,7 @@ void check_received_opt_data(uint8_t num_expected_bytes){
             spi_in_progress = false;
 
             // creates a CAN message, but we'll use print statements for now
-            print("recieved data from well_info 0x%X: 0x%X\n", current_well_info, opt_spi_data);
+            print("received data from well_info 0x%x: 0x%lx\n", current_well_info, opt_spi_data);
         
             // create CAN message
             uint8_t tx_msg[8] = { 0x00 };
