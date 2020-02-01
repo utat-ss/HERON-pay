@@ -33,6 +33,9 @@ bit 4-0 = well number (0-31)
 bool spi_in_progress = false;
 uint8_t current_well_info = 0;
 
+bool print_spi_transfers = true;
+
+
 // set up slave select, reset, and DATA_RDYn pins
 void init_opt_spi(void) {
     // Initialize PAY-Optical CS pin
@@ -68,6 +71,10 @@ uint8_t get_data_pin(void){
 // byte 1 = cmd_byte
 // byte 2 = well_into
 void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
+    if (print_spi_transfers) {
+        print("SPI TX: %.2x:%.2x\n", cmd_opcode, well_info);
+    }
+
     // Send the command to PAY-Optical to start reading data    
     set_cs_low(OPT_CS, &OPT_CS_PORT);
     send_spi(cmd_opcode);
@@ -78,6 +85,9 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     uint16_t timeout = UINT16_MAX;
     while (get_data_pin() == 1 && timeout>0){
         timeout--;
+    }
+    if (timeout == 0) {
+        print("TIMEOUT in send cmd\n");
     }
 
     // print("Sending optical the well data %X\n", well_info);

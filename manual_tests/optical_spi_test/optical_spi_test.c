@@ -22,30 +22,43 @@ int main(void){
 
     print("\nStarting test\n\n");
 
-    // SPI transfer parameters
-    uint8_t cmd_opcode = CMD_GET_READING;
-    uint8_t well_info = 0; // bit7 optical=0, 1=LED;  bit4-0 = 0-31 well number
-
-    // loop through all 32 wells, taking optical and LED readings
-    uint8_t well_number = 0;
-    uint8_t test_type = 0;
-
+    // loop through all 32 wells, taking OD and FL readings
     while (1) {
-        // print("\nhello world");
-        // _delay_ms(500);
-
-        for (well_number = 0; well_number<32; well_number++){
-            for (test_type = 0; test_type<2; test_type++){
+        for (uint8_t test_type = 0; test_type<2; test_type++){
+            for (uint8_t well_number = 0; well_number<32; well_number++){
+                print("Starting type = %u, well = %u\n", test_type, well_number);
+                
                 // properly encode well_info
-                well_info = test_type<<TEST_TYPE_BIT | well_number;
+                uint8_t well_info = (test_type << TEST_TYPE_BIT) | well_number;
 
                 // send command
-                send_opt_spi_cmd(cmd_opcode, well_info);
+                send_opt_spi_cmd(CMD_GET_READING, well_info);
 
-                // wait a while before checking OPTICAL
-                _delay_ms(10);
+                // Loop until optical has data ready
+                // TODO - 10,000
+                for (uint32_t i = 0; i < 1000; i++) {
+                    check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
 
-                check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
+                    // Check if the message is in the TX queue
+                    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+                        if (queue_size(&tx_msg_queue) > 0) {
+                            uint8_t tx_msg[8] = {0x00};
+                            dequeue(&tx_msg_queue, tx_msg);
+
+                            uint8_t field_num = tx_msg[1];
+                            uint32_t data =
+                                ((uint32_t) tx_msg[4] << 24) |
+                                ((uint32_t) tx_msg[4] << 16) |
+                                ((uint32_t) tx_msg[4] << 8) |
+                                ((uint32_t) tx_msg[4] << 0);
+                            print("Received field %u: 0x%lx\n", field_num, data);
+                        }
+                    }
+
+                    _delay_ms(1);
+                }
+
+                print("Done field\n");
             }
         }
     }
