@@ -12,6 +12,8 @@ TODO - test faults - INT2 - Can manually force signal LOW and see what happens
 
 // true if there is a fault detected in one or both of the motors
 bool motor_fault = false;
+uint16_t last_exec_time_motors = 0;
+uint8_t motor_routine_status;
 
 // Define this delay function because the built-in _delay_ms() only works with
 // compile-time constants
@@ -308,6 +310,41 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
     }
 
     disable_motor2();
+}
+
+void motors_routine(void){
+
+    //enable 10V boost converter
+    enable_10V_boost();
+
+    // when limit switch not pressed, pex pin reading should return 0
+    uint8_t switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
+    uint8_t switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+    while(!switch1_pressed &&
+          !switch2_pressed &&
+          (uptime_s - last_exec_time_motors < 300)){
+        // actuate one motor downwards at a time
+        actuate_motor1 (100, 1, true);
+        actuate_motor2 (100, 1, true);
+
+        //update switch status
+        switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
+        switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+    }
+
+    //check if timed out
+    if (uptime_s - last_exec_time_motors > 300){
+        motor_routine_status = MOTOR_ROUTINE_TIMEOUT;
+        last_exec_time_motors = uptime_s;
+        return;
+    } else {
+        motor_routine_status = MOTOR_ROUTINE_DONE;
+        last_exec_time_motors = uptime_s;
+        return;
+    }
+
+    // should not reach here
+    return;
 }
 
 /*

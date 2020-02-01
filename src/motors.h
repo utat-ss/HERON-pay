@@ -51,6 +51,10 @@
 #define LIM_SWT1_PRESSED        2 //  A2
 #define LIM_SWT2_PRESSED        1 //  A1
 
+// Define motor routine status
+#define MOTOR_ROUTINE_TIMEOUT 0x00
+#define MOTOR_ROUTINE_DONE 0x01
+
 void init_motors(void);
 void enable_motors(void);
 void disable_motors(void);
@@ -63,5 +67,8 @@ void enable_motor2(void);
 void disable_motor2(void);
 void actuate_motor1(uint16_t period, uint16_t num_cycles, bool forward);
 void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward);
+
+// Motors routine called in CAN commands
+void motors_routine(void);
 
 #endif
