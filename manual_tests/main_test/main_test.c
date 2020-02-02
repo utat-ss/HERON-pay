@@ -376,6 +376,9 @@ int main(void) {
         init_hb(HB_PAY);
     }
 
+    // Run once at the beginning
+    run_heater_ctrl();
+
     print("At any time, press h to show the command menu\n");
     print_cmds();
     set_uart_rx_cb(uart_cb);

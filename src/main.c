@@ -13,7 +13,11 @@ int main(void) {
     init_pay();
     init_hb(HB_PAY);
 
-    print("\n\nPAY main init\n");
+    print("\n\n");
+    print("PAY main init\n");
+
+    // Run once at the beginning
+    run_heater_ctrl();
 
     // Main loop
     while (1) {
