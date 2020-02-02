@@ -26,6 +26,8 @@ int main(void) {
         send_next_tx_msg();
         process_next_rx_msg();
         heater_ctrl_main ();
+
+        // some call to check if opt_DATA_RDYn is pulled low
     }
 
     return 0;

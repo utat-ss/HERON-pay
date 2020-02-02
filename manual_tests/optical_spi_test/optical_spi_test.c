@@ -22,44 +22,47 @@ int main(void){
 
     print("\nStarting test\n\n");
 
-    // 0 = fluores, 1 = LED
-    uint8_t test_type = 1;
-
-    uint8_t field_num = 0;
-    uint32_t data = 0;
-
+    // loop through all 32 wells, taking OD and FL readings
     while (1) {
-        for (uint8_t bank = 0; bank < 4; bank ++){
-            for (uint8_t channel = 0; channel < 8; channel++){
-                // clear field_num
-                field_num = 0;
+        for (uint8_t test_type = 0; test_type<2; test_type++){
+            for (uint8_t well_number = 0; well_number<32; well_number++){
+                // properly encode well_info
+                uint8_t field = (test_type << TEST_TYPE_BIT) | well_number;
 
-                if (test_type == 0){
-                    // bit 5 is set to 0 (fluorescence)
-                    field_num = (0b11 << 6) |((bank & 0b11) << 3) | (channel & 0b111);
-                    field_num = field_num & ~_BV(5);
-                }
-
-                else if (test_type == 1){
-                    // bit 5 is set to 1 (optical density)
-                    field_num = (0b11 << 6) | (0x1<<5) | ((bank & 0b11) << 3) | (channel & 0b111);
-                }
-
-                data = read_opt_spi(field_num);
-                print("A%d_%d = 0x%06lx--> %-4.2f%\n", bank+1, channel+1, data, (float)data/(float)0xffffff * 100);
                 print("\n");
+                print("Starting field %u (type = %u, well = %u)\n", field,
+                    test_type, well_number);
 
-                _delay_ms(1000);
+                // send command
+                send_opt_spi_cmd(CMD_GET_READING, field);
+
+                // Loop until optical has data ready
+                for (uint32_t i = 0; i < 10000; i++) {
+                    check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
+
+                    // Check if the message is in the TX queue
+                    if (queue_size(&tx_msg_queue) > 0) {
+                        uint8_t tx_msg[8] = {0x00};
+                        dequeue(&tx_msg_queue, tx_msg);
+
+                        uint8_t field_num = tx_msg[1];
+                        uint32_t data =
+                            ((uint32_t) tx_msg[4] << 24) |
+                            ((uint32_t) tx_msg[5] << 16) |
+                            ((uint32_t) tx_msg[6] << 8) |
+                            ((uint32_t) tx_msg[7] << 0);
+                        print("Received field %u: 0x%lx\n", field_num, data);
+                        // Break out of for loop to be done with this field
+                        break;
+                    }
+
+                    _delay_ms(1);
+                }
+
+                print("Done field\n");
             }
-            print("\n");
         }
-
-        /*
-        for (uint8_t field_num = 0; field_num < CAN_PAY_OPT_FIELD_COUNT; field_num++) {
-            uint32_t data = read_opt_spi(field_num);
-            print("Field #%u = 0x%06lx\n", field_num, data);
-        }
-        */
-
     }
+
+    return 0;
 }
