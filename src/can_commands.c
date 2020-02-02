@@ -15,12 +15,17 @@ queue_t rx_msg_queue;
 // CAN messages to transmit
 queue_t tx_msg_queue;
 
+// Set to true to print TX and RX CAN messages
+bool print_can_msgs = true;
+
+
 void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data);
 void handle_opt(uint8_t field_num, uint8_t* tx_status);
 void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
         uint32_t* tx_data);
 
-void handle_rx_msg(void) {
+
+void process_next_rx_msg(void) {
     // Get received message from queue
     uint8_t rx_msg[8] = { 0x00 };
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -28,6 +33,12 @@ void handle_rx_msg(void) {
             return;
         }
         dequeue(&rx_msg_queue, rx_msg);
+    }
+
+    if (print_can_msgs) {
+        // Extra spaces to align with CAN TX messages
+        print("CAN RX: ");
+        print_bytes(rx_msg, 8);
     }
 
     uint8_t opcode = rx_msg[0];
@@ -212,7 +223,7 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
 
 void handle_opt(uint8_t field_num, uint8_t* tx_status) {
     // Check the field number is valid
-    if (field_num >= CAN_PAY_OPT_FIELD_COUNT) {
+    if (field_num >= CAN_PAY_OPT_TOT_FIELD_COUNT) {
         *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
         return;
     }
@@ -327,4 +338,28 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     else {
         *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
     }
+}
+
+/*
+If there is a TX message in the queue, sends it
+
+When resume_mob(mob name) is called, it:
+1) resumes the MOB
+2) triggers an interrupt (callback function) to get the data to transmit
+3) sends the data
+4) pauses the mob
+*/
+void send_next_tx_msg(void) {
+    if (queue_empty(&tx_msg_queue)) {
+        return;
+    }
+
+    if (print_can_msgs) {
+        uint8_t tx_msg[8] = { 0x00 };
+        peek_queue(&tx_msg_queue, tx_msg);
+        print("CAN TX: ");
+        print_bytes(tx_msg, 8);
+    }
+
+    resume_mob(&cmd_tx_mob);
 }

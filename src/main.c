@@ -13,6 +13,8 @@ int main(void) {
     init_pay();
     init_hb(HB_PAY);
 
+    print("\n\nPAY main init\n");
+
     // Main loop
     while (1) {
         WDT_ENABLE_SYS_RESET(WDTO_8S);

@@ -20,6 +20,7 @@
 extern queue_t rx_msg_queue;
 extern queue_t tx_msg_queue;
 
-void handle_rx_msg(void);
+void process_next_rx_msg(void);
+void send_next_tx_msg(void);
 
 #endif
