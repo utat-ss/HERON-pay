@@ -20,7 +20,7 @@ MCU = 64m1
 # AVR-GCC compiler
 CC = avr-gcc
 # Compiler flags
-CFLAGS = -Wall -std=gnu99 -g -mmcu=atmega$(MCU) -Os -mcall-prologues
+CFLAGS = -Wall -Wl,-u,vfprintf -std=gnu99 -g -mmcu=atmega$(MCU) -Os -mcall-prologues
 # Includes (header files)
 INCLUDES = -I./lib-common/include/
 # Programmer
