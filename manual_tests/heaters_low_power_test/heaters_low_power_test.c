@@ -23,7 +23,7 @@ int main(void) {
     init_adc(&adc);
 
     init_uptime();
-    init_heaters();
+    init_heater_ctrl();
 
     print("\n\n\nStarting test\n\n");
 

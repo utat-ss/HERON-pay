@@ -62,7 +62,7 @@ int main(void){
     init_pex(&pex2);
     print("\nPEX2 initialized\n");
 
-    init_heaters();
+    init_heater_ctrl();
     print("Heaters Initialized\n");
 
     init_boosts ();

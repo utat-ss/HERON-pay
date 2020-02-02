@@ -10,46 +10,71 @@ PWM regulation can be considered if want to reduce payload power consumption.
 Author: Lorna Lan
  */
 
-/*
- * ABOUT THERM_ERR_CODE
- *
- * This variable is an indication of why the thermistor failed, or say at which point of the control loop it is eliminated
- * 0 - normal/not eliminated
- * 1 - lower than ultra low limit (ULL)
- * 2 - higher than ultra high limit (UHL)
- * 3 - lower than mean (miu) of all 12 thermistors by 3 standard deviation (sigma)
- * 4 - higher than miu by 3 sigma
- * 5 - ground manual set to invalid
- * 6 - ground manual set to valid
- * 7 - unused
- */
+// TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
+// TODO: default heaters on/off mode?
+// TODO: include math.h for sqrt function (and log for temperature conversion)
+
+// Uncomment for more logging
+// #define HEATERS_DEBUG
 
 #include <conversions/conversions.h>
 
 #include "heaters.h"
 
-uint8_t SETPOINT;
-uint16_t THERM_STATUS;
-uint8_t HEATERS_STATUS;
-double THERM_READINGS[12];
-uint8_t THERM_ERR_CODE[12];
-uint32_t last_exec_time = 0;
 
-void init_heaters(void){
-  set_pex_pin_dir(&pex2, PEX_B, HEATER1_EN_N, OUTPUT);
-  set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
+uint32_t heater_ctrl_period_s = HEATER_CTRL_PERIOD_S;
 
-  set_pex_pin_dir(&pex2, PEX_B, HEATER2_EN_N, OUTPUT);
-  set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 1);
+uint16_t therm_readings_raw[THERMISTOR_COUNT];
+// in C
+double therm_readings_conv[THERMISTOR_COUNT];
+uint8_t therm_err_codes[THERMISTOR_COUNT];
+// 0 means elminated, 1 means normal
+uint8_t therm_enables[THERMISTOR_COUNT];
 
-  set_pex_pin_dir(&pex2, PEX_B, HEATER3_EN_N, OUTPUT);
-  set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 1);
+uint16_t heaters_setpoint_raw = HEATERS_SETPOINT_RAW_DEFAULT;
+uint16_t invalid_therm_reading_raw = INVALID_THERM_READING_RAW_DEFAULT;
+// 0 means OFF, 1 means ON
+uint8_t heater_enables[HEATER_COUNT];
 
-  set_pex_pin_dir(&pex2, PEX_B, HEATER4_EN_N, OUTPUT);
-  set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 1);
+uint32_t heater_ctrl_last_exec_time = 0;
 
-  set_pex_pin_dir(&pex2, PEX_B, HEATER5_EN_N, OUTPUT);
-  set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+
+void init_heater_ctrl(void){
+    set_pex_pin_dir(&pex2, PEX_B, HEATER1_EN_N, OUTPUT);
+    set_pex_pin(&pex2, PEX_B, HEATER1_EN_N, 1);
+
+    set_pex_pin_dir(&pex2, PEX_B, HEATER2_EN_N, OUTPUT);
+    set_pex_pin(&pex2, PEX_B, HEATER2_EN_N, 1);
+
+    set_pex_pin_dir(&pex2, PEX_B, HEATER3_EN_N, OUTPUT);
+    set_pex_pin(&pex2, PEX_B, HEATER3_EN_N, 1);
+
+    set_pex_pin_dir(&pex2, PEX_B, HEATER4_EN_N, OUTPUT);
+    set_pex_pin(&pex2, PEX_B, HEATER4_EN_N, 1);
+
+    set_pex_pin_dir(&pex2, PEX_B, HEATER5_EN_N, OUTPUT);
+    set_pex_pin(&pex2, PEX_B, HEATER5_EN_N, 1);
+
+    for (uint8_t i = 0; i < THERMISTOR_COUNT; i++) {
+        therm_readings_raw[i] = 0;
+        //some specific double, this number doesn't matter anyway
+        therm_readings_conv[i] = 0.07;
+        // TODO - only write to EEPROM when this is changed by CAN command
+        therm_err_codes[i] = (uint8_t) read_eeprom_or_default(
+            THERM_ERR_CODE_EEPROM_ADDR_BASE + (4 * i), THERM_ERR_CODE_NORMAL);
+        therm_enables[i] = 1;
+    }
+
+    heaters_setpoint_raw = (uint16_t) read_eeprom_or_default(
+        HEATERS_SETPOINT_EEPROM_ADDR, HEATERS_SETPOINT_RAW_DEFAULT);
+    invalid_therm_reading_raw = (uint16_t) read_eeprom_or_default(
+        INVALID_THERM_READING_EEPROM_ADDR, INVALID_THERM_READING_RAW_DEFAULT);
+
+    for (uint8_t i = 0; i < HEATER_COUNT; i++) {
+        heater_enables[i] = 0;
+    }
+    
+    // TODO - maybe run control once?
 }
 
 void heater_all_on(void) {
@@ -115,139 +140,155 @@ void heater_off(uint8_t heater_num){
 }
 
 
+void set_heaters_setpoint_raw(uint16_t setpoint) {
+    heaters_setpoint_raw = setpoint;
+    write_eeprom(HEATERS_SETPOINT_EEPROM_ADDR, heaters_setpoint_raw);
+}
+
+void set_invalid_therm_reading_raw(uint16_t reading) {
+    invalid_therm_reading_raw = reading;
+    write_eeprom(INVALID_THERM_READING_EEPROM_ADDR, invalid_therm_reading_raw);
+}
+
 //manual test copy in manual_tests/heaters_test/heater_ctrl.c
 /*
  * Utility function: return number of 1s in a binary string
  */
-uint16_t count_ones(uint16_t num){
+uint16_t count_ones(uint8_t* array, uint8_t size){
     uint16_t one_count = 0;
-    //TO-DO: need a timer for this while loop
-    while(num != 0){
-        if ((num & 0x01) == 1){
+    for (uint8_t i = 0; i < size; i++) {
+        if (array[i]) {
             one_count += 1;
         }
-        num = num >> 1;
     }
+
     return one_count;
 }
 
-
-/*
- * Utility function: fast inverse square root
- */
-float fast_inverse_square_root(double number){
-    long i;
-    float x2, y;
-    const float threehalfs = 1.5F;
-
-    x2 = number * 0.5F;
-    y  = number;
-    i  = * ( long * ) &y;                       // evil floating point bit level hacking
-    i  = 0x5f3759df - ( i >> 1 );               // MAGIC NUMBER 
-    y  = * ( float * ) &i;
-    y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-
-    return y;
-}
-
-
-void init_control_loop(void){
-    // 0 means elminated, 1 means normal
-    THERM_STATUS = 0x0fff;
-
-    // 0 means OFF, 1 means ON
-    HEATERS_STATUS = 0x00;
-    for (uint8_t i = 0; i < 12; i++){
-        THERM_READINGS[i] = 0.07; //some specific double, this number doesn't matter anyway
-        THERM_ERR_CODE[i] = 0;
+// TODO - unit test
+uint32_t enables_to_uint(uint8_t* enables, uint32_t count) {
+    uint32_t ret = 0;
+    for (uint32_t i = 0; i < count; i++) {
+        if (enables[i]) {
+            ret |= (1 << i);
+        }
     }
+    return ret;
 }
 
 
-// TODO: not sure if this need to be atomic when polling ADC data, will see
+// does not need to be atomic when polling ADC data
 void acquire_therm_data(void){
     // poll all ADC2 channels
     fetch_all_adc_channels(&adc2);
 
-    //convert to temperature and store in THERM_READINGS
-    for (uint8_t i = 0; i < 12; i++){
-        uint16_t raw_data = read_adc_channel(&adc2, i);
-        double therm_temp = adc_raw_to_therm_temp(raw_data);
-        THERM_READINGS[i] = therm_temp;
+    //convert to temperature and store in therm_readings_raw
+    for (uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+        therm_readings_raw[i] = read_adc_channel(&adc2, i);
+        therm_readings_conv[i] = adc_raw_to_therm_temp(therm_readings_raw[i]);
     }
 }
 
-
-void eliminate_bad_therm(void){
-    for(uint8_t i = 0; i < 12; i++){
-        //bypass ground-set thermistors
-        if((THERM_ERR_CODE[i] != 5)||(THERM_ERR_CODE[i] !=6)){
-            //compare with both lower and upper limits first
-            if(THERM_READINGS[i] < ULL){
-                THERM_STATUS = THERM_STATUS & (~(0x1 << i));
-                THERM_ERR_CODE[i] = 1;
-            }
-            else if(THERM_READINGS[i] > UHL){
-                THERM_STATUS = THERM_STATUS & (~(0x1 << i));
-                THERM_ERR_CODE[i] = 2;
-            }else{
-                //otherwise assume normal, recovery
-                THERM_ERR_CODE[i] = 0;
-            }
-        }
-    }
-
-    //compute mean
-    //
-    double sum = 0.0;
-    for(uint8_t i = 0; i < 12; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
-        }
-    }
-    uint16_t valid_therm_num = count_ones(THERM_STATUS);
-    double miu = 0.0;
-    if(valid_therm_num > 0){
-        miu = sum/valid_therm_num;
+bool is_therm_valid(uint8_t err_code) {
+    if (err_code == THERM_ERR_CODE_NORMAL ||
+            err_code == THERM_ERR_CODE_MANUAL_VALID) {
+        return true;
     } else {
-        //some sort of warning about no valid thermistors
-        return;
+        return false;
     }
+}
 
-    //compute standard deviation
-    sum = 0.0;
-    double variance = 0.0;
-    double sigma = 0.0;
-    for(uint8_t i = 0; i < 12; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            double diff = THERM_READINGS[i] - miu;
-            sum += diff * diff;
+bool is_therm_manual(uint8_t err_code) {
+    if (err_code == THERM_ERR_CODE_MANUAL_INVALID ||
+            err_code == THERM_ERR_CODE_MANUAL_VALID) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void update_therm_statuses(void){
+    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+        // For any manually controlled thermistors, directly set the enable
+        if(therm_err_codes[i] == THERM_ERR_CODE_MANUAL_INVALID){
+            therm_enables[i] = 0;
+        }
+        else if(therm_err_codes[i] == THERM_ERR_CODE_MANUAL_VALID){
+            therm_enables[i] = 1;
+        }
+        // If not manually controlled, default assume normal
+        else {
+            therm_enables[i] = 1;
+            therm_err_codes[i] = THERM_ERR_CODE_NORMAL;
         }
     }
+
+    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+        //bypass ground-set thermistors
+        if(!is_therm_manual(therm_err_codes[i])){
+            //compare with both lower and upper limits first
+            if(therm_readings_conv[i] < THERM_CONV_ULL){
+                therm_enables[i] = 0;
+                therm_err_codes[i] = THERM_ERR_CODE_BELOW_ULL;
+            }
+            else if(therm_readings_conv[i] > THERM_CONV_UHL){
+                therm_enables[i] = 0;
+                therm_err_codes[i] = THERM_ERR_CODE_ABOVE_UHL;
+            }
+        }
+    }
+
+    uint16_t valid_therm_num = count_ones(therm_enables, THERMISTOR_COUNT);
+
+#ifdef HEATERS_DEBUG
+    print("valid_therm_num: %u\n", valid_therm_num);
+#endif
+
     if(valid_therm_num > 0){
+        //compute mean
+        //
+        double sum = 0.0;
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(is_therm_valid(therm_err_codes[i])){
+                sum += therm_readings_conv[i];
+            }
+        }
+
+        double miu = sum/valid_therm_num;
+
+        //compute standard deviation
+        sum = 0.0;
+        double variance = 0.0;
+        double sigma = 0.0;
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(is_therm_valid(therm_err_codes[i])){
+                double diff = therm_readings_conv[i] - miu;
+                sum += diff * diff;
+            }
+        }
+        
         //population std doesn't need -1
         variance = sum/valid_therm_num;
-        sigma = (double) (fast_inverse_square_root(variance));
-    } else {
-        //some sort of warning about not enough valid thermistors
-        return;
-    }
+        sigma = 1.0 / sqrt(variance);
 
-    // elimination based on standard deviation
-    // again, bypass ground-set thermistors
-    for(uint8_t i = 0; i < 12; i++){
-        if((THERM_ERR_CODE[i] != 5)|| (THERM_ERR_CODE[i] !=6)){
-            //compare with both lower and upper limits first
-            if(THERM_READINGS[i] < (miu-3*sigma)){
-                THERM_STATUS = THERM_STATUS & (~(0x1 << i));
-                THERM_ERR_CODE[i] = 3;
-            }
-            else if(THERM_READINGS[i] > (miu+3*sigma)){
-                THERM_STATUS = THERM_STATUS & (~(0x1 << i));
-                THERM_ERR_CODE[i] = 4;
-            }else{
-                //otherwise assume normal, recovery
-                THERM_ERR_CODE[i] = 0;
+#ifdef HEATERS_DEBUG
+        print("miu = %f, sigma = %f\n", miu, sigma);
+#endif
+
+        // TODO - should be miu +- (3*sigma)
+        // elimination based on standard deviation
+        // again, bypass ground-set thermistors
+        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+            if(!is_therm_manual(therm_err_codes[i])){
+                //compare with both lower and upper limits first
+                if(therm_readings_conv[i] < (miu-20*sigma)){
+                    therm_enables[i] = 0;
+                    therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU_3SIG;
+                }
+                else if(therm_readings_conv[i] > (miu+20*sigma)){
+                    therm_enables[i] = 0;
+                    therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU_3SIG;
+                }
             }
         }
     }
@@ -257,20 +298,22 @@ void eliminate_bad_therm(void){
 void heater_toggle(double calc_num, uint8_t heater_num){
     //NOTE: heater_num here is the physical heater number - 1
 
+    double setpoint_conv = dac_raw_data_to_heater_setpoint(heaters_setpoint_raw);
+
     // hot case
-    if(calc_num > SETPOINT){
-        if(HEATERS_STATUS & (0x01 << heater_num)){
+    if(calc_num > setpoint_conv){
+        if(heater_enables[heater_num]){
             //heater ON, need to turn it OFF
             heater_off(heater_num+1);
-            HEATERS_STATUS = HEATERS_STATUS & ~(0x01 << heater_num);
+            heater_enables[heater_num] = 0;
         }
     }
     // cold case
-    else if(calc_num < SETPOINT){
-        if(!(HEATERS_STATUS & (0x01 << heater_num))){
+    else if(calc_num < setpoint_conv){
+        if(!heater_enables[heater_num]){
             //heater OFF, need to turn it ON
             heater_on(heater_num+1);
-            HEATERS_STATUS = HEATERS_STATUS | (0x01 << heater_num);
+            heater_enables[heater_num] = 1;
         }
     }
 }
@@ -286,8 +329,8 @@ void heater_3in_ctrl(void){
     // heater 2
     // averaging TH3-5
     for(uint8_t i = 3; i < 6; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
@@ -306,8 +349,8 @@ void heater_3in_ctrl(void){
     sum = 0.0;
     normal_therm_num = 0;
     for(uint8_t i = 9; i < 12; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
@@ -334,14 +377,14 @@ void heater_4in_ctrl(void){
     // heater 1
     // averaging TH0-2 and TH11
     for(uint8_t i = 0; i < 3; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
 
-    if((THERM_ERR_CODE[11] == 0) || (THERM_ERR_CODE[11] == 6)){
-        sum += THERM_READINGS[11];
+    if(is_therm_valid(therm_err_codes[11])){
+        sum += therm_readings_conv[11];
         normal_therm_num += 1;
     }
 
@@ -357,8 +400,8 @@ void heater_4in_ctrl(void){
     sum = 0.0;
     normal_therm_num = 0;
     for(uint8_t i = 5; i < 9; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
@@ -380,8 +423,8 @@ void heater_5in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     for(uint8_t i = 0; i < 12; i++){
-        if((THERM_ERR_CODE[i] == 0) || (THERM_ERR_CODE[i] == 6)){
-            sum += THERM_READINGS[i];
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
@@ -403,58 +446,44 @@ void average_heaters(void){
 
 
 //TODO: need to do something difference for status function - comm thru CAN
-void heater_ctrl_status(void){
+void print_heater_ctrl_status(void){
     //print thermistors status
-    for(uint8_t i = 0; i < 12; i++){
-        if(THERM_ERR_CODE[i] == 0){
-            //print("Thermistor #: %d, Reading: %.5f\n", i, THERM_READINGS[i]);
-            //print("%.5f,",THERM_READINGS[i]);
-        }
-        else{
-            //print("Thermistor #: %d, Reading: %.5f, Err Status: %d\n", i, THERM_READINGS[i], THERM_ERR_CODE[i]);
-            //print("Err%d,", THERM_ERR_CODE[i]);
-        }
+    for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
+        print("Therm %02u, Reading: 0x%x (%.5f C), Status: 0x%.2x, Enabled: %u\n",
+            i + 1, therm_readings_raw[i], therm_readings_conv[i],
+            therm_err_codes[i], therm_enables[i]);
+
     }
 
+    print("Heater setpoint: 0x%x (%.5f C)\n", heaters_setpoint_raw,
+        dac_raw_data_to_heater_setpoint(heaters_setpoint_raw));
+
     //print heater status
-    //print("heater status %d\n", HEATERS_STATUS);
-    for(uint8_t i = 0; i < 5; i++){
-        uint8_t heater_check = HEATERS_STATUS;
-        if(heater_check & (0x01 << i)){
-            //print("Heater #: %d, Status: ON\n", i+1);
-            //print("%d,", 1);
-        }
-        else{
-            //print("Heater #: %d, Status: OFF\n", i+1);
-            //print("%d,", 0);
-        }
+    for(uint8_t i = 0; i < HEATER_COUNT; i++){
+        print("Heater %u, Enabled: %u\n", i+1, heater_enables[i]);
     }
-    //print("\n");
+    print("\n");
 }
 
 
-// TODO: need to modify this, no print statement
-void heater_control(void){
-    //print("TH1,TH2,TH3,TH4,TH5,TH6,TH7,TH8,TH9,TH10,TH11,TH12,H1,H2,H3,H4,H5\n");
-    while(1){
-        acquire_therm_data();
-        eliminate_bad_therm();
-        average_heaters();
+void run_heater_ctrl(void){
+    acquire_therm_data();
+    update_therm_statuses();
+    average_heaters();
 
-        // store status to the correct place
-        heater_ctrl_status();
-    }
+    // store status to the correct place
+    print_heater_ctrl_status();
 }
 
 
 // heater control loop to be called in main
 // TODO: can also permanently disable this function if don't care about temperature regulation anymore
 void heater_ctrl_main(void){
-    // currently update every 5 minutes
-    if((uptime_s - last_exec_time) < 300){
+    // currently update every 1 minute
+    if((uptime_s - heater_ctrl_last_exec_time) < heater_ctrl_period_s){
         return;
-    } else {
-        heater_control ();
-        last_exec_time = uptime_s;
     }
+
+    heater_ctrl_last_exec_time = uptime_s;
+    run_heater_ctrl (); 
 }
