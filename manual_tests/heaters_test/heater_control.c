@@ -19,6 +19,8 @@ int main(void){
     init_pex(&pex2);
     print("\nPEX2 initialized\n");
 
+    init_uptime();
+
     init_heater_ctrl();
     print("\nHeaters Initialized\n");
 
@@ -28,10 +30,45 @@ int main(void){
 
     print("\nStarting Heaters control test\n\n");
 
-    while (1) {
-        run_heater_ctrl();
 
-        // current delay, every 20 seconds
-        _delay_ms(20000);
+
+
+    // Set update period
+    heater_ctrl_period_s = 5;
+
+    // Setpoints
+    // set_heaters_setpoint_raw(0x2DD);    // 10 C
+    // set_heaters_setpoint_raw(0x328);    // 14 C
+    // set_heaters_setpoint_raw(0x400);    // 25 C
+    // set_heaters_setpoint_raw(0x411);    // 26 C
+    // set_heaters_setpoint_raw(0x423);    // 27 C
+    // set_heaters_setpoint_raw(0x436);    // 28 C
+    set_heaters_setpoint_raw(0x44A);    // 29 C
+    // set_heaters_setpoint_raw(0x45E);    // 30 C
+    // set_heaters_setpoint_raw(0x492);    // 33 C
+
+    // Get raw values for testing setpoints
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(10.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(14.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(25.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(26.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(27.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(28.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(29.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(30.0));
+    // print("0x%x\n", heater_setpoint_to_dac_raw_data(33.0));
+
+    // Uncomment to reset all statuses
+    // for (uint8_t i = 0; i < THERMISTOR_COUNT; i++) {
+    //     therm_err_codes = THERM_ERR_CODE_NORMAL;
+    // }
+
+
+
+
+
+
+    while (1) {
+        heater_ctrl_main();
     }
 }

@@ -14,9 +14,15 @@ Author: Lorna Lan
 // TODO: default heaters on/off mode?
 // TODO: include math.h for sqrt function (and log for temperature conversion)
 
+// Uncomment for more logging
+// #define HEATERS_DEBUG
+
 #include <conversions/conversions.h>
 
 #include "heaters.h"
+
+
+uint32_t heater_ctrl_period_s = HEATER_CTRL_PERIOD_S;
 
 uint16_t therm_readings_raw[THERMISTOR_COUNT];
 // in C
@@ -26,6 +32,7 @@ uint8_t therm_err_codes[THERMISTOR_COUNT];
 uint8_t therm_enables[THERMISTOR_COUNT];
 
 uint16_t heaters_setpoint_raw = HEATERS_SETPOINT_RAW_DEFAULT;
+uint16_t invalid_therm_reading_raw = INVALID_THERM_READING_RAW_DEFAULT;
 // 0 means OFF, 1 means ON
 uint8_t heater_enables[HEATER_COUNT];
 
@@ -60,6 +67,8 @@ void init_heater_ctrl(void){
 
     heaters_setpoint_raw = (uint16_t) read_eeprom_or_default(
         HEATERS_SETPOINT_EEPROM_ADDR, HEATERS_SETPOINT_RAW_DEFAULT);
+    invalid_therm_reading_raw = (uint16_t) read_eeprom_or_default(
+        INVALID_THERM_READING_EEPROM_ADDR, INVALID_THERM_READING_RAW_DEFAULT);
 
     for (uint8_t i = 0; i < HEATER_COUNT; i++) {
         heater_enables[i] = 0;
@@ -134,6 +143,11 @@ void heater_off(uint8_t heater_num){
 void set_heaters_setpoint_raw(uint16_t setpoint) {
     heaters_setpoint_raw = setpoint;
     write_eeprom(HEATERS_SETPOINT_EEPROM_ADDR, heaters_setpoint_raw);
+}
+
+void set_invalid_therm_reading_raw(uint16_t reading) {
+    invalid_therm_reading_raw = reading;
+    write_eeprom(INVALID_THERM_READING_EEPROM_ADDR, invalid_therm_reading_raw);
 }
 
 //manual test copy in manual_tests/heaters_test/heater_ctrl.c
@@ -225,6 +239,11 @@ void update_therm_statuses(void){
     }
 
     uint16_t valid_therm_num = count_ones(therm_enables, THERMISTOR_COUNT);
+
+#ifdef HEATERS_DEBUG
+    print("valid_therm_num: %u\n", valid_therm_num);
+#endif
+
     if(valid_therm_num > 0){
         //compute mean
         //
@@ -252,16 +271,21 @@ void update_therm_statuses(void){
         variance = sum/valid_therm_num;
         sigma = 1.0 / sqrt(variance);
 
+#ifdef HEATERS_DEBUG
+        print("miu = %f, sigma = %f\n", miu, sigma);
+#endif
+
+        // TODO - should be miu +- (3*sigma)
         // elimination based on standard deviation
         // again, bypass ground-set thermistors
         for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
             if(!is_therm_manual(therm_err_codes[i])){
                 //compare with both lower and upper limits first
-                if(therm_readings_conv[i] < (miu-3*sigma)){
+                if(therm_readings_conv[i] < (miu-20*sigma)){
                     therm_enables[i] = 0;
                     therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU_3SIG;
                 }
-                else if(therm_readings_conv[i] > (miu+3*sigma)){
+                else if(therm_readings_conv[i] > (miu+20*sigma)){
                     therm_enables[i] = 0;
                     therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU_3SIG;
                 }
@@ -425,8 +449,8 @@ void average_heaters(void){
 void print_heater_ctrl_status(void){
     //print thermistors status
     for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-        print("Thermistor #: %u, Reading: 0x%x (%.5f C), Status: 0x%.2x, Enabled: %u\n",
-            i, therm_readings_raw[i], therm_readings_conv[i],
+        print("Therm %02u, Reading: 0x%x (%.5f C), Status: 0x%.2x, Enabled: %u\n",
+            i + 1, therm_readings_raw[i], therm_readings_conv[i],
             therm_err_codes[i], therm_enables[i]);
 
     }
@@ -436,7 +460,7 @@ void print_heater_ctrl_status(void){
 
     //print heater status
     for(uint8_t i = 0; i < HEATER_COUNT; i++){
-        print("Heater #: %u, Enabled: %u\n", i+1, heater_enables[i]);
+        print("Heater %u, Enabled: %u\n", i+1, heater_enables[i]);
     }
     print("\n");
 }
@@ -455,11 +479,11 @@ void run_heater_ctrl(void){
 // heater control loop to be called in main
 // TODO: can also permanently disable this function if don't care about temperature regulation anymore
 void heater_ctrl_main(void){
-    // currently update every 5 minutes
-    if((uptime_s - heater_ctrl_last_exec_time) < 300){
+    // currently update every 1 minute
+    if((uptime_s - heater_ctrl_last_exec_time) < heater_ctrl_period_s){
         return;
-    } else {
-        run_heater_ctrl ();
-        heater_ctrl_last_exec_time = uptime_s;
     }
+
+    heater_ctrl_last_exec_time = uptime_s;
+    run_heater_ctrl (); 
 }

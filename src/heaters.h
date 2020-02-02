@@ -7,6 +7,8 @@
 #include "devices.h"
 
 
+#define HEATER_CTRL_PERIOD_S 60
+
 #define THERMISTOR_COUNT    12
 #define HEATER_COUNT        5
 
@@ -19,14 +21,18 @@
 #define HEATER5_EN_N       7
 
 //temperature constants, all in degree Celsius
-// TODO - unit test to make sure this value converted is what we expect
-// TODO - equal to 10C
-#define HEATERS_SETPOINT_RAW_DEFAULT 0x800
+// TODO - unit test to make sure these values converted are what we expect
+// Default 14 C sepoint
+#define HEATERS_SETPOINT_RAW_DEFAULT        0x328
+// Default 10 C reading for invalid thermistors
+#define INVALID_THERM_READING_RAW_DEFAULT   0x2DD
+
 // TODO have a function to reject invalid setpoint - in CAN
-#define THERM_CONV_ULL -40
+#define THERM_CONV_ULL -35
 #define THERM_CONV_UHL 120
 
-#define HEATERS_SETPOINT_EEPROM_ADDR    0x300
+#define HEATERS_SETPOINT_EEPROM_ADDR        0x300
+#define INVALID_THERM_READING_EEPROM_ADDR   0x304
 // This is for thermistor 0, for each thermistor add 4
 #define THERM_ERR_CODE_EEPROM_ADDR_BASE 0x310
 
@@ -51,6 +57,8 @@
 #define THERM_ERR_CODE_MANUAL_INVALID   0x05
 #define THERM_ERR_CODE_MANUAL_VALID     0x06
 
+
+extern uint32_t heater_ctrl_period_s;
 
 extern uint16_t therm_readings_raw[];
 extern double therm_readings_conv[];
