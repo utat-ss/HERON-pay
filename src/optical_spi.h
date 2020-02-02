@@ -47,6 +47,9 @@
 #define NUM_GET_READING             3
 #define NUM_GET_POWER               3
 
+extern bool spi_in_progress;
+extern uint8_t current_well_info;
+
 void init_opt_spi(void);
 void rst_opt_spi(void);
 uint8_t get_data_pin(void);

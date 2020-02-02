@@ -60,7 +60,11 @@ void process_next_rx_msg(void) {
             break;
         case CAN_PAY_OPT:
             handle_opt(field_num, &tx_status);
-            // TODO - return here to not sent a TX message if tx_status is OK?
+            // If we asynchronously wait for a SPI response, return early so we
+            // don't send a CAN message back to OBC
+            if (spi_in_progress) {
+                return;
+            }
             break;
         case CAN_PAY_CTRL:
             handle_ctrl(field_num, rx_data, &tx_status, &tx_data);
@@ -69,8 +73,6 @@ void process_next_rx_msg(void) {
             tx_status = CAN_STATUS_INVALID_OPCODE;
             break;
     }
-
-    // TODO - only do this if PAY-Optical read is not in progress
 
     uint8_t tx_msg[8] = { 0x00 };
     tx_msg[0] = opcode;
@@ -228,9 +230,9 @@ void handle_opt(uint8_t field_num, uint8_t* tx_status) {
         return;
     }
 
-    // TODO - refactor to be asynchronous
     // Get data from PAY-Optical over SPI
-    // uint32_t tx_data = read_opt_spi(field_num);
+    // This will set the spi_in_progress flag
+    send_opt_spi_cmd(CMD_GET_READING, field_num);    
 }
 
 
