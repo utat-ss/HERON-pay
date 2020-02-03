@@ -289,7 +289,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
         uint8_t err_code = rx_data & 0xFF;          // byte 0
 
         if (therm_num < THERMISTOR_COUNT) {
-            therm_err_codes[therm_num] = err_code;
+            set_therm_err_code(therm_num, err_code);
         } else {
             *tx_status = CAN_STATUS_INVALID_DATA;
         }
