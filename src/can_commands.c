@@ -61,7 +61,7 @@ void process_next_rx_msg(void) {
         case CAN_PAY_OPT:
             handle_opt(field_num, &tx_status);
             // If we asynchronously wait for a SPI response, return early so we
-            // don't send a CAN message back to OBC
+            // don't send a CAN message back to OBC yet
             if (spi_in_progress) {
                 return;
             }

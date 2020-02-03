@@ -27,7 +27,7 @@ int main(void){
         for (uint8_t test_type = 0; test_type<2; test_type++){
             for (uint8_t well_number = 0; well_number<32; well_number++){
                 // properly encode well_info
-                uint8_t field = (test_type << TEST_TYPE_BIT) | well_number;
+                uint8_t field = (test_type << OPT_TYPE_BIT) | well_number;
 
                 print("\n");
                 print("Starting field %u (type = %u, well = %u)\n", field,

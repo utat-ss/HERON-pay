@@ -26,8 +26,7 @@ int main(void) {
         send_next_tx_msg();
         process_next_rx_msg();
         heater_ctrl_main ();
-        // TODO - number?
-        check_received_opt_data(3);
+        check_received_opt_data();
     }
 
     return 0;

@@ -87,7 +87,6 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
 
     _delay_ms(10);
 
-    // print("Sending optical the well data %X\n", well_info);
     // send PAY-OPTICAL the 2nd byte, containing details about the well and type of reading to take
     set_cs_low(OPT_CS, &OPT_CS_PORT);
     send_spi(tx_bytes[1]);
@@ -105,18 +104,17 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
 // function called by PAY-SSM in its main loop 'every once in a while' to check up on OPTICAL after it sent it a command
 // if PAY-OPTICAL responded properly, proceed with multiple byte SPI transmission
 // otherwise, do nothing
-void check_received_opt_data(uint8_t num_expected_bytes){
+void check_received_opt_data(void){
     // if currently waiting for OPTICAL response
     if (spi_in_progress){
         // OPTICAL responded by pulling it's DATA_RDYn line low
         if (get_data_pin()==0){
             // print("Found DATA_RDYn low\n");
 
-            // TODO size?
-            uint8_t rx_bytes[3] = {0x00};
+            uint8_t rx_bytes[OPT_SPI_RX_COUNT] = {0x00};
 
             // exchange all the required bytes
-            for (uint8_t i = 0; i < num_expected_bytes; i++) {
+            for (uint8_t i = 0; i < OPT_SPI_RX_COUNT; i++) {
                 set_cs_low(OPT_CS, &OPT_CS_PORT);
                 rx_bytes[i] = send_spi(0x00);
                 set_cs_high(OPT_CS, &OPT_CS_PORT);
@@ -125,13 +123,11 @@ void check_received_opt_data(uint8_t num_expected_bytes){
                 _delay_ms(100);
             }
 
-            // TODO
             if (print_spi_transfers) {
                 print("SPI RX: ");
-                print_bytes(rx_bytes, 3);
+                print_bytes(rx_bytes, OPT_SPI_RX_COUNT);
             }
 
-            // TODO
             // Data received from OPTICAL, always right-aligned
             uint32_t opt_spi_data =
                 ((uint32_t) rx_bytes[0] << 16) |
@@ -140,9 +136,6 @@ void check_received_opt_data(uint8_t num_expected_bytes){
 
             // successfully sent command, and received all bytes from OPTICAL
             spi_in_progress = false;
-
-            // creates a CAN message, but we'll use print statements for now
-            // print("received data from well_info 0x%x: 0x%lx\n", current_well_info, opt_spi_data);
         
             // create CAN message
             uint8_t tx_msg[8] = { 0x00 };
