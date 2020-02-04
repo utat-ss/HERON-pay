@@ -3,7 +3,7 @@ Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 
 Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-stack-stepper/37mm-37000
 
-- phase/enable mode
+- phase/enable mode only
 */
 
 #include "motors.h"
@@ -12,7 +12,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #define NUM_CYCLES  1
 
 // true if there is a fault detected in one or both of the motors
-// TODO IO poll for motor fault probably in HK data
+// TODO IO poll for motor fault probably in HK data?
 bool motor_fault = false;
 uint16_t last_exec_time_motors = 0;
 uint8_t motor_routine_status;
@@ -316,12 +316,17 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
 }
 
 // TODO step count, add one more status for count unequal - tilted plate
-// TODO CAN comm, communicate motor routine status
+// TODO CAN comm, communicate motor routine status {last_exec_time_motors, motor_rountine_status}
 void motors_routine(void){
 
-    //enable 10V boost converter
+    // enable 10V boost converter
     enable_10V_boost();
+    // delay for power to settle - 5s
+    delay_ms(5000);
+
     disable_6V_boost();
+
+    last_exec_time_motors = uptime_s;
 
     // when limit switch not pressed, pex pin reading should return 0
     uint8_t switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
@@ -341,10 +346,13 @@ void motors_routine(void){
     //check if timed out
     if (uptime_s - last_exec_time_motors > 30){
         motor_routine_status = MOTOR_ROUTINE_TIMEOUT;
-        last_exec_time_motors = uptime_s;
+
+        disable_10V_boost();
+        enable_6V_boost();
         return;
     } else {
         motor_routine_status = MOTOR_ROUTINE_DONE;
+        // only update when routine executed successfully
         last_exec_time_motors = uptime_s;
 
         disable_10V_boost();
