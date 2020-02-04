@@ -1,8 +1,10 @@
 #include <pex/pex.h>
 #include <uart/uart.h>
 #include <spi/spi.h>
+#include <uptime/uptime.h>
 
 #include "../../src/motors.h"
+#include "../../src/boost.h"
 
 #define PERIOD_MS   100
 #define NUM_CYCLES  1
@@ -14,7 +16,10 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
 
     switch (buf[0]) {
         case 'e':
-            print("routine starts\n");
+            print("routine starts (draft)\n");
+
+            enable_10V_boost ();
+            disable_6V_boost ();
 
             uint8_t lim_swt1_status, lim_swt2_status;
 
@@ -32,6 +37,11 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
                     print("both limit switch pressed\n");
                 }
             }
+            break;
+        case 's':
+            print("routine from src\n");
+            motors_routine();
+            //print("routine status:%d\n",motor_routine_status);
             break;
         default:
             print("Invalid command\n");
@@ -51,6 +61,9 @@ int main(void){
     init_pex(&pex1);
     init_pex(&pex2);
     print("PEXes Initialized\n");
+
+    init_boosts();
+    print("Boosts Initialized\n");
 
     print("Starting test\n");
 

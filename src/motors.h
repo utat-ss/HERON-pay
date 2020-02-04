@@ -7,8 +7,10 @@
 
 #include <pex/pex.h>
 #include <uart/uart.h>
+#include <uptime/uptime.h>
 
 #include "devices.h"
+#include "boost.h"
 
 // Phase/enable mode only
 // PEX motor control pins, all on PEX1

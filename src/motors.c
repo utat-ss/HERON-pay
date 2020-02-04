@@ -4,16 +4,19 @@ Control for the DRV8834 (296-41246-1-ND on DigiKey) motor controller.
 Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-stack-stepper/37mm-37000
 
 - phase/enable mode
-
-TODO - test faults - INT2 - Can manually force signal LOW and see what happens
 */
 
 #include "motors.h"
 
+#define PERIOD_MS   100
+#define NUM_CYCLES  1
+
 // true if there is a fault detected in one or both of the motors
+// TODO IO poll for motor fault probably in HK data
 bool motor_fault = false;
 uint16_t last_exec_time_motors = 0;
 uint8_t motor_routine_status;
+
 
 // Define this delay function because the built-in _delay_ms() only works with
 // compile-time constants
@@ -312,20 +315,23 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
     disable_motor2();
 }
 
+// TODO step count, add one more status for count unequal - tilted plate
+// TODO CAN comm, communicate motor routine status
 void motors_routine(void){
 
     //enable 10V boost converter
     enable_10V_boost();
+    disable_6V_boost();
 
     // when limit switch not pressed, pex pin reading should return 0
     uint8_t switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
     uint8_t switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
     while(!switch1_pressed &&
           !switch2_pressed &&
-          (uptime_s - last_exec_time_motors < 300)){
+          (uptime_s - last_exec_time_motors < 30)){
         // actuate one motor downwards at a time
-        actuate_motor1 (100, 1, true);
-        actuate_motor2 (100, 1, true);
+        actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
+        actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
 
         //update switch status
         switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
@@ -333,39 +339,19 @@ void motors_routine(void){
     }
 
     //check if timed out
-    if (uptime_s - last_exec_time_motors > 300){
+    if (uptime_s - last_exec_time_motors > 30){
         motor_routine_status = MOTOR_ROUTINE_TIMEOUT;
         last_exec_time_motors = uptime_s;
         return;
     } else {
         motor_routine_status = MOTOR_ROUTINE_DONE;
         last_exec_time_motors = uptime_s;
+
+        disable_10V_boost();
+        enable_6V_boost();
         return;
     }
 
     // should not reach here
     return;
 }
-
-/*
- * TODO this function is no longer valid as interrupt vector not connected
- * might do IO poll if necessary
-ISR(INT2_vect) {
-
-    print("INT2 - Motor Fault (PEX INTA)\n");
-
-    // Check if either of the motor FLTn (fault) pins is low
-    if (get_pex_pin(&pex1, PEX_B, MOT1_FLT_N) == 0) {
-        motor_fault = true;
-        print("MOTOR 1 IN FAULT\n");
-    }
-    if (get_pex_pin(&pex1, PEX_A, MOT2_FLT_N)  == 0) {
-        motor_fault = true;
-        print("MOTOR 2 IN FAULT\n");
-    }
-
-    if (motor_fault) {
-        disable_motors();
-    }
-}
- */
