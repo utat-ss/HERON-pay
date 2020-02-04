@@ -27,6 +27,7 @@
 #include "env_sensors.h"
 #include "motors.h"
 #include "optical_spi.h"
+#include "boost.h"
 
 void init_pay(void);
 
