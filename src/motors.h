@@ -54,8 +54,8 @@
 #define LIM_SWT2_PRESSED        1 //  A1
 
 // Define motor routine status
-#define MOTOR_ROUTINE_TIMEOUT 0x00
-#define MOTOR_ROUTINE_DONE 0x01
+#define MOTOR_ROUTINE_TIMEOUT 0x01
+#define MOTOR_ROUTINE_DONE 0x02
 
 void init_motors(void);
 void enable_motors(void);

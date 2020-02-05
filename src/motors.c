@@ -317,6 +317,7 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
 
 // TODO tilted plate can be recovered from limit switch reading
 // TODO move up for definite time until reaching cap nut
+// TODO limit switch debounce
 // TODO CAN comm, communicate motor routine status {last_exec_time_motors, motor_rountine_status}
 void motors_routine(void){
 
