@@ -9,12 +9,12 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #include "motors.h"
 
 #define PERIOD_MS   100
-#define NUM_CYCLES  1
+#define NUM_CYCLES  20
 
 // true if there is a fault detected in one or both of the motors
 // TODO IO poll for motor fault probably in HK data?
 bool motor_fault = false;
-uint16_t last_exec_time_motors = 0;
+uint32_t last_exec_time_motors = 0;
 uint8_t motor_routine_status;
 
 
@@ -315,14 +315,19 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
     disable_motor2();
 }
 
-// TODO step count, add one more status for count unequal - tilted plate
+// TODO tilted plate can be recovered from limit switch reading
+// TODO move up for definite time until reaching cap nut
 // TODO CAN comm, communicate motor routine status {last_exec_time_motors, motor_rountine_status}
 void motors_routine(void){
+
+    WDT_ENABLE_SYS_RESET(WDTO_8S);
 
     // enable 10V boost converter
     enable_10V_boost();
     // delay for power to settle - 5s
     delay_ms(5000);
+
+    WDT_ENABLE_SYS_RESET(WDTO_8S);
 
     disable_6V_boost();
 
@@ -331,9 +336,8 @@ void motors_routine(void){
     // when limit switch not pressed, pex pin reading should return 0
     uint8_t switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
     uint8_t switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
-    while(!switch1_pressed &&
-          !switch2_pressed &&
-          (uptime_s - last_exec_time_motors < 30)){
+    while((!switch1_pressed || !switch2_pressed) &&
+          (uptime_s - last_exec_time_motors < 10)){
         // actuate one motor downwards at a time
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
         actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
@@ -341,25 +345,26 @@ void motors_routine(void){
         //update switch status
         switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
         switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+
+        print("uptime %d", uptime_s);
+
+        WDT_ENABLE_SYS_RESET(WDTO_8S);
     }
 
     //check if timed out
-    if (uptime_s - last_exec_time_motors > 30){
+    if (uptime_s - last_exec_time_motors > 10){
         motor_routine_status = MOTOR_ROUTINE_TIMEOUT;
 
-        disable_10V_boost();
-        enable_6V_boost();
-        return;
     } else {
         motor_routine_status = MOTOR_ROUTINE_DONE;
         // only update when routine executed successfully
         last_exec_time_motors = uptime_s;
-
-        disable_10V_boost();
-        enable_6V_boost();
-        return;
     }
 
+    WDT_ENABLE_SYS_RESET(WDTO_8S);
+
     // should not reach here
+    disable_10V_boost();
+    enable_6V_boost();
     return;
 }

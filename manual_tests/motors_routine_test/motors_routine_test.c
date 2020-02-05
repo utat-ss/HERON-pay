@@ -2,6 +2,7 @@
 #include <uart/uart.h>
 #include <spi/spi.h>
 #include <uptime/uptime.h>
+#include <watchdog/watchdog.h>
 
 #include "../../src/motors.h"
 #include "../../src/boost.h"
@@ -41,6 +42,7 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
         case 's':
             print("routine from src\n");
             motors_routine();
+            WDT_OFF();
             //print("routine status:%d\n",motor_routine_status);
             break;
         default:
@@ -52,8 +54,14 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
 }
 
 int main(void){
+
+    WDT_OFF();
+
     init_uart();
     print("\n\nUART initialized\n");
+
+    init_uptime();
+    print("Uptime intialized\n");
 
     init_spi();
     print("SPI initialized\n");
