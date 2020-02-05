@@ -61,7 +61,7 @@ void process_next_rx_msg(void) {
         case CAN_PAY_OPT:
             handle_opt(field_num, &tx_status);
             // If we asynchronously wait for a SPI response, return early so we
-            // don't send a CAN message back to OBC
+            // don't send a CAN message back to OBC yet
             if (spi_in_progress) {
                 return;
             }
@@ -232,7 +232,7 @@ void handle_opt(uint8_t field_num, uint8_t* tx_status) {
 
     // Get data from PAY-Optical over SPI
     // This will set the spi_in_progress flag
-    send_opt_spi_cmd(CMD_GET_READING, field_num);    
+    start_opt_spi_get_reading(field_num);    
 }
 
 
@@ -289,7 +289,7 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
         uint8_t err_code = rx_data & 0xFF;          // byte 0
 
         if (therm_num < THERMISTOR_COUNT) {
-            therm_err_codes[therm_num] = err_code;
+            set_therm_err_code(therm_num, err_code);
         } else {
             *tx_status = CAN_STATUS_INVALID_DATA;
         }

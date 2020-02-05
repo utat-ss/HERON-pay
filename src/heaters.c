@@ -10,10 +10,6 @@ PWM regulation can be considered if want to reduce payload power consumption.
 Author: Lorna Lan
  */
 
-// TODO: write a case where all thermistors are eliminated (rip) so we don't divide by zero
-// TODO: default heaters on/off mode?
-// TODO: include math.h for sqrt function (and log for temperature conversion)
-
 // Uncomment for more logging
 // #define HEATERS_DEBUG
 
@@ -59,7 +55,7 @@ void init_heater_ctrl(void){
         therm_readings_raw[i] = 0;
         //some specific double, this number doesn't matter anyway
         therm_readings_conv[i] = 0.07;
-        // TODO - only write to EEPROM when this is changed by CAN command
+        // This should only be written to EEPROM when changed by CAN command
         therm_err_codes[i] = (uint8_t) read_eeprom_or_default(
             THERM_ERR_CODE_EEPROM_ADDR_BASE + (4 * i), THERM_ERR_CODE_NORMAL);
         therm_enables[i] = 1;
@@ -72,9 +68,7 @@ void init_heater_ctrl(void){
 
     for (uint8_t i = 0; i < HEATER_COUNT; i++) {
         heater_enables[i] = 0;
-    }
-    
-    // TODO - maybe run control once?
+    }    
 }
 
 void heater_all_on(void) {
@@ -148,6 +142,18 @@ void set_heaters_setpoint_raw(uint16_t setpoint) {
 void set_invalid_therm_reading_raw(uint16_t reading) {
     invalid_therm_reading_raw = reading;
     write_eeprom(INVALID_THERM_READING_EEPROM_ADDR, invalid_therm_reading_raw);
+}
+
+// This is only intended to be used by CAN commands when it should be written to
+// EEPROM
+void set_therm_err_code(uint8_t index, uint8_t err_code) {
+    if (index >= THERMISTOR_COUNT) {
+        return;
+    }
+
+    therm_err_codes[index] = err_code;
+    write_eeprom(THERM_ERR_CODE_EEPROM_ADDR_BASE + (4 * index),
+        therm_err_codes[index]);
 }
 
 //manual test copy in manual_tests/heaters_test/heater_ctrl.c
@@ -319,7 +325,7 @@ void heater_toggle(double calc_num, uint8_t heater_num){
 }
 
 
-// fine I decided to hardcode the heaters based on physical setup
+// hardcode the heaters based on physical setup
 void heater_3in_ctrl(void){
     //looking at heater 2 & 4, remember to minus one for bit shift in function argument
     double avg_reading = 0.0;
@@ -337,12 +343,11 @@ void heater_3in_ctrl(void){
 
     if(normal_therm_num > 0){
         avg_reading = (sum/normal_therm_num);
-        heater_toggle(avg_reading, 1);  
     } else {
         // no working thermistors, rip
-        // need to do sth here for the love of God
-        return;
+        avg_reading = adc_raw_to_therm_temp(invalid_therm_reading_raw);
     }
+    heater_toggle(avg_reading, 1);
 
     // heater 4
     // averaging TH9-11
@@ -357,11 +362,10 @@ void heater_3in_ctrl(void){
 
     if(normal_therm_num > 0){
         avg_reading = (sum/normal_therm_num);
-        heater_toggle(avg_reading, 3);
     } else {
-        return;
+        avg_reading = adc_raw_to_therm_temp(invalid_therm_reading_raw);
     }
-
+    heater_toggle(avg_reading, 3);
 }
 
 
@@ -390,10 +394,10 @@ void heater_4in_ctrl(void){
 
     if(normal_therm_num > 0){
         avg_reading = (sum/normal_therm_num);
-        heater_toggle(avg_reading, 0);
     } else {
-        return;
+        avg_reading = adc_raw_to_therm_temp(invalid_therm_reading_raw);
     }
+    heater_toggle(avg_reading, 0);
 
     // heater 3
     // averaging TH5-8
@@ -408,11 +412,10 @@ void heater_4in_ctrl(void){
 
     if(normal_therm_num > 0){
         avg_reading = (sum/normal_therm_num);
-        heater_toggle(avg_reading, 2);
     } else {
-        return;
+        avg_reading = adc_raw_to_therm_temp(invalid_therm_reading_raw);
     }
-
+    heater_toggle(avg_reading, 2);
 }
 
 
@@ -431,10 +434,10 @@ void heater_5in_ctrl(void){
 
     if(normal_therm_num > 0){
         avg_reading = (sum/normal_therm_num);
-        heater_toggle(avg_reading, 4);
     } else {
-        return;
+        avg_reading = adc_raw_to_therm_temp(invalid_therm_reading_raw);
     }
+    heater_toggle(avg_reading, 4);
 }
 
 
@@ -445,7 +448,6 @@ void average_heaters(void){
 }
 
 
-//TODO: need to do something difference for status function - comm thru CAN
 void print_heater_ctrl_status(void){
     //print thermistors status
     for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
@@ -477,7 +479,6 @@ void run_heater_ctrl(void){
 
 
 // heater control loop to be called in main
-// TODO: can also permanently disable this function if don't care about temperature regulation anymore
 void heater_ctrl_main(void){
     // currently update every 1 minute
     if((uptime_s - heater_ctrl_last_exec_time) < heater_ctrl_period_s){

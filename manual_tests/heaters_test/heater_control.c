@@ -66,8 +66,8 @@ int main(void){
 
 
 
-
-
+    // Run once immediately
+    run_heater_ctrl();
     while (1) {
         heater_ctrl_main();
     }

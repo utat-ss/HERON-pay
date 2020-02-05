@@ -77,8 +77,11 @@ void heater_all_off(void);
 void heater_on(uint8_t);
 void heater_off(uint8_t);
 
-//heater control loop stuff
 void set_heaters_setpoint_raw(uint16_t setpoint);
+void set_invalid_therm_reading_raw(uint16_t reading);
+void set_therm_err_code(uint8_t index, uint8_t err_code);
+
+//heater control loop stuff
 uint16_t count_ones(uint8_t* array, uint8_t size);
 uint32_t enables_to_uint(uint8_t* enables, uint32_t count);
 void acquire_therm_data (void);
