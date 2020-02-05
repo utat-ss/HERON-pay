@@ -92,47 +92,55 @@ void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info) {
     send_spi(tx_bytes[1]);
     set_cs_high(OPT_CS, &OPT_CS_PORT);
 
-    // Need to give optical more time to assert DATA_RDY
+    // Need to give optical time to deassert and assert DATA_RDY
     _delay_ms(100);
+}
+
+uint32_t get_opt_spi_resp(void) {
+    uint8_t rx_bytes[OPT_SPI_RX_COUNT] = {0x00};
+
+    // exchange all the required bytes
+    for (uint8_t i = 0; i < OPT_SPI_RX_COUNT; i++) {
+        set_cs_low(OPT_CS, &OPT_CS_PORT);
+        rx_bytes[i] = send_spi(0x00);
+        set_cs_high(OPT_CS, &OPT_CS_PORT);
+
+        // small delay to give optical time to get SPDR again
+        _delay_ms(100);
+    }
+
+    if (print_spi_transfers) {
+        print("SPI RX: ");
+        print_bytes(rx_bytes, OPT_SPI_RX_COUNT);
+    }
+
+    // Data received from OPTICAL, always right-aligned
+    uint32_t rx_data =
+        ((uint32_t) rx_bytes[0] << 16) |
+        ((uint32_t) rx_bytes[1] << 8) |
+        ((uint32_t) rx_bytes[2] << 0);
+    return rx_data;
+}
+
+void start_opt_spi_get_reading(uint8_t well_info) {
+    send_opt_spi_cmd(CMD_GET_READING, well_info);
 
     // set SPI status to "waiting for OPTICAL to respond"
     spi_in_progress = true;
     current_well_info = well_info;
 }
 
-
 // function called by PAY-SSM in its main loop 'every once in a while' to check up on OPTICAL after it sent it a command
 // if PAY-OPTICAL responded properly, proceed with multiple byte SPI transmission
 // otherwise, do nothing
-void check_received_opt_data(void){
+void check_opt_spi_get_reading(void){
     // if currently waiting for OPTICAL response
     if (spi_in_progress){
-        // OPTICAL responded by pulling it's DATA_RDYn line low
+        // OPTICAL responded by pulling its DATA_RDYn line low
         if (get_data_pin()==0){
             // print("Found DATA_RDYn low\n");
 
-            uint8_t rx_bytes[OPT_SPI_RX_COUNT] = {0x00};
-
-            // exchange all the required bytes
-            for (uint8_t i = 0; i < OPT_SPI_RX_COUNT; i++) {
-                set_cs_low(OPT_CS, &OPT_CS_PORT);
-                rx_bytes[i] = send_spi(0x00);
-                set_cs_high(OPT_CS, &OPT_CS_PORT);
-
-                // small delay to give time for DATA_RDYn to go high
-                _delay_ms(100);
-            }
-
-            if (print_spi_transfers) {
-                print("SPI RX: ");
-                print_bytes(rx_bytes, OPT_SPI_RX_COUNT);
-            }
-
-            // Data received from OPTICAL, always right-aligned
-            uint32_t opt_spi_data =
-                ((uint32_t) rx_bytes[0] << 16) |
-                ((uint32_t) rx_bytes[1] << 8) |
-                ((uint32_t) rx_bytes[2] << 0);
+            uint32_t opt_spi_data = get_opt_spi_resp();
 
             // successfully sent command, and received all bytes from OPTICAL
             spi_in_progress = false;
@@ -153,4 +161,21 @@ void check_received_opt_data(void){
     }
 
     // no response from OPTICAL -> do nothing
+}
+
+// For synchronous commands (all except for get reading)
+uint32_t run_opt_spi_sync_cmd(uint8_t cmd_opcode, uint8_t well_info) {
+    send_opt_spi_cmd(cmd_opcode, well_info);
+
+    // Wait for DATA_RDYn to go low
+    uint32_t timeout = 1000;
+    while (get_data_pin() && timeout > 0){
+        timeout--;
+        _delay_ms(1);
+    }
+    if (timeout == 0) {
+        print("TIMEOUT in run_opt_spi_sync_cmd\n");
+    }
+
+    return get_opt_spi_resp();
 }

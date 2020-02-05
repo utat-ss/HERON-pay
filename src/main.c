@@ -26,7 +26,7 @@ int main(void) {
         send_next_tx_msg();
         process_next_rx_msg();
         heater_ctrl_main ();
-        check_received_opt_data();
+        check_opt_spi_get_reading();
     }
 
     return 0;

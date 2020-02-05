@@ -232,7 +232,7 @@ void handle_opt(uint8_t field_num, uint8_t* tx_status) {
 
     // Get data from PAY-Optical over SPI
     // This will set the spi_in_progress flag
-    send_opt_spi_cmd(CMD_GET_READING, field_num);    
+    start_opt_spi_get_reading(field_num);    
 }
 
 

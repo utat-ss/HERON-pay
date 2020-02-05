@@ -50,6 +50,10 @@ void rst_opt_spi(void);
 uint8_t get_data_pin(void);
 
 void send_opt_spi_cmd(uint8_t cmd_opcode, uint8_t well_info);
-void check_received_opt_data(void);
+uint32_t get_opt_spi_resp(void);
+
+void start_opt_spi_get_reading(uint8_t well_info);
+void check_opt_spi_get_reading(void);
+uint32_t run_opt_spi_sync_cmd(uint8_t cmd_opcode, uint8_t well_info);
 
 #endif

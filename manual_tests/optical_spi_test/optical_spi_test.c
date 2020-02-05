@@ -1,4 +1,5 @@
 #include <can/data_protocol.h>
+#include <conversions/conversions.h>
 #include <spi/spi.h>
 #include <uart/uart.h>
 
@@ -22,6 +23,8 @@ int main(void){
 
     print("\nStarting test\n\n");
 
+
+
     // loop through all 32 wells, taking OD and FL readings
     while (1) {
         for (uint8_t test_type = 0; test_type<2; test_type++){
@@ -34,11 +37,11 @@ int main(void){
                     test_type, well_number);
 
                 // send command
-                send_opt_spi_cmd(CMD_GET_READING, field);
+                start_opt_spi_get_reading(field);
 
                 // Loop until optical has data ready
                 for (uint32_t i = 0; i < 10000; i++) {
-                    check_received_opt_data(NUM_GET_READING);     // expecting 3 return bytes
+                    check_opt_spi_get_reading();     // expecting 3 return bytes
 
                     // Check if the message is in the TX queue
                     if (queue_size(&tx_msg_queue) > 0) {
@@ -51,7 +54,7 @@ int main(void){
                             ((uint32_t) tx_msg[5] << 16) |
                             ((uint32_t) tx_msg[6] << 8) |
                             ((uint32_t) tx_msg[7] << 0);
-                        print("Received field %u: 0x%lx\n", field_num, data);
+                        print("Received field %u: 0x%lx (%.9f counts/ms)\n", field_num, data, opt_raw_to_light_intensity(data));
                         // Break out of for loop to be done with this field
                         break;
                     }
