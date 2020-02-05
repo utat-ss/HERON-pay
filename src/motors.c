@@ -9,7 +9,8 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #include "motors.h"
 
 #define PERIOD_MS   100
-#define NUM_CYCLES  20
+#define NUM_CYCLES  1
+#define MAX_STEP 300
 
 // true if there is a fault detected in one or both of the motors
 // TODO IO poll for motor fault probably in HK data?
@@ -337,23 +338,27 @@ void motors_routine(void){
     // when limit switch not pressed, pex pin reading should return 0
     uint8_t switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
     uint8_t switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+
+    // number of times each motor actuated
+    uint16_t count_mot1 = 0;
+    uint16_t count_mot2 = 0;
     while((!switch1_pressed || !switch2_pressed) &&
-          (uptime_s - last_exec_time_motors < 10)){
+          (count_mot1 < MAX_STEP && count_mot2 < MAX_STEP)){
         // actuate one motor downwards at a time
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
+        count_mot1 += 1;
         actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
+        count_mot2 += 1;
 
         //update switch status
         switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
         switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
 
-        print("uptime %d", uptime_s);
-
         WDT_ENABLE_SYS_RESET(WDTO_8S);
     }
 
     //check if timed out
-    if (uptime_s - last_exec_time_motors > 10){
+    if ((count_mot1 == MAX_STEP) || (count_mot2 == MAX_STEP)){
         motor_routine_status = MOTOR_ROUTINE_TIMEOUT;
 
     } else {
