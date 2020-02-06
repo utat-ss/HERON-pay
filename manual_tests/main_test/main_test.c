@@ -13,8 +13,6 @@ RX and TX are defined from PAY's perspective.
 // True to simulate OBC requests
 bool sim_obc = false;
 bool disable_hb = false;
-// Set to true to print TX and RX CAN messages
-bool print_can_msgs = false;
 
 
 // Callback function signature to run a command
@@ -104,7 +102,6 @@ void process_pay_hk_tx(uint8_t field_num, uint32_t tx_data) {
     //     // the same print statement as the hex number
     //     // In testing, seemed to always print either "-2.000", "0.000", or "2.000" for the %f
     //     // Print it in a separate statement for now
-    //     // TODO - investigate this
 
     //     double temperature = temp_raw_data_to_temperature(tx_data);
     //     print("Temperature: ");
@@ -169,7 +166,7 @@ void process_pay_opt_tx(uint8_t field_num, uint32_t tx_data) {
     print("%.1f %%\n", percent);
 
     uint8_t next_field_num = field_num + 1;
-    if (next_field_num < CAN_PAY_OPT_FIELD_COUNT) {
+    if (next_field_num < CAN_PAY_OPT_TOT_FIELD_COUNT) {
         enqueue_rx_msg(CAN_PAY_OPT, next_field_num, 0);
     }
 }
@@ -219,42 +216,6 @@ void sim_send_next_tx_msg(void) {
             return;
     }
 }
-
-void print_next_tx_msg(void) {
-    if (!print_can_msgs) {
-        return;
-    }
-
-    uint8_t tx_msg[8] = { 0x00 };
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (queue_empty(&tx_msg_queue)) {
-            return;
-        }
-        peek_queue(&tx_msg_queue, tx_msg);
-    }
-
-    print("CAN TX: ");
-    print_bytes(tx_msg, 8);
-}
-
-void print_next_rx_msg(void) {
-    if (!print_can_msgs) {
-        return;
-    }
-
-    uint8_t rx_msg[8] = { 0x00 };
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (queue_empty(&rx_msg_queue)) {
-            return;
-        }
-        peek_queue(&rx_msg_queue, rx_msg);
-    }
-
-    print("CAN RX: ");
-    print_bytes(rx_msg, 8);
-}
-
-
 
 
 void get_status_fn(void) {
@@ -362,14 +323,12 @@ int main(void) {
     hb_req_period_s = 300;
     hb_resp_wait_time_s = 5;
     disable_hb = false;
-    print_can_msgs = true;
 
     print("sim_obc = %u\n", sim_obc);
     print("com_timeout_period_s = %lu\n", com_timeout_period_s);
     print("hb_req_period_s = %lu\n", hb_req_period_s);
     print("hb_resp_wait_time_s = %lu\n", hb_resp_wait_time_s);
     print("disable_hb = %u\n", disable_hb);
-    print("print_can_msgs = %u\n", print_can_msgs);
 
     // Initialize heartbeat separately so we have the option to disable it for debugging
     if (!disable_hb) {
@@ -390,19 +349,13 @@ int main(void) {
             run_hb();
         }
 
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            print_next_tx_msg();
-            if (sim_obc) {
-                sim_send_next_tx_msg();
-            } else {
-                send_next_tx_msg();
-            }
+        if (sim_obc) {
+            sim_send_next_tx_msg();
+        } else {
+            send_next_tx_msg();
         }
 
-        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            print_next_rx_msg();
-            process_next_rx_msg();
-        }
+        process_next_rx_msg();
     }
 
     return 0;
