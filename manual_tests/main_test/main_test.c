@@ -233,7 +233,6 @@ void req_pay_opt_fn(void) {
 }
 
 void set_heaters_1_4_0c_fn(void) {
-    // TODO - encapsulate in function in lib-common/conversions
     // double res = therm_temp_to_res(0);
     // double vol = therm_res_to_vol(res);
     // uint16_t raw_data = dac_vol_to_raw_data(vol);

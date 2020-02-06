@@ -94,8 +94,6 @@ void process_next_rx_msg(void) {
 // Assuming a housekeeping request was received,
 // retrieves and places the appropriate data in the tx_data buffer
 void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
-    // TODO - fill in field implementations
-
     if (field_num == CAN_PAY_HK_UPTIME) {
         *tx_data = uptime_s;
     }
@@ -135,8 +133,6 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
     else if (field_num == CAN_PAY_HK_MOT2_TEMP) {
         *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_MOTOR_TEMP_2);
     }
-
-    // TODO - how are MF thermistors numbered?
 
     else if (field_num == CAN_PAY_HK_MF1_TEMP) {
         *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF2_THM_6);
@@ -344,15 +340,17 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {
-        // TODO
+        motors_routine();
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_MOTOR_STATUS) {
-        // TODO
+        *tx_data = motor_routine_status;
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_LSW_STATUS) {
-        // TODO
+        uint8_t switch1 = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
+        uint8_t switch2 = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+        *tx_data = ((switch2 & 0x1) << 1) | (switch1 & 0x1);
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_UP) {

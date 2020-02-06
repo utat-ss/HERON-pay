@@ -16,7 +16,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 // TODO IO poll for motor fault probably in HK data?
 bool motor_fault = false;
 uint32_t last_exec_time_motors = 0;
-uint8_t motor_routine_status;
+uint8_t motor_routine_status = 0;
 
 
 // Define this delay function because the built-in _delay_ms() only works with
