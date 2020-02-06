@@ -7,10 +7,10 @@
 	AUTHORS:			Dylan Vogel, James Sheridan
 	DATE MODIFIED:	    2017-12-29
 
-	NOTE:               TODO: Implement more efficient channel reading algorithm,
+	NOTE:               Implement more efficient channel reading algorithm,
                         instead of having to waste SPI frames from waiting for
                         next message
-                        TODO: Test edge cases
+                        Test edge cases
 
 	REVISION HISTORY:
 

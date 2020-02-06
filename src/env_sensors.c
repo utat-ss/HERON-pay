@@ -127,8 +127,6 @@ Conversion formulas from p.13
 Debugging:
 Can't use print() with 64-bit numbers, so need to represent it as a 32-bit number
 (e.g. divide 64-bit number by 1,000,000 and print it as 32-bit, i.e. %ld or %lu)
-
-TODO - test second order temperature compensation (< 20 C)
 */
 uint32_t pres_reg_data_to_raw_data(
     uint16_t C1, uint16_t C2, uint16_t C3, uint16_t C4, uint16_t C5, uint16_t C6,
@@ -157,8 +155,6 @@ uint32_t pres_reg_data_to_raw_data(
     int32_t P = (P_1 - OFF) / (1LL << 15);
 
     // Second order temperature compensation (p.14)
-    // TODO - should this be used? should it go before the other calculation?
-    // TODO - what are those signs on the datasheet diagram?
     int32_t T2;
     int64_t OFF2;
     int64_t SENS2;

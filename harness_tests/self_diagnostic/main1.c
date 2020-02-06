@@ -72,8 +72,6 @@ test_t* suite[] = { &t1, &t2, &t3 , &t4, &t5};
 int main(void) {
     init_pay();
 
-    //TODO: Have a test for the opt spi reset too
-
     run_tests(suite, sizeof(suite) / sizeof(suite[0]));
     return 0;
 }
