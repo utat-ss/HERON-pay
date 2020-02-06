@@ -96,7 +96,19 @@ void process_next_rx_msg(void) {
 void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
     // TODO - fill in field implementations
 
-    if (field_num == CAN_PAY_HK_HUM) {
+    if (field_num == CAN_PAY_HK_UPTIME) {
+        *tx_data = uptime_s;
+    }
+
+    else if (field_num == CAN_PAY_HK_RESTART_COUNT) {
+        *tx_data = restart_count;
+    }
+
+    else if (field_num == CAN_PAY_HK_RESTART_REASON) {
+        *tx_data = restart_reason;
+    }
+
+    else if (field_num == CAN_PAY_HK_HUM) {
         *tx_data = read_hum_raw_data();
     }
 
@@ -174,6 +186,22 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
         *tx_data = fetch_and_read_adc_channel(&adc2, ADC2_MF1_THM_1);
     }
 
+    else if (field_num == CAN_PAY_HK_HEAT_SP) {
+        *tx_data = heaters_setpoint_raw;
+    }
+
+    else if (field_num == CAN_PAY_HK_DEF_INV_THERM_TEMP) {
+        *tx_data = invalid_therm_reading_raw;
+    }
+
+    else if (field_num == CAN_PAY_HK_THERM_EN) {
+        *tx_data = enables_to_uint(therm_enables, THERMISTOR_COUNT);
+    }
+
+    else if (field_num == CAN_PAY_HK_HEAT_EN) {
+        *tx_data = enables_to_uint(heater_enables, HEATER_COUNT);
+    }
+
     else if (field_num == CAN_PAY_HK_BAT_VOL) {
         *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BATT_VOLT_MON);
     }
@@ -194,27 +222,8 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
         *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST10_CURR_MON);
     }
 
-    else if (field_num == CAN_PAY_HK_THERM_EN) {
-        *tx_data = enables_to_uint(therm_enables, THERMISTOR_COUNT);
-    }
-
-    else if (field_num == CAN_PAY_HK_HEAT_EN) {
-        *tx_data = enables_to_uint(heater_enables, HEATER_COUNT);
-    }
-
-    else if (field_num == CAN_PAY_HK_LSW_STAT) {
-    }
-
-    else if (field_num == CAN_PAY_HK_UPTIME) {
-        *tx_data = uptime_s;
-    }
-
-    else if (field_num == CAN_PAY_HK_RESTART_COUNT) {
-        *tx_data = restart_count;
-    }
-
-    else if (field_num == CAN_PAY_HK_RESTART_REASON) {
-        *tx_data = restart_reason;
+    else if (field_num == CAN_PAY_HK_OPT_PWR) {
+        *tx_data = run_opt_spi_sync_cmd(CMD_GET_POWER, 0);
     }
 
     else {
@@ -238,74 +247,8 @@ void handle_opt(uint8_t field_num, uint8_t* tx_status) {
 
 void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
         uint32_t* tx_data) {
-    // TODO - fill in field implementations
-
     if (field_num == CAN_PAY_CTRL_PING) {
         // Don't do anything, just handle the field number so we send something back
-    }
-
-    else if (field_num == CAN_PAY_CTRL_ENABLE_6V) {
-        enable_6V_boost();
-    }
-
-    else if (field_num == CAN_PAY_CTRL_DISABLE_6V) {
-        disable_6V_boost();
-    }
-
-    else if (field_num == CAN_PAY_CTRL_ENABLE_10V) {
-        enable_10V_boost();
-    }
-
-    else if (field_num == CAN_PAY_CTRL_DISABLE_10V) {
-        disable_10V_boost();
-    }
-
-    else if (field_num == CAN_PAY_CTRL_GET_HEAT_SP) {
-        *tx_data = heaters_setpoint_raw;
-    }
-
-    else if (field_num == CAN_PAY_CTRL_SET_HEAT_SP) {
-        set_heaters_setpoint_raw((uint16_t) rx_data);
-    }
-
-    else if (field_num == CAN_PAY_CTRL_GET_THERM_READING) {
-        if (rx_data < THERMISTOR_COUNT) {
-            *tx_data = therm_readings_raw[rx_data];
-        } else {
-            *tx_status = CAN_STATUS_INVALID_DATA;
-        }
-    }
-
-    else if (field_num == CAN_PAY_CTRL_GET_THERM_ERR_CODE) {
-        if (rx_data < THERMISTOR_COUNT) {
-            *tx_data = therm_err_codes[rx_data];
-        } else {
-            *tx_status = CAN_STATUS_INVALID_DATA;
-        }
-    }
-
-    else if (field_num == CAN_PAY_CTRL_SET_THERM_ERR_CODE) {
-        uint8_t therm_num = (rx_data >> 8) & 0xFF;  // byte 1
-        uint8_t err_code = rx_data & 0xFF;          // byte 0
-
-        if (therm_num < THERMISTOR_COUNT) {
-            set_therm_err_code(therm_num, err_code);
-        } else {
-            *tx_status = CAN_STATUS_INVALID_DATA;
-        }
-    }
-
-    else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {
-    }
-
-    else if (field_num == CAN_PAY_CTRL_MOTOR_UP) {
-        // forwards - up
-        actuate_motors(40, 15, true);
-    }
-
-    else if (field_num == CAN_PAY_CTRL_MOTOR_DOWN) {
-        // backwards - down
-        actuate_motors(40, 15, false);
     }
 
     else if (field_num == CAN_PAY_CTRL_READ_EEPROM) {
@@ -335,6 +278,97 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
 
     else if (field_num == CAN_PAY_CTRL_RESET_OPT) {
         rst_opt_spi();
+    }
+
+    else if (field_num == CAN_PAY_CTRL_ENABLE_6V) {
+        enable_6V_boost();
+    }
+
+    else if (field_num == CAN_PAY_CTRL_DISABLE_6V) {
+        disable_6V_boost();
+    }
+
+    else if (field_num == CAN_PAY_CTRL_ENABLE_10V) {
+        enable_10V_boost();
+    }
+
+    else if (field_num == CAN_PAY_CTRL_DISABLE_10V) {
+        disable_10V_boost();
+    }
+
+    else if (field_num == CAN_PAY_CTRL_GET_HEAT_PARAMS) {
+        *tx_data =
+            ((uint32_t) heaters_setpoint_raw << 16) |
+            ((uint32_t) invalid_therm_reading_raw);
+    }
+
+    else if (field_num == CAN_PAY_CTRL_SET_HEAT_SP) {
+        set_heaters_setpoint_raw((uint16_t) rx_data);
+    }
+
+    else if (field_num == CAN_PAY_CTRL_SET_DEF_INV_THERM_TEMP) {
+        set_invalid_therm_reading_raw((uint16_t) rx_data);
+    }
+
+    else if (field_num == CAN_PAY_CTRL_GET_THERM_READING) {
+        if ((rx_data < THERMISTOR_COUNT) && (rx_data + 1 < THERMISTOR_COUNT)) {
+            *tx_data =
+                ((uint32_t) therm_readings_raw[rx_data + 0] << 16) |
+                ((uint32_t) therm_readings_raw[rx_data + 1]);
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
+    }
+
+    else if (field_num == CAN_PAY_CTRL_GET_THERM_ERR_CODE) {
+        if ((rx_data < THERMISTOR_COUNT) && (rx_data + 3 < THERMISTOR_COUNT)) {
+            *tx_data =
+                ((uint32_t) therm_err_codes[rx_data + 0] << 24) |
+                ((uint32_t) therm_err_codes[rx_data + 1] << 16) |
+                ((uint32_t) therm_err_codes[rx_data + 2] << 8) |
+                ((uint32_t) therm_err_codes[rx_data + 3] << 0);
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
+    }
+
+    else if (field_num == CAN_PAY_CTRL_SET_THERM_ERR_CODE) {
+        uint8_t therm_num = (rx_data >> 8) & 0xFF;  // byte 1
+        uint8_t err_code = rx_data & 0xFF;          // byte 0
+
+        if (therm_num < THERMISTOR_COUNT) {
+            set_therm_err_code(therm_num, err_code);
+        } else {
+            *tx_status = CAN_STATUS_INVALID_DATA;
+        }
+    }
+
+    else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {
+        // TODO
+    }
+
+    else if (field_num == CAN_PAY_CTRL_GET_MOTOR_STATUS) {
+        // TODO
+    }
+
+    else if (field_num == CAN_PAY_CTRL_GET_LSW_STATUS) {
+        // TODO
+    }
+
+    else if (field_num == CAN_PAY_CTRL_MOTOR_UP) {
+        // forwards - up
+        actuate_motors(40, 15, true);
+    }
+
+    else if (field_num == CAN_PAY_CTRL_MOTOR_DOWN) {
+        // backwards - down
+        actuate_motors(40, 15, false);
+    }
+
+    else if (field_num == CAN_PAY_CTRL_SEND_OPT_SPI) {
+        uint8_t first_byte = (rx_data >> 8) & 0xFF; // byte 1
+        uint8_t second_byte = rx_data & 0xFF;       // byte 0
+        *tx_data = run_opt_spi_sync_cmd(first_byte, second_byte);
     }
 
     else {

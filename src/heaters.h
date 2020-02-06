@@ -66,6 +66,7 @@ extern uint8_t therm_err_codes[];
 extern uint8_t therm_enables[];
 
 extern uint16_t heaters_setpoint_raw;
+extern uint16_t invalid_therm_reading_raw;
 extern uint8_t heater_enables[];
 
 extern uint32_t heater_ctrl_last_exec_time;
