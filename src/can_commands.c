@@ -218,10 +218,6 @@ void handle_hk(uint8_t field_num, uint8_t* tx_status, uint32_t* tx_data) {
         *tx_data = fetch_and_read_adc_channel(&adc1, ADC1_BOOST10_CURR_MON);
     }
 
-    else if (field_num == CAN_PAY_HK_OPT_PWR) {
-        *tx_data = run_opt_spi_sync_cmd(CMD_GET_POWER, 0);
-    }
-
     else {
         *tx_status = CAN_STATUS_INVALID_FIELD_NUM;
     }
