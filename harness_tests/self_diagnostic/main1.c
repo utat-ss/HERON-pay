@@ -11,7 +11,6 @@
 #include <conversions/conversions.h>
 
 // PAY libraries
-// might be missing heaters.h (try compiling)
 #include "../../src/general.h"
 
 // Field numbers for pay hk
@@ -382,11 +381,10 @@ test_t t13 = { .name = "13. 10V boost current test", .fn = ctrl_10V_boost_curren
 test_t t14 = { .name = "14. thermistor status test", .fn = hk_sequential_heater_test };
 test_t t15a = { .name = "15a. sequential heater test", .fn = hk_therm_status };
 test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
-test_t t16 = { .name = "15b. limit switch test", .fn = ctrl_limit_switch_status };
+test_t t16 = { .name = "16. limit switch test", .fn = ctrl_limit_switch_status };
 
 
-test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, \
-    &t13, &t14, &t15a, &t15b, &t16 };
+test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16 };
 
 int main(void) {
     init_pay();
