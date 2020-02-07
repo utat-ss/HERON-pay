@@ -79,102 +79,112 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
     return tx_data;
 }
 
-/*
-float get_pay_hk(uint8_t field_num) {
-    uint8_t rx_msg[8] = { 0x00 };
-    rx_msg[0] = CAN_PAY_HK;
-    rx_msg[1] = field_num;
-    enqueue(&rx_msg_queue, rx_msg);
-    process_next_rx_msg();
-    uint8_t tx_msg[8] = {0x00};
-    dequeue(&tx_msg_queue, tx_msg);
-    uint32_t tx_data =
-        ((uint32_t) tx_msg[4] << 24) |
-        ((uint32_t) tx_msg[5] << 16) |
-        ((uint32_t) tx_msg[6] << 8) |
-        ((uint32_t) tx_msg[7]);
-    return tx_data;
-}
-*/
-
-void send_pay_ctrl(uint8_t field_num) {
-    uint8_t rx_msg[8] = { 0x00 };
-    rx_msg[0] = CAN_PAY_CTRL;
-    rx_msg[1] = field_num;
-    enqueue(&rx_msg_queue, rx_msg);
-    process_next_rx_msg();
-    uint8_t tx_msg[8] = {0x00};
-    dequeue(&tx_msg_queue, tx_msg);
-    //TODO - assert for valid message?
-}
-
+// 1
 void hk_humidity_test(void) {
     uint32_t raw_humidity = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_HUM, 0x00);
     double humidity = hum_raw_data_to_humidity(raw_humidity);
-    ASSERT_BETWEEN(98, 100, humidity);
+    ASSERT_BETWEEN(95, 100, humidity);
 }
 
+// 2
 void hk_pressure_test(void) {
     uint32_t pressure_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_PRES, 0x00);
     double pressure = pres_raw_data_to_pressure(pressure_raw);
     ASSERT_BETWEEN(98, 102, pressure);
 }
 
+// 3
 void hk_amb_temp_test(void) {
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_AMB_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(-39, 80, temp);
+    ASSERT_BETWEEN(15, 30, temp);
 }
 
+// 4
 void hk_boost_6v_temp_test(void) {
-    uint32_t temp_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_TEMP, 0x00);
+    // don't need 32 bit precision for temperature
+    // just use 16 bit, since the temp conversion function takes 16 bit
+    uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(0, 90, temp);
+    ASSERT_BETWEEN(15, 30, temp);
 }
 
+// 5
 void hk_boost_10v_temp_test(void) {
-    uint32_t temp_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_TEMP, 0x00);
+    uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(0, 90, temp);
+    ASSERT_BETWEEN(15, 30, temp);
 }
 
+// 6
 void hk_motor1_temp_test(void) {
-    uint32_t temp_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT1_TEMP, 0x00);
+    uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT1_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(-39, 80, temp);
+    ASSERT_BETWEEN(15, 30, temp);
 }
 
+// 7
 void hk_motor2_temp_test(void) {
-    uint32_t temp_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT2_TEMP, 0x00);
+    uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT2_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(-39, 80, temp);
+    ASSERT_BETWEEN(-15, 30, temp);
 }
 
+// 8 
 void hk_chip_temp_test(void) {
     for (uint8_t i=0; i<12; i++) {
-        uint32_t temp_raw = can_rx_tx(CAN_PAY_HK, mf_temp_cmd[i], 0x00);
-        // TODO - this conversion func
-        double temp = -1;
-        ASSERT_BETWEEN(35, 39, temp);
+        uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, mf_temp_cmd[i], 0x00);
+        double temp = adc_raw_to_therm_temp(temp_raw);
+
+        // Lorna told me that Avinash said cells die at 40C
+        ASSERT_BETWEEN(15, 40, temp);
     }
 }
 
+// 9
+// fully charged battery voltage should be 4.0-4.2V
+// but operating (nominal) voltage is 3.6V
 void hk_battery_volt_test(void) {
-    uint32_t volt_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_BAT_VOL, 0x00);
-    // TODO - conversion func
-    // double volt = convert(volt_raw);
-    double volt = (double)volt_raw;
-    ASSERT_BETWEEN(3, 4.2, volt);
+    uint16_t volt_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_BAT_VOL, 0x00);
+    double volt = adc_raw_to_circ_vol(volt_raw, ADC1_BATT_LOW_RES, ADC1_BATT_HIGH_RES);
+    ASSERT_BETWEEN(4.0, 4.2, volt);
 }
 
+// 10
+void ctrl_6V_boost_voltage_test(void) {
+    // enable boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
+
+    // delay 1 seconds for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // get 6V boost converter votlage reading
+    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    double voltage = adc_raw_to_circ_vol (raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+
+    ASSERT_BETWEEN(5.0, 7.0, voltage);
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    _delay_ms(1000);
+
+    // check that voltage is between 2-4V to make sure that the boost converter is turned off
+    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    double voltage = adc_raw_to_circ_vol (raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    ASSERT_BETWEEN(2.0, 4.0, voltage);
+}
+
+
+// 1
 void ctrl_boost_10v_volt_test(void) {
     // TODO - I made this up
     // Enable Boost converter
     uint32_t raw_volt = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
     double volt = adc_raw_to_circ_vol(raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
     ASSERT_BETWEEN(9, 12, volt);
+
     // Disable Boost Converter
-    send_pay_ctrl(CAN_PAY_CTRL_DISABLE_10V);
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
 }
 
 void ctrl_boost_10v_motor_curr_test(void) {
@@ -188,7 +198,9 @@ void ctrl_boost_10v_motor_curr_test(void) {
     raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_MOTOR_UP, 0x00);
     curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
     ASSERT_BETWEEN(0, 3.6, curr);
-    // TODO - How do you stop the motor
+
+    // Lorna said disabling boost converter will stop motors
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
 }
 
 // TODO - Some tests about status
@@ -196,7 +208,16 @@ void hk_therm_status(void) {
     uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_STAT, 0x00);
     ASSERT_EQ(therm_status, 0x0FFF);
 }
-// TODO - Limit switch stuff
+
+
+// 16
+void ctrl_limit_switch_not_pressed(void){
+    uint8_t lsw_status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_LSW_STATUS, 0x00);
+
+    // returns 2 bits, bit[1] = bottom 2, bit[0] = bottom 1
+    // 0 = not pressed, 1 = pressed
+    ASSERT_EQ(lsw_status, 0x0);
+}
 
 void ctrl_10V_boost_test(void) {
     float current_inc;
@@ -226,50 +247,6 @@ void ctrl_10V_boost_test(void) {
     heater_all_off();
     // Disable Boost Converter
     uint32_t dummy = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
-}
-
-void ctrl_6V_boost_test(void) {
-    // Enable Boost converter
-    send_pay_ctrl(CAN_PAY_CTRL_ENABLE_6V);
-    // Turn on all heaters
-    heater_all_on();
-
-    uint32_t raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
-    float baseline_current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
-
-    // Disable Boost converter
-    send_pay_ctrl(CAN_PAY_CTRL_DISABLE_6V);
-    raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
-    float current_dec = baseline_current - adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
-    ASSERT_BETWEEN(-0.05, 0.05, current_dec);
-    heater_all_off();
-}
-
-void ctrl_temp_lowpower_test(void) {
-    // Enable Boost converter
-    send_pay_ctrl(CAN_PAY_CTRL_ENABLE_10V);
-    // Start temp low-power mode
-    // send_pay_ctrl(CAN_PAY_CTRL_START_TEMP_LPM); //TODO - Does this not exist anymore?
-    uint32_t raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_10V_CUR, 0x00);
-    float curr = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);    
-    ASSERT_BETWEEN(0.1, 0.2, curr);
-    // Disable Boost Converter
-    send_pay_ctrl(CAN_PAY_CTRL_DISABLE_10V);
-}
-
-void ctrl_indef_lowpower_test(void) {
-    // Enable Boost converter
-    send_pay_ctrl(CAN_PAY_CTRL_ENABLE_10V);
-    // Start temp low-power mode
-    send_pay_ctrl(CAN_PAY_CTRL_ENABLE_INDEF_LPM);
-
-    uint32_t raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_10V_CUR, 0x00);
-    float curr = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
-    ASSERT_BETWEEN(0.1, 0.15, curr);
-    // Stop indef low power mode
-    send_pay_ctrl(CAN_PAY_CTRL_DISABLE_INDEF_LPM);
-    // Disable Boost Converter
-    send_pay_ctrl(CAN_PAY_CTRL_DISABLE_10V);
 }
 
 test_t t1 = { .name = "humidity sensor test", .fn = hk_humidity_test };
