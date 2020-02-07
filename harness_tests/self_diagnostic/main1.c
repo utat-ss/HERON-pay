@@ -11,6 +11,7 @@
 #include <conversions/conversions.h>
 
 // PAY libraries
+// might be missing heaters.h (try compiling)
 #include "../../src/general.h"
 
 // Field numbers for pay hk
@@ -158,7 +159,7 @@ void ctrl_6V_boost_voltage_test(void) {
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
-    // get 6V boost converter votlage reading
+    // get 6V boost converter voltage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
     double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
 
@@ -169,8 +170,8 @@ void ctrl_6V_boost_voltage_test(void) {
     _delay_ms(1000);
 
     // check that voltage is between 2-4V to make sure that the boost converter is turned off
-    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
-    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
     ASSERT_BETWEEN(2.0, 4.0, voltage);
 }
 
@@ -193,8 +194,8 @@ void ctrl_6V_boost_current_test(void){
 
     // check that current is between 0-20mA to make sure that the boost converter is turned off
     // - reference, Lorna (06-Feb-2020)
-    uint16_t raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
-    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
@@ -206,7 +207,7 @@ void ctrl_10V_boost_voltage_test(void) {
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
-    // get 6V boost converter votlage reading
+    // get 6V boost converter voltage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
     double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
 
@@ -217,8 +218,8 @@ void ctrl_10V_boost_voltage_test(void) {
     _delay_ms(1000);
 
     // check that voltage is between 2-4V to make sure that the boost converter is turned off
-    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
-    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
+    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
+    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
     ASSERT_BETWEEN(2.0, 4.0, voltage);
 }
 
@@ -241,51 +242,116 @@ void ctrl_10V_boost_current_test(void){
 
     // check that current is between 0-20mA to make sure that the boost converter is turned off
     // - reference, Lorna (06-Feb-2020)
-    uint16_t raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
-    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_SENSE_RES);
+    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_SENSE_RES);
     ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
 // 14
 void hk_therm_status(void) {
-    uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_STAT, 0x00);
+    uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_EN, 0x00);
     
     // should all be enabled
     ASSERT_EQ(therm_status, 0x0FFF);
 }
 
 
-// 15
-void ctrl_boost_10v_volt_test(void) {
-    // TODO - I made this up
-    // Enable Boost converter
-    uint32_t raw_volt = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
-    double volt = adc_raw_to_circ_vol(raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
-    ASSERT_BETWEEN(9, 12, volt);
+// 15 (a)
+// turn on heaters sequentially
+// read the current (should see an increase) to make sure heaters are actually on
+void hk_sequential_heater_test(void){
+    double current_inc = 0;
 
-    // Disable Boost Converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
+    // enable 6V boost converter (powers heaters)
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
+    // delay 1 second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // read baseline current
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN(0.0, 0.02, baseline_curr);
+
+
+    for (uint8_t i = 1; i<=5; i++){
+        // turn on heater
+        heater_on(i);
+
+        // need delay here for current to start flowing?
+
+        // read current with heaters on
+        raw_curr = can_rx_tx (CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+        current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
+        
+        // only 6V converters on draws 87mA
+        if ((i==1) | (i==3)){
+            // heater 1/3 + converter on draws 414mA
+            ASSERT_BETWEEN(0.25, 0.35, current_inc);
+        }
+        else if((i==2) | (i==4)){
+            // heater 2/4 + converter on draws 337mA
+            ASSERT_BETWEEN(0.15, 0.25, current_inc);
+        }
+        else {  // heater 5
+            // heater 5 + converter on draws 528mA
+            ASSERT_BETWEEN(0.4, 0.6, current_inc);
+        }
+
+        heater_off(i);
+    }
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    _delay_ms(1000);
+
+    // check that current is between 0-20mA to make sure that the boost converter is turned off
+    // - reference, Lorna (06-Feb-2020)
+    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
-void ctrl_boost_10v_motor_curr_test(void) {
-    // TODO - I made this up
-    // Enable Boost converter
-    uint32_t raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
-    double curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
-    ASSERT_BETWEEN(0, 3.6, curr);
-    
-    // Move a motor
-    raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_MOTOR_UP, 0x00);
-    curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
-    ASSERT_BETWEEN(0, 3.6, curr);
 
-    // Lorna said disabling boost converter will stop motors
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
+// 15 (b)
+// turn all heaters on
+// check to see if current increased, to make sure heaters are on
+void hk_all_heater_test(void){
+    double current_inc = 0;
+
+    // enable 6V boost converter (powers heaters)
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
+    // delay 1 second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // read baseline current
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN(0.0, 0.02, baseline_curr);
+
+    // turn all heaters on
+    heater_all_on();
+    raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+    current_inc = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES) - baseline_curr;
+    
+    // expected increase ~1.0 - 1.5A
+    ASSERT_BETWEEN(1.0, 1.5, current_inc);
+
+    heater_all_off();
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    _delay_ms(1000);
+
+    // check that current is between 0-20mA to make sure that the boost converter is turned off
+    // - reference, Lorna (06-Feb-2020)
+    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
 
 // 16
-void ctrl_limit_switch_not_pressed(void){
+void ctrl_limit_switch_status(void){
     uint8_t lsw_status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_LSW_STATUS, 0x00);
 
     // returns 2 bits, bit[1] = bottom 2, bit[0] = bottom 1
@@ -293,61 +359,37 @@ void ctrl_limit_switch_not_pressed(void){
     ASSERT_EQ(lsw_status, 0x0);
 }
 
-void ctrl_10V_boost_test(void) {
-    float current_inc;
-    // Enable Boost converter
-    // Get 10V boost current measurement
-    uint32_t raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
-    float baseline_current = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
+/*
+missing tests from BUS architecture doc
+- 17 = uptime
+- 18 = restart count
+- 19 = restart reason
+*/
 
-    for (uint8_t i = 1; i <= 5; i++) {
-        // Turn on heater
-        heater_on(i);
-        // Check current increased between 0.15A and 0.2A
-        raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_10V_CUR, 0x00);
+test_t t1 = { .name = "1. humidity sensor test", .fn = hk_humidity_test };
+test_t t2 = { .name = "2. pressure sensor test", .fn = hk_pressure_test };
+test_t t3 = { .name = "3. ambient temp test", .fn = hk_amb_temp_test };
+test_t t4 = { .name = "4. 6V boost temp test", .fn = hk_boost_6v_temp_test };
+test_t t5 = { .name = "5. 10V boost temp test", .fn = hk_boost_10v_temp_test };
+test_t t6 = { .name = "6. motor 1 temp test", .fn = hk_motor1_temp_test };
+test_t t7 = { .name = "7. motor 2 temp test", .fn = hk_motor2_temp_test };
+test_t t8 = { .name = "8. mf chip temp test", .fn = hk_chip_temp_test };
+test_t t9 = { .name = "9. battery volt test", .fn = hk_battery_volt_test };
+test_t t10 = { .name = "10. 6V boost voltage test", .fn = ctrl_6V_boost_voltage_test };
+test_t t11 = { .name = "11. 6V boost current test", .fn = ctrl_6V_boost_current_test };
+test_t t12 = { .name = "12. 10V boost voltage test", .fn = ctrl_10V_boost_voltage_test };
+test_t t13 = { .name = "13. 10V boost current test", .fn = ctrl_10V_boost_current_test };
+test_t t14 = { .name = "14. thermistor status test", .fn = hk_sequential_heater_test };
+test_t t15a = { .name = "15a. sequential heater test", .fn = hk_therm_status };
+test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
+test_t t16 = { .name = "15b. limit switch test", .fn = ctrl_limit_switch_status };
 
-        current_inc = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES) - baseline_current;
-        ASSERT_BETWEEN(0.15, 0.2, current_inc);
-        // Turn off heater
-        heater_off(i);
-    }
-
-    // Turn on all heaters
-    heater_all_on();
-    raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_10V_CUR, 0x00);
-    current_inc = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES) - baseline_current;
-    ASSERT_BETWEEN(0.75, 1, current_inc);
-
-    heater_all_off();
-    // Disable Boost Converter
-    uint32_t dummy = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
-}
-
-test_t t1 = { .name = "humidity sensor test", .fn = hk_humidity_test };
-test_t t2 = { .name = "pressure sensor test", .fn = hk_pressure_test };
-
-// Stuff that potentially doesn't work
-test_t t3 = { .name = "ambient temp test", .fn = hk_amb_temp_test };
-test_t t4 = { .name = "6V boost temp test", .fn = hk_boost_6v_temp_test };
-test_t t5 = { .name = "10V boost temp test", .fn = hk_boost_10v_temp_test };
-test_t t6 = { .name = "motor 1 temp test", .fn = hk_motor1_temp_test };
-test_t t7 = { .name = "motor 2 temp test", .fn = hk_motor2_temp_test };
-test_t t8 = { .name = "mf chip temp test", .fn = hk_chip_temp_test };
-test_t t9 = { .name = "battery volt test", .fn = hk_battery_volt_test };
-test_t t10 = { .name = "10V boost volt test", .fn = ctrl_boost_10v_volt_test };
-test_t t11 = { .name = "10V motor current test", .fn = ctrl_boost_10v_motor_curr_test };
-test_t t12 = { .name = "thermistor status test", .fn = hk_therm_status };
-test_t t13 = { .name = "10V boost ctrl test", .fn = ctrl_10V_boost_test };
-test_t t14 = { .name = "6V boost ctrl test", .fn = ctrl_6V_boost_test };
-test_t t15 = { .name = "temp low power ctrl test", .fn = ctrl_temp_lowpower_test };
-test_t t16 = { .name = "indef low power ctrl test", .fn = ctrl_indef_lowpower_test };
 
 test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, \
-    &t13, &t14, &t15, &t16 };
+    &t13, &t14, &t15a, &t15b, &t16 };
 
 int main(void) {
     init_pay();
-
 
     run_tests(suite, sizeof(suite) / sizeof(suite[0]));
     return 0;
