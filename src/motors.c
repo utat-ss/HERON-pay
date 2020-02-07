@@ -35,17 +35,16 @@ void init_motors(void) {
     set_pex_pin(&pex1, PEX_B, MOT1_SLP_N, 0);
     set_pex_pin(&pex1, PEX_B, MOT2_SLP_N, 0);
 
-    // ADECAY = 1 & BDECAY = 1
-    // TODO - double check datasheet about setting DECAY, might want slow DECAY
+    // ADECAY = 0 & BDECAY = 0 for slow decay
     set_pex_pin_dir(&pex1, PEX_B, MOT1_ADECAY, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 0);
     set_pex_pin_dir(&pex1, PEX_A, MOT2_ADECAY, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT2_ADECAY, 1);
+    set_pex_pin(&pex1, PEX_A, MOT2_ADECAY, 0);
 
     set_pex_pin_dir(&pex1, PEX_B, MOT1_BDECAY, OUTPUT);
-    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 1);
+    set_pex_pin(&pex1, PEX_B, MOT1_ADECAY, 0);
     set_pex_pin_dir(&pex1, PEX_A, MOT2_BDECAY, OUTPUT);
-    set_pex_pin(&pex1, PEX_A, MOT2_BDECAY, 1);
+    set_pex_pin(&pex1, PEX_A, MOT2_BDECAY, 0);
 
     // M1 = 1 (async fast decay)
     set_pex_pin_dir(&pex1, PEX_B, MOT1_M1, OUTPUT);
@@ -317,7 +316,6 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
     disable_motor2();
 }
 
-// TODO tilted plate can be recovered from limit switch reading
 void motors_routine(void){
 
     WDT_ENABLE_SYS_RESET(WDTO_8S);
