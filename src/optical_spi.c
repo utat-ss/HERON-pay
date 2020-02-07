@@ -54,9 +54,9 @@ void init_opt_spi(void) {
 
 // Resets the PAY-Optical microcontroller
 void rst_opt_spi(void) {
-    // TODO - check how many cycles is necessary
+    // Minimum pulse width on reset pin is 2.5us (p.314)
     set_cs_low(OPT_RST, &OPT_RST_PORT);
-    _delay_ms(1000);
+    _delay_ms(1);
     set_cs_high(OPT_RST, &OPT_RST_PORT);
 }
 
