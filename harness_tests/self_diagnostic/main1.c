@@ -155,12 +155,12 @@ void ctrl_6V_boost_voltage_test(void) {
     // enable boost converter
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
 
-    // delay 1 seconds for power to settle (for accurate reading)
+    // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
     // get 6V boost converter votlage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
-    double voltage = adc_raw_to_circ_vol (raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
 
     ASSERT_BETWEEN(5.0, 7.0, voltage);
 
@@ -170,12 +170,92 @@ void ctrl_6V_boost_voltage_test(void) {
 
     // check that voltage is between 2-4V to make sure that the boost converter is turned off
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
-    double voltage = adc_raw_to_circ_vol (raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
     ASSERT_BETWEEN(2.0, 4.0, voltage);
 }
 
+// 11
+void ctrl_6V_boost_current_test(void){
+    // enable boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
 
-// 1
+    // delay 1second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // get 6V boost converter current reading
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN (0.0, 0.1, current);
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    _delay_ms(1000);
+
+    // check that current is between 0-20mA to make sure that the boost converter is turned off
+    // - reference, Lorna (06-Feb-2020)
+    uint16_t raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
+    ASSERT_BETWEEN(0.0, 0.02, current);
+}
+
+// 12
+void ctrl_10V_boost_voltage_test(void) {
+    // enable boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
+
+    // delay 1 second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // get 6V boost converter votlage reading
+    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
+    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
+
+    ASSERT_BETWEEN(9.0, 12.0, voltage);
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
+    _delay_ms(1000);
+
+    // check that voltage is between 2-4V to make sure that the boost converter is turned off
+    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
+    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
+    ASSERT_BETWEEN(2.0, 4.0, voltage);
+}
+
+// 13
+void ctrl_10V_boost_current_test(void){
+    // enable boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
+
+    // delay 1second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // get 6V boost converter current reading
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
+    ASSERT_BETWEEN (0.0, 0.05, current);
+
+    // turn off boost converter
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    _delay_ms(1000);
+
+    // check that current is between 0-20mA to make sure that the boost converter is turned off
+    // - reference, Lorna (06-Feb-2020)
+    uint16_t raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_SENSE_RES);
+    ASSERT_BETWEEN(0.0, 0.02, current);
+}
+
+// 14
+void hk_therm_status(void) {
+    uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_STAT, 0x00);
+    
+    // should all be enabled
+    ASSERT_EQ(therm_status, 0x0FFF);
+}
+
+
+// 15
 void ctrl_boost_10v_volt_test(void) {
     // TODO - I made this up
     // Enable Boost converter
@@ -201,12 +281,6 @@ void ctrl_boost_10v_motor_curr_test(void) {
 
     // Lorna said disabling boost converter will stop motors
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
-}
-
-// TODO - Some tests about status
-void hk_therm_status(void) {
-    uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_STAT, 0x00);
-    ASSERT_EQ(therm_status, 0x0FFF);
 }
 
 
