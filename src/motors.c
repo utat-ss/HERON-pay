@@ -11,6 +11,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #define PERIOD_MS   100
 #define NUM_CYCLES  1
 #define MAX_STEP 300
+#define MAX_COUNT 5
 
 // true if there is a fault detected in one or both of the motors
 // TODO IO poll for motor fault probably in HK data?
@@ -317,7 +318,6 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
 }
 
 // TODO tilted plate can be recovered from limit switch reading
-// TODO limit switch debounce
 // TODO CAN comm, communicate motor routine status {last_exec_time_motors, motor_rountine_status}
 void motors_routine(void){
 
@@ -342,6 +342,11 @@ void motors_routine(void){
     uint16_t count_mot1 = 0;
     uint16_t count_mot2 = 0;
 
+    // limit switch debounce counter to prevent random fluctuation
+    // set it to maximum 5 count
+    uint8_t count_lim_switch1 = 0;
+    uint8_t count_lim_switch2 = 0;
+
     // move up the motors for 15 seconds
     while(count_mot1 < 150 && count_mot2 < 150){
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
@@ -354,7 +359,7 @@ void motors_routine(void){
     count_mot1 = 0;
     count_mot2 = 0;
 
-    while((!switch1_pressed || !switch2_pressed) &&
+    while((count_lim_switch1 < MAX_COUNT && count_lim_switch2 < MAX_COUNT) &&
           (count_mot1 < MAX_STEP && count_mot2 < MAX_STEP)){
         // actuate one motor downwards at a time
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
@@ -364,7 +369,14 @@ void motors_routine(void){
 
         //update switch status
         switch1_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED);
+        if(switch1_pressed){
+            count_lim_switch1 += 1;
+        }
+
         switch2_pressed = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED);
+        if(switch2_pressed){
+            count_lim_switch2 += 1;
+        }
 
         WDT_ENABLE_SYS_RESET(WDTO_8S);
     }
