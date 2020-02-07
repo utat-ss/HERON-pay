@@ -381,11 +381,11 @@ void motors_routine(void){
         while(count_lim_switch1 != count_lim_switch2){
 
             //move motors
-            if(count_lim_Switch1 > count_lim_switch2){
+            if(count_lim_switch1 > count_lim_switch2){
                 actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
                 count_mot2 += 1;
             }
-            if(count_lim_Switch1 < count_lim_switch2){
+            if(count_lim_switch1 < count_lim_switch2){
                 actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
                 count_mot1 += 1;
             }
