@@ -69,8 +69,8 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
     // remove everything from queues
     dequeue(&tx_msg_queue, tx_msg);
     // print every CAN message
-    // print("CAN TX: ");
-    // print_bytes(tx_msg, 8);
+    print("CAN TX: ");
+    print_bytes(tx_msg, 8);
 
     rx_q_size = queue_size(&rx_msg_queue);
     tx_q_size = queue_size(&tx_msg_queue);
@@ -96,14 +96,14 @@ void hk_humidity_test(void) {
 void hk_pressure_test(void) {
     uint32_t pressure_raw = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_PRES, 0x00);
     double pressure = pres_raw_data_to_pressure(pressure_raw);
-    ASSERT_BETWEEN(98, 102, pressure);
+    ASSERT_BETWEEN(95, 105, pressure);
 }
 
 // 3
 void hk_amb_temp_test(void) {
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_AMB_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(15, 30, temp);
+    ASSERT_BETWEEN(20, 30, temp);
 }
 
 // 4
@@ -112,28 +112,28 @@ void hk_boost_6v_temp_test(void) {
     // just use 16 bit, since the temp conversion function takes 16 bit
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(15, 30, temp);
+    ASSERT_BETWEEN(20, 30, temp);
 }
 
 // 5
 void hk_boost_10v_temp_test(void) {
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(15, 30, temp);
+    ASSERT_BETWEEN(20, 30, temp);
 }
 
 // 6
 void hk_motor1_temp_test(void) {
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT1_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(15, 30, temp);
+    ASSERT_BETWEEN(20, 30, temp);
 }
 
 // 7
 void hk_motor2_temp_test(void) {
     uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MOT2_TEMP, 0x00);
     double temp = adc_raw_to_therm_temp(temp_raw);
-    ASSERT_BETWEEN(-15, 30, temp);
+    ASSERT_BETWEEN(20, 30, temp);
 }
 
 // 8 
@@ -141,9 +141,7 @@ void hk_chip_temp_test(void) {
     for (uint8_t i=0; i<12; i++) {
         uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, mf_temp_cmd[i], 0x00);
         double temp = adc_raw_to_therm_temp(temp_raw);
-
-        // Lorna told me that Avinash said cells die at 40C
-        ASSERT_BETWEEN(15, 40, temp);
+        ASSERT_BETWEEN(20, 30, temp);
     }
 }
 
@@ -256,9 +254,7 @@ void ctrl_10V_boost_current_test(void){
 void hk_therm_status(void) {
     // run heater control so thermistor status return will be valid
     run_heater_ctrl();
-
-    uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_EN, 0x00);
-    
+    uint32_t therm_status = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_THERM_EN, 0x00);
     // should all be enabled
     ASSERT_EQ(therm_status, 0x0FFF);
 }
@@ -270,24 +266,26 @@ void hk_therm_status(void) {
 void hk_sequential_heater_test(void){
     double current_inc = 0;
 
-    // enable 6V boost converter (powers heaters)
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
+    // turn off all heaters
+    // we could disable the 6V boost converter, but that would make it go to ~3V
+    // which would still give partial power to the heaters
+    heater_all_off();
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
     // read baseline current
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
-    ASSERT_BETWEEN(0.0, 0.02, baseline_curr);
+    ASSERT_BETWEEN(0.0, 0.05, baseline_curr);
 
     for (uint8_t i = 1; i<=5; i++){
         // turn on heater
         heater_on(i);
-
-        // need delay here for current to start flowing?
+        // need delay here for current to start flowing
+        _delay_ms(1000);
 
         // read current with heaters on
-        raw_curr = (uint16_t) can_rx_tx (CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+        raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
         current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
         
         // only 6V converters on draws 87mA
@@ -305,17 +303,17 @@ void hk_sequential_heater_test(void){
         }
 
         heater_off(i);
+        _delay_ms(1000);
     }
 
     // turn off boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    heater_all_off();
     _delay_ms(1000);
 
-    // check that current is between 0-20mA to make sure that the boost converter is turned off
-    // - reference, Lorna (06-Feb-2020)
+    // check that current is between 0-20mA
     raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
-    ASSERT_BETWEEN(0.0, 0.02, current);
+    ASSERT_BETWEEN(0.0, 0.05, current);
 }
 
 
@@ -330,15 +328,17 @@ void hk_all_heater_test(void){
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
-    // read baseline current
+    // read baseline current with all heaters off
+    heater_all_off();
+    _delay_ms(1000);
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.04, baseline_curr);
 
     // turn all heaters on, wait 1 second, then read current
     heater_all_on();
-    _delay_ms(5000);
-    raw_curr = (uint16_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+    _delay_ms(1000);
+    raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
     
     // expected increase ~1.0 - 1.5A
@@ -359,12 +359,14 @@ void hk_all_heater_test(void){
 
 
 // 16
-void ctrl_limit_switch_status(void){
-    uint8_t lsw_status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_LSW_STATUS, 0x00);
+void motor_status_test(void){
+    uint8_t status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_MOTOR_STATUS, 0x00);
 
     // returns 2 bits, bit[1] = bottom 2, bit[0] = bottom 1
     // 0 = not pressed, 1 = pressed
-    ASSERT_EQ(lsw_status, 0x0);
+    // fault pins are active low, so they should both be high (1, i.e. deasserted)
+    // status should be default 0 (not deployed)
+    ASSERT_EQ(status, 0x0300);
 }
 
 /*
@@ -390,16 +392,16 @@ test_t t13 = { .name = "13. 10V boost current test", .fn = ctrl_10V_boost_curren
 test_t t14 = { .name = "14. thermistor status test", .fn = hk_therm_status };
 test_t t15a = { .name = "15a. sequential heater test", .fn = hk_sequential_heater_test };
 test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
-test_t t16 = { .name = "16. limit switch test", .fn = ctrl_limit_switch_status };
+test_t t16 = { .name = "16. motor status test", .fn = motor_status_test };
 
 
 test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16 };
-test_t* temp[] = { &t13, &t14, &t15a, &t15b, &t16 };
+// test_t* suite[] = { &t13, &t14, &t15a, &t15b, &t16 };
+// test_t* suite[] = { &t14, &t15a, &t15b };
 
 int main(void) {
     init_pay();
 
-    // run_tests(suite, sizeof(suite) / sizeof(suite[0]));
-    run_tests(temp, sizeof(temp) / sizeof(temp[0]));
+    run_tests(suite, sizeof(suite) / sizeof(suite[0]));
     return 0;
 }
