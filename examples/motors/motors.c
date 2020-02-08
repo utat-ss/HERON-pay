@@ -374,26 +374,6 @@ void actuate_motors(uint16_t period, uint16_t num_cycles, bool forward, bool m1,
     disable_motors();
 }
 
-/*
-ISR(INT2_vect) {
-    print("INT2 - Motor Fault (PEX INTA)\n");
-
-    // Check if either of the motor FLTn (fault) pins is low
-    if (get_pin_val(FAULT_M1, &FAULT_M1_PORT) == 0) {
-        motor_fault = true;
-        print("MOTOR 1\n");
-    }
-    if (get_pin_val(FAULT_M2, &FAULT_M2_PORT)  == 0) {
-        motor_fault = true;
-        print("MOTOR 2\n");
-    }
-
-    if (motor_fault) {
-        disable_motors();
-        // Maybe change this to reset motors
-    }
-}*/
-
 int main(void){
     init_uart();
     init_spi();

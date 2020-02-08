@@ -171,7 +171,6 @@ uint16_t count_ones(uint8_t* array, uint8_t size){
     return one_count;
 }
 
-// TODO - unit test
 uint32_t enables_to_uint(uint8_t* enables, uint32_t count) {
     uint32_t ret = 0;
     for (uint32_t i = 0; i < count; i++) {

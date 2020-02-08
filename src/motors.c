@@ -14,8 +14,6 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #define MAX_COUNT 10
 
 // true if there is a fault detected in one or both of the motors
-// TODO IO poll for motor fault probably in HK data?
-bool motor_fault = false;
 uint32_t last_exec_time_motors = 0;
 uint8_t motor_routine_status = 0;
 
