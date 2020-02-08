@@ -20,12 +20,11 @@
 #define HEATER4_EN_N       6
 #define HEATER5_EN_N       7
 
-//temperature constants, all in degree Celsius
-// TODO - unit test to make sure these values converted are what we expect
+//temperature constants (in raw ADC 12-bit form)
 // Default 14 C sepoint
 #define HEATERS_SETPOINT_RAW_DEFAULT        0x328
-// Default 10 C reading for invalid thermistors
-#define INVALID_THERM_READING_RAW_DEFAULT   0x2DD
+// Default 20 C reading for invalid thermistors
+#define INVALID_THERM_READING_RAW_DEFAULT   0x39F
 
 // TODO have a function to reject invalid setpoint - in CAN
 #define THERM_CONV_ULL -35
@@ -34,7 +33,7 @@
 #define HEATERS_SETPOINT_EEPROM_ADDR        0x300
 #define INVALID_THERM_READING_EEPROM_ADDR   0x304
 // This is for thermistor 0, for each thermistor add 4
-#define THERM_ERR_CODE_EEPROM_ADDR_BASE 0x310
+#define THERM_ERR_CODE_EEPROM_ADDR_BASE     0x310
 
 /*
  * ABOUT therm_err_codes
@@ -43,8 +42,8 @@
  * 0 - normal/not eliminated
  * 1 - lower than ultra low limit (ULL)
  * 2 - higher than ultra high limit (UHL)
- * 3 - lower than mean (miu) of all 12 thermistors by 3 standard deviation (sigma)
- * 4 - higher than miu by 3 sigma
+ * 3 - lower than mean (miu) of all 12 thermistors by more than 10C
+ * 4 - higher than mean (miu) of all 12 thermistors by more than 10C
  * 5 - ground manual set to invalid
  * 6 - ground manual set to valid
  * 7 - unused
@@ -52,8 +51,8 @@
 #define THERM_ERR_CODE_NORMAL           0x00
 #define THERM_ERR_CODE_BELOW_ULL        0x01
 #define THERM_ERR_CODE_ABOVE_UHL        0x02
-#define THERM_ERR_CODE_BELOW_MIU_3SIG   0x03
-#define THERM_ERR_CODE_ABOVE_MIU_3SIG   0x04
+#define THERM_ERR_CODE_BELOW_MIU        0x03
+#define THERM_ERR_CODE_ABOVE_MIU        0x04
 #define THERM_ERR_CODE_MANUAL_INVALID   0x05
 #define THERM_ERR_CODE_MANUAL_VALID     0x06
 

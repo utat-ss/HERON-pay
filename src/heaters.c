@@ -262,38 +262,22 @@ void update_therm_statuses(void){
 
         double miu = sum/valid_therm_num;
 
-        //compute standard deviation
-        sum = 0.0;
-        double variance = 0.0;
-        double sigma = 0.0;
-        for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
-            if(is_therm_valid(therm_err_codes[i])){
-                double diff = therm_readings_conv[i] - miu;
-                sum += diff * diff;
-            }
-        }
-        
-        //population std doesn't need -1
-        variance = sum/valid_therm_num;
-        sigma = 1.0 / sqrt(variance);
-
 #ifdef HEATERS_DEBUG
-        print("miu = %f, sigma = %f\n", miu, sigma);
+        print("miu = %f\n", miu);
 #endif
 
-        // TODO - should be miu +- (3*sigma)
-        // elimination based on standard deviation
+        // eliminate resistors more than +-10C from the average
         // again, bypass ground-set thermistors
         for(uint8_t i = 0; i < THERMISTOR_COUNT; i++){
             if(!is_therm_manual(therm_err_codes[i])){
                 //compare with both lower and upper limits first
-                if(therm_readings_conv[i] < (miu-20*sigma)){
+                if(therm_readings_conv[i] < (miu-10)){
                     therm_enables[i] = 0;
-                    therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU_3SIG;
+                    therm_err_codes[i] = THERM_ERR_CODE_BELOW_MIU;
                 }
-                else if(therm_readings_conv[i] > (miu+20*sigma)){
+                else if(therm_readings_conv[i] > (miu+10)){
                     therm_enables[i] = 0;
-                    therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU_3SIG;
+                    therm_err_codes[i] = THERM_ERR_CODE_ABOVE_MIU;
                 }
             }
         }
