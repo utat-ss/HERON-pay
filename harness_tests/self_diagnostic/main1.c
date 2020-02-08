@@ -68,6 +68,10 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
 
     // remove everything from queues
     dequeue(&tx_msg_queue, tx_msg);
+    // print every CAN message
+    // print("CAN TX: ");
+    // print_bytes(tx_msg, 8);
+
     rx_q_size = queue_size(&rx_msg_queue);
     tx_q_size = queue_size(&tx_msg_queue);
     ASSERT_EQ(rx_q_size, 0);
@@ -208,7 +212,7 @@ void ctrl_10V_boost_voltage_test(void) {
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
-    // get 6V boost converter voltage reading
+    // get 10V boost converter voltage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
     double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
 
@@ -229,27 +233,30 @@ void ctrl_10V_boost_current_test(void){
     // enable boost converter
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
 
-    // delay 1second for power to settle (for accurate reading)
-    _delay_ms(1000);
+    // delay 3 seconds for power to settle (for accurate reading)
+    _delay_ms(3000);
 
-    // get 6V boost converter current reading
+    // get 10V boost converter current reading
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_CUR, 0x00);
     double current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
     ASSERT_BETWEEN (0.0, 0.05, current);
 
     // turn off boost converter
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
-    _delay_ms(1000);
+    _delay_ms(3000);
 
     // check that current is between 0-20mA to make sure that the boost converter is turned off
     // - reference, Lorna (06-Feb-2020)
     raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
-    current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_SENSE_RES);
+    current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
 // 14
 void hk_therm_status(void) {
+    // run heater control so thermistor status return will be valid
+    run_heater_ctrl();
+
     uint32_t therm_status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_THERM_EN, 0x00);
     
     // should all be enabled
@@ -269,10 +276,9 @@ void hk_sequential_heater_test(void){
     _delay_ms(1000);
 
     // read baseline current
-    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.02, baseline_curr);
-
 
     for (uint8_t i = 1; i<=5; i++){
         // turn on heater
@@ -281,7 +287,7 @@ void hk_sequential_heater_test(void){
         // need delay here for current to start flowing?
 
         // read current with heaters on
-        raw_curr = can_rx_tx (CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+        raw_curr = (uint16_t) can_rx_tx (CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
         current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
         
         // only 6V converters on draws 87mA
@@ -325,14 +331,15 @@ void hk_all_heater_test(void){
     _delay_ms(1000);
 
     // read baseline current
-    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
-    ASSERT_BETWEEN(0.0, 0.02, baseline_curr);
+    ASSERT_BETWEEN(0.0, 0.04, baseline_curr);
 
-    // turn all heaters on
+    // turn all heaters on, wait 1 second, then read current
     heater_all_on();
-    raw_curr = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
-    current_inc = adc_raw_to_circ_vol(raw_curr, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES) - baseline_curr;
+    _delay_ms(5000);
+    raw_curr = (uint16_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_HK_6V_CUR, 0x00);
+    current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
     
     // expected increase ~1.0 - 1.5A
     ASSERT_BETWEEN(1.0, 1.5, current_inc);
@@ -387,10 +394,12 @@ test_t t16 = { .name = "16. limit switch test", .fn = ctrl_limit_switch_status }
 
 
 test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16 };
+test_t* temp[] = { &t13, &t14, &t15a, &t15b, &t16 };
 
 int main(void) {
     init_pay();
 
-    run_tests(suite, sizeof(suite) / sizeof(suite[0]));
+    // run_tests(suite, sizeof(suite) / sizeof(suite[0]));
+    run_tests(temp, sizeof(temp) / sizeof(temp[0]));
     return 0;
 }
