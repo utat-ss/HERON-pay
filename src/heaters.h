@@ -20,12 +20,11 @@
 #define HEATER4_EN_N       6
 #define HEATER5_EN_N       7
 
-//temperature constants, all in degree Celsius
-// TODO - unit test to make sure these values converted are what we expect
+//temperature constants (in raw ADC 12-bit form)
 // Default 14 C sepoint
 #define HEATERS_SETPOINT_RAW_DEFAULT        0x328
-// Default 10 C reading for invalid thermistors
-#define INVALID_THERM_READING_RAW_DEFAULT   0x2DD
+// Default 20 C reading for invalid thermistors
+#define INVALID_THERM_READING_RAW_DEFAULT   0x39F
 
 // TODO have a function to reject invalid setpoint - in CAN
 #define THERM_CONV_ULL -35
@@ -34,7 +33,7 @@
 #define HEATERS_SETPOINT_EEPROM_ADDR        0x300
 #define INVALID_THERM_READING_EEPROM_ADDR   0x304
 // This is for thermistor 0, for each thermistor add 4
-#define THERM_ERR_CODE_EEPROM_ADDR_BASE 0x310
+#define THERM_ERR_CODE_EEPROM_ADDR_BASE     0x310
 
 /*
  * ABOUT therm_err_codes
