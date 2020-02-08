@@ -15,11 +15,11 @@ void count_ones_test(void) {
 }
 
 void enables_to_uint_test(void) {
-    uint8_t array1[5] = { 1, 0, 0, 1, 0 };
-    ASSERT_EQ(enables_to_uint(array1, 5), 0x12);
+    uint8_t array1[5] = { 1, 0, 0, 1, 1 };
+    ASSERT_EQ(enables_to_uint(array1, 5), 0x19);
 
     uint8_t array2[12] = { 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1 };
-    ASSERT_EQ(enables_to_uint(array2, 12), 0x90F);
+    ASSERT_EQ(enables_to_uint(array2, 12), 0xF09);
 }
 
 
