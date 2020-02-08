@@ -1,0 +1,187 @@
+1. set SSM to PROG mode
+2. upload command
+- make harness TEST=harness_tests/self_diagnostic PORT=COM16 MCU=64m1
+3. select "yes" on run test suite
+4. after uploading, must set SSM to RUN mode within 5s and press enter
+5. python output is in terminal
+
+
+Connect programmer TX pin to board RX/SCK pin or set board switch to RUN. (press enter)
+--------------------------------------------------------------------------------
+Test count: 17
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 1. humidity sensor test
+Unrecognized UART RX (32 bytes): CAN RX: 03:03:00:00:00:00:00:00
+In function 'hk_humidity_test', line 86
+    Error: ASSERT_FP_GT failed: 9.834, 94.999
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 2. pressure sensor test
+Unrecognized UART RX (32 bytes): CAN RX: 03:04:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 3. ambient temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:05:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 4. 6V boost temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:06:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 5. 10V boost temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:07:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 6. motor 1 temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:08:00:00:00:00:00:00
+In function 'hk_motor1_temp_test', line 123
+    Error: ASSERT_FP_GT failed: 14.167, 14.999
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 7. motor 2 temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:09:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 8. mf chip temp test
+Unrecognized UART RX (32 bytes): CAN RX: 03:0a:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:0b:00:00:00:00:00:00
+In function 'hk_chip_temp_test', line 140
+    Error: ASSERT_FP_GT failed: 14.31, 14.999
+Unrecognized UART RX (32 bytes): CAN RX: 03:0c:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:0d:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:0d:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:0f:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:10:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:11:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:12:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:13:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:14:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:15:00:00:00:00:00:00
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 9. battery volt test
+Unrecognized UART RX (32 bytes): CAN RX: 03:1a:00:00:00:00:00:00
+In function 'hk_battery_volt_test', line 150
+    Error: ASSERT_FP_GT failed: 0.0, 3.999
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 10. 6V boost voltage test
+Unrecognized UART RX (32 bytes): CAN RX: 05:06:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1b:00:00:00:00:00:00
+In function 'ctrl_6V_boost_voltage_test', line 165
+    Error: ASSERT_FP_GT failed: 0.0, 4.999
+Unrecognized UART RX (32 bytes): CAN RX: 05:07:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1b:00:00:00:00:00:00
+In function 'ctrl_6V_boost_voltage_test', line 174
+    Error: ASSERT_FP_GT failed: 0.0, 1.999
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 11. 6V boost current test
+Unrecognized UART RX (32 bytes): CAN RX: 05:06:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1c:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 05:07:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1c:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 12. 10V boost voltage test
+Unrecognized UART RX (32 bytes): CAN RX: 05:08:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1d:00:00:00:00:00:00
+In function 'ctrl_10V_boost_voltage_test', line 213
+    Error: ASSERT_FP_GT failed: 0.068, 8.999
+Unrecognized UART RX (32 bytes): CAN RX: 05:09:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1d:00:00:00:00:00:00
+In function 'ctrl_10V_boost_voltage_test', line 222
+    Error: ASSERT_FP_GT failed: 0.068, 1.999
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 13. 10V boost current test
+Unrecognized UART RX (32 bytes): CAN RX: 05:08:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1e:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 05:07:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1c:00:00:00:00:00:00
+In function 'ctrl_10V_boost_current_test', line 246
+    Error: ASSERT_FP_GT failed: -0.01, -0.001
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 14. thermistor status test
+Unrecognized UART RX (32 bytes): CAN RX: 05:06:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1b:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_sequential_heater_test', line 288
+    Error: ASSERT_FP_GT failed: 0.0, 0.249
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_sequential_heater_test', line 292
+    Error: ASSERT_FP_GT failed: 0.0, 0.149
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_sequential_heater_test', line 288
+    Error: ASSERT_FP_GT failed: 0.0, 0.249
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_sequential_heater_test', line 292
+    Error: ASSERT_FP_GT failed: 0.0, 0.149
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_sequential_heater_test', line 296
+    Error: ASSERT_FP_GT failed: 0.0, 0.399
+Unrecognized UART RX (32 bytes): CAN RX: 05:07:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1c:00:00:00:00:00:00
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 15a. sequential heater test
+Unrecognized UART RX (32 bytes): CAN RX: 05:18:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_therm_status', line 254
+    Error: ASSERT_EQ failed: 0, 4095
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 15b. all heater test
+Unrecognized UART RX (32 bytes): CAN RX: 05:06:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1b:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 05:1c:00:00:00:00:00:00
+In function 'can_rx_tx', line 75
+    Error: ASSERT_EQ failed: 18, 0
+In function 'hk_all_heater_test', line 336
+    Error: ASSERT_FP_GT failed: 0.0, 0.999
+Unrecognized UART RX (32 bytes): CAN RX: 05:07:00:00:00:00:00:00
+Unrecognized UART RX (32 bytes): CAN RX: 03:1c:00:00:00:00:00:00
+Test complete - Failed
+--------------------------------------------------------------------------------
+Unrecognized UART RX (18 bytes): Random seed is 0
+Test: 16. limit switch test
+Unrecognized UART RX (32 bytes): CAN RX: 05:12:00:00:00:00:00:00
+Test complete - Passed
+--------------------------------------------------------------------------------
+Test suite 'self_diagnostic' complete
+    Time elapsed: 34.618 s
+    Passed: 7 / 17
+    Failed: 10 / 17
+--------------------------------------------------------------------------------
+Testing summary:
+    Total passed: 7 / 17
+    Total failed: 10 / 17
+make: *** [harness] Error 1

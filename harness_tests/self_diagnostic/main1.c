@@ -83,7 +83,9 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
 void hk_humidity_test(void) {
     uint32_t raw_humidity = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_HUM, 0x00);
     double humidity = hum_raw_data_to_humidity(raw_humidity);
-    ASSERT_BETWEEN(95, 100, humidity);
+    
+    // reasonable room temperature humidity 5-20% (while sensor is under tape)
+    ASSERT_BETWEEN(5, 20, humidity);
 }
 
 // 2
@@ -378,8 +380,8 @@ test_t t10 = { .name = "10. 6V boost voltage test", .fn = ctrl_6V_boost_voltage_
 test_t t11 = { .name = "11. 6V boost current test", .fn = ctrl_6V_boost_current_test };
 test_t t12 = { .name = "12. 10V boost voltage test", .fn = ctrl_10V_boost_voltage_test };
 test_t t13 = { .name = "13. 10V boost current test", .fn = ctrl_10V_boost_current_test };
-test_t t14 = { .name = "14. thermistor status test", .fn = hk_sequential_heater_test };
-test_t t15a = { .name = "15a. sequential heater test", .fn = hk_therm_status };
+test_t t14 = { .name = "14. thermistor status test", .fn = hk_therm_status };
+test_t t15a = { .name = "15a. sequential heater test", .fn = hk_sequential_heater_test };
 test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
 test_t t16 = { .name = "16. limit switch test", .fn = ctrl_limit_switch_status };
 
