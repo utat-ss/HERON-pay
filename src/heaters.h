@@ -43,8 +43,8 @@
  * 0 - normal/not eliminated
  * 1 - lower than ultra low limit (ULL)
  * 2 - higher than ultra high limit (UHL)
- * 3 - lower than mean (miu) of all 12 thermistors by 3 standard deviation (sigma)
- * 4 - higher than miu by 3 sigma
+ * 3 - lower than mean (miu) of all 12 thermistors by more than 10C
+ * 4 - higher than mean (miu) of all 12 thermistors by more than 10C
  * 5 - ground manual set to invalid
  * 6 - ground manual set to valid
  * 7 - unused
@@ -52,8 +52,8 @@
 #define THERM_ERR_CODE_NORMAL           0x00
 #define THERM_ERR_CODE_BELOW_ULL        0x01
 #define THERM_ERR_CODE_ABOVE_UHL        0x02
-#define THERM_ERR_CODE_BELOW_MIU_3SIG   0x03
-#define THERM_ERR_CODE_ABOVE_MIU_3SIG   0x04
+#define THERM_ERR_CODE_BELOW_MIU        0x03
+#define THERM_ERR_CODE_ABOVE_MIU        0x04
 #define THERM_ERR_CODE_MANUAL_INVALID   0x05
 #define THERM_ERR_CODE_MANUAL_VALID     0x06
 
