@@ -3,6 +3,7 @@
 #include <spi/spi.h>
 #include <uart/uart.h>
 
+#include "../../src/boost.h"
 #include "../../src/devices.h"
 
 
@@ -43,6 +44,12 @@ int main(void){
     init_adc(&adc1);
     init_adc(&adc2);
     print("ADC Initialized\n");
+
+    init_pex(&pex2);
+
+    init_boosts();
+    enable_6V_boost();
+    enable_10V_boost();
 
     print("\nStarting ADC Reading Test\n\n");
 

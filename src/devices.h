@@ -42,8 +42,8 @@
 
 // Resistor divider values (for voltage monitors)
 // Sense resistor and voltage reference values (for current monitors)
-#define ADC1_BOOST10_LOW_RES    1000
-#define ADC1_BOOST10_HIGH_RES   3000
+#define ADC1_BOOST10_LOW_RES    976
+#define ADC1_BOOST10_HIGH_RES   2972
 #define ADC1_BOOST10_SENSE_RES  0.008
 #define ADC1_BOOST10_REF_VOL    0.0
 #define ADC1_BOOST6_LOW_RES     1000
