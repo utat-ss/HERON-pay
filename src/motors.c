@@ -10,7 +10,7 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 
 #define PERIOD_MS   100
 #define NUM_CYCLES  1
-#define MAX_STEP 300
+#define MAX_STEP 150
 #define MAX_COUNT 10
 
 // true if there is a fault detected in one or both of the motors
@@ -354,6 +354,7 @@ void motors_routine(void){
     count_mot1 = 0;
     count_mot2 = 0;
 
+    // Timeout is 30 seconds (150 * (100 + 100)) = 30,000ms = 30s
     while((count_lim_switch1 < MAX_COUNT && count_lim_switch2 < MAX_COUNT) &&
           (count_mot1 < MAX_STEP && count_mot2 < MAX_STEP)){
         // actuate one motor downwards at a time
