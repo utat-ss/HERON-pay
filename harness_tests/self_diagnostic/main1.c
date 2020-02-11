@@ -13,13 +13,6 @@
 // PAY libraries
 #include "../../src/general.h"
 
-// Field numbers for pay hk
-uint8_t mf_temp_cmd[12] = {CAN_PAY_HK_MF1_TEMP, CAN_PAY_HK_MF2_TEMP, \
-    CAN_PAY_HK_MF3_TEMP, CAN_PAY_HK_MF4_TEMP, CAN_PAY_HK_MF4_TEMP, \
-    CAN_PAY_HK_MF6_TEMP, CAN_PAY_HK_MF7_TEMP, CAN_PAY_HK_MF8_TEMP, \
-    CAN_PAY_HK_MF9_TEMP, CAN_PAY_HK_MF10_TEMP, CAN_PAY_HK_MF11_TEMP, \
-    CAN_PAY_HK_MF12_TEMP};
-
 #define ASSERT_BETWEEN(least, greatest, value) \
     ASSERT_FP_GREATER(value, least - 0.001); \
     ASSERT_FP_LESS(value, greatest + 0.001);
@@ -138,8 +131,8 @@ void hk_motor2_temp_test(void) {
 
 // 8 
 void hk_chip_temp_test(void) {
-    for (uint8_t i=0; i<12; i++) {
-        uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, mf_temp_cmd[i], 0x00);
+    for (uint8_t i=0; i<THERMISTOR_COUNT; i++) {
+        uint16_t temp_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_MF1_TEMP + i, 0x00);
         double temp = adc_raw_to_therm_temp(temp_raw);
         ASSERT_BETWEEN(20, 30, temp);
     }
@@ -266,6 +259,16 @@ void hk_therm_status(void) {
 void hk_sequential_heater_test(void){
     double current_inc = 0;
 
+    // enable 6V boost converter (powers heaters)
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
+    // delay 1 second for power to settle (for accurate reading)
+    _delay_ms(1000);
+
+    // Make sure 6V converter output voltage is OK
+    uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    ASSERT_BETWEEN(5.0, 7.0, voltage);
+
     // turn off all heaters
     // we could disable the 6V boost converter, but that would make it go to ~3V
     // which would still give partial power to the heaters
@@ -287,19 +290,22 @@ void hk_sequential_heater_test(void){
         // read current with heaters on
         raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
         current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
-        
+        ASSERT_FP_GREATER(current_inc, 0.0);    // just to see the value
+
+        // current measurements in comments below were measured at battery voltage
+
         // only 6V converters on draws 87mA
-        if ((i==1) | (i==3)){
+        if ((i==1) || (i==3)){
             // heater 1/3 + converter on draws 414mA
-            ASSERT_BETWEEN(0.25, 0.35, current_inc);
+            ASSERT_BETWEEN(0.100, 0.150, current_inc);
         }
-        else if((i==2) | (i==4)){
+        else if((i==2) || (i==4)){
             // heater 2/4 + converter on draws 337mA
-            ASSERT_BETWEEN(0.15, 0.25, current_inc);
+            ASSERT_BETWEEN(0.075, 0.125, current_inc);
         }
         else {  // heater 5
             // heater 5 + converter on draws 528mA
-            ASSERT_BETWEEN(0.4, 0.6, current_inc);
+            ASSERT_BETWEEN(0.150, 0.200, current_inc);
         }
 
         heater_off(i);
@@ -330,19 +336,19 @@ void hk_all_heater_test(void){
 
     // read baseline current with all heaters off
     heater_all_off();
-    _delay_ms(1000);
+    _delay_ms(5000);
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     double baseline_curr = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.04, baseline_curr);
 
     // turn all heaters on, wait 1 second, then read current
     heater_all_on();
-    _delay_ms(1000);
+    _delay_ms(5000);
     raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     current_inc = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL) - baseline_curr;
     
-    // expected increase ~1.0 - 1.5A
-    ASSERT_BETWEEN(1.0, 1.5, current_inc);
+    // expected increase ~1.0 - 1.5A on battery voltage
+    ASSERT_BETWEEN(0.500, 0.700, current_inc);
 
     heater_all_off();
 
