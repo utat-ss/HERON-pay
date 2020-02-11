@@ -375,12 +375,93 @@ void motor_status_test(void){
     ASSERT_EQ(status, 0x0300);
 }
 
-/*
-missing tests from BUS architecture doc
-- 17 = uptime
-- 18 = restart count
-- 19 = restart reason
-*/
+// 17
+void restart_info_test(void) {
+    // Don't use global uptime_s, restart_count, restart_reason variables
+
+    uint32_t uptime = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_UPTIME, 0x00);    
+    ASSERT_GREATER(uptime, 1 - 1);
+    ASSERT_LESS(uptime, 60 + 1);
+
+    uint32_t count = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_COUNT, 0x00);    
+    ASSERT_GREATER(count, 1 - 1);
+    ASSERT_LESS(count, 10 + 1);
+
+    uint32_t reason = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_REASON, 0x00);    
+    ASSERT_EQ(reason, UPTIME_RESTART_REASON_EXTRF);
+}
+
+// 18
+void optical_data_test(void) {
+    for (uint8_t field = 0; field < CAN_PAY_OPT_TOT_FIELD_COUNT; field++) {
+        ASSERT_NEQ(field, 0xFF);
+
+        start_opt_spi_get_reading(field);
+        for (uint32_t timeout = 15000; spi_in_progress && timeout > 0; timeout--) {
+            // Loop until optical has data ready
+            check_opt_spi_get_reading();     // expecting 3 return bytes
+            _delay_ms(1);
+        }
+
+        // Check if the message is in the TX queue
+        ASSERT_EQ(queue_size(&tx_msg_queue), 1);
+
+        uint8_t tx_msg[8] = {0x00};
+        dequeue(&tx_msg_queue, tx_msg);
+
+        uint8_t field_num = tx_msg[1];
+        uint32_t data =
+            ((uint32_t) tx_msg[4] << 24) |
+            ((uint32_t) tx_msg[5] << 16) |
+            ((uint32_t) tx_msg[6] << 8) |
+            ((uint32_t) tx_msg[7] << 0);
+
+        ASSERT_EQ(field_num, field);
+        ASSERT_NEQ(data, 0);
+        ASSERT_NEQ(data, 0xFFFFFF);
+        ASSERT_LESS(data, 0xFFFFFF);
+
+        double intensity = opt_raw_to_light_intensity(data);
+        // Harness only prints/checks floating-point with 3 decimal points, so
+        // multiply to be able to see the significant figures
+        ASSERT_BETWEEN(1e-6 * 1e6, 1e3 * 1e6, intensity * 1e6);
+    }
+}
+
+// 19
+void optical_power_test(void) {
+    uint32_t start_raw = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_GET_POWER << 8);
+    double start_voltage = 0;
+    double start_current = 0;
+    double start_power = 0;
+    opt_power_raw_to_conv(start_raw, &start_voltage, &start_current, &start_power);
+    ASSERT_BETWEEN(3.25, 3.35, start_voltage);
+    ASSERT_BETWEEN(0.002, 0.020, start_current);
+    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.020, start_power);
+
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_ENTER_SLEEP_MODE << 8);
+
+    uint32_t sleep_raw = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_GET_POWER << 8);
+    double sleep_voltage = 0;
+    double sleep_current = 0;
+    double sleep_power = 0;
+    opt_power_raw_to_conv(sleep_raw, &sleep_voltage, &sleep_current, &sleep_power);
+    ASSERT_BETWEEN(0.2, 1.0, sleep_voltage);
+    ASSERT_BETWEEN(0.002, 0.005, sleep_current);
+    ASSERT_BETWEEN(0.2 * 0.002, 1.0 * 0.005, sleep_power);
+
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_ENTER_NORMAL_MODE << 8);
+
+    uint32_t normal_raw = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_GET_POWER << 8);
+    double normal_voltage = 0;
+    double normal_current = 0;
+    double normal_power = 0;
+    opt_power_raw_to_conv(normal_raw, &normal_voltage, &normal_current, &normal_power);
+    ASSERT_BETWEEN(3.25, 3.35, normal_voltage);
+    ASSERT_BETWEEN(0.002, 0.020, normal_current);
+    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.020, normal_power);
+}
+
 
 test_t t1 = { .name = "1. humidity sensor test", .fn = hk_humidity_test };
 test_t t2 = { .name = "2. pressure sensor test", .fn = hk_pressure_test };
@@ -399,11 +480,12 @@ test_t t14 = { .name = "14. thermistor status test", .fn = hk_therm_status };
 test_t t15a = { .name = "15a. sequential heater test", .fn = hk_sequential_heater_test };
 test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
 test_t t16 = { .name = "16. motor status test", .fn = motor_status_test };
+test_t t17 = { .name = "17. restart info test", .fn = restart_info_test };
+test_t t18 = { .name = "18. optical data test", .fn = optical_data_test };
+test_t t19 = { .name = "19. optical power test", .fn = optical_power_test };
 
 
-test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16 };
-// test_t* suite[] = { &t13, &t14, &t15a, &t15b, &t16 };
-// test_t* suite[] = { &t14, &t15a, &t15b };
+test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16, &t17, &t18, &t19 };
 
 int main(void) {
     init_pay();
