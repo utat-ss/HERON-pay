@@ -22,9 +22,8 @@
 // PAY processes it and puts return data in CAN message in TX queue
 // reads the TX queue and returns uint32_t data (from PAY)
 uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
-    // initialize rx and tx messages
+    // initialize rx message
     uint8_t rx_msg[8] = {0x00};
-    uint8_t tx_msg[8] = {0x00};
 
     // initialize queue size
     uint8_t rx_q_size = 0;
@@ -35,10 +34,10 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
     rx_msg[1] = field_num;
     rx_msg[2] = CAN_STATUS_OK;   // status byte
     rx_msg[3] = 0x00;   // unused
-    tx_msg[4] = (rx_data >> 24) & 0xFF;
-    tx_msg[5] = (rx_data >> 16) & 0xFF;
-    tx_msg[6] = (rx_data >> 8) & 0xFF;
-    tx_msg[7] = rx_data & 0xFF;
+    rx_msg[4] = (rx_data >> 24) & 0xFF;
+    rx_msg[5] = (rx_data >> 16) & 0xFF;
+    rx_msg[6] = (rx_data >> 8) & 0xFF;
+    rx_msg[7] = rx_data & 0xFF;
 
     // enqueue message
     enqueue(&rx_msg_queue, rx_msg);
@@ -60,6 +59,7 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
     ASSERT_EQ(tx_q_size, 1);
 
     // remove everything from queues
+    uint8_t tx_msg[8] = {0x00};
     dequeue(&tx_msg_queue, tx_msg);
     // print every CAN message
     print("CAN TX: ");
@@ -436,8 +436,8 @@ void optical_power_test(void) {
     double start_power = 0;
     opt_power_raw_to_conv(start_raw, &start_voltage, &start_current, &start_power);
     ASSERT_BETWEEN(3.25, 3.35, start_voltage);
-    ASSERT_BETWEEN(0.002, 0.020, start_current);
-    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.020, start_power);
+    ASSERT_BETWEEN(0.002, 0.040, start_current);
+    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.040, start_power);
 
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_ENTER_SLEEP_MODE << 8);
 
@@ -447,7 +447,7 @@ void optical_power_test(void) {
     double sleep_power = 0;
     opt_power_raw_to_conv(sleep_raw, &sleep_voltage, &sleep_current, &sleep_power);
     ASSERT_BETWEEN(0.2, 1.0, sleep_voltage);
-    ASSERT_BETWEEN(0.002, 0.005, sleep_current);
+    ASSERT_BETWEEN(0.002, 0.020, sleep_current);
     ASSERT_BETWEEN(0.2 * 0.002, 1.0 * 0.005, sleep_power);
 
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_SEND_OPT_SPI, CMD_ENTER_NORMAL_MODE << 8);
@@ -458,8 +458,8 @@ void optical_power_test(void) {
     double normal_power = 0;
     opt_power_raw_to_conv(normal_raw, &normal_voltage, &normal_current, &normal_power);
     ASSERT_BETWEEN(3.25, 3.35, normal_voltage);
-    ASSERT_BETWEEN(0.002, 0.020, normal_current);
-    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.020, normal_power);
+    ASSERT_BETWEEN(0.002, 0.040, normal_current);
+    ASSERT_BETWEEN(3.25 * 0.002, 3.35 * 0.040, normal_power);
 }
 
 
@@ -488,6 +488,7 @@ test_t t19 = { .name = "19. optical power test", .fn = optical_power_test };
 test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16, &t17, &t18, &t19 };
 
 int main(void) {
+    WDT_OFF();
     init_pay();
 
     run_tests(suite, sizeof(suite) / sizeof(suite[0]));
