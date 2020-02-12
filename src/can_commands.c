@@ -336,18 +336,23 @@ void handle_ctrl(uint8_t field_num, uint32_t rx_data, uint8_t* tx_status,
     }
 
     else if (field_num == CAN_PAY_CTRL_GET_MOTOR_STATUS) {
-        uint8_t fault1 = get_pex_pin(&pex1, PEX_B, MOT1_FLT_N) & 0x1;
-        uint8_t fault2 = get_pex_pin(&pex1, PEX_A, MOT2_FLT_N) & 0x1;
+        uint32_t fault1 = get_pex_pin(&pex1, PEX_B, MOT1_FLT_N) & 0x1;
+        uint32_t fault2 = get_pex_pin(&pex1, PEX_A, MOT2_FLT_N) & 0x1;
 
-        uint8_t switch1 = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED) & 0x1;
-        uint8_t switch2 = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED) & 0x1;
+        uint32_t switch1 = get_pex_pin(&pex2, PEX_A, LIM_SWT1_PRESSED) & 0x1;
+        uint32_t switch2 = get_pex_pin(&pex2, PEX_A, LIM_SWT2_PRESSED) & 0x1;
+
+        uint32_t time = last_exec_time_motors & 0xFFFFF;
+
+        uint32_t status = motor_routine_status;
 
         *tx_data =
-            ((uint32_t) fault2  << 17) |
-            ((uint32_t) fault1  << 16) |
-            ((uint32_t) switch2 << 9) |
-            ((uint32_t) switch1 << 8) |
-            ((uint32_t) motor_routine_status << 0);
+            (fault2 << 31) |
+            (fault1 << 30) |
+            (switch2 << 29) |
+            (switch1 << 28) |
+            (time << 8) |
+            (status << 0);
     }
 
     else if (field_num == CAN_PAY_CTRL_MOTOR_DEP_ROUTINE) {

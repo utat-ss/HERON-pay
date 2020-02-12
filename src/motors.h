@@ -57,6 +57,7 @@
 #define MOTOR_ROUTINE_TIMEOUT 0x01
 #define MOTOR_ROUTINE_DONE 0x02
 
+extern uint32_t last_exec_time_motors;
 extern uint8_t motor_routine_status;
 
 void init_motors(void);

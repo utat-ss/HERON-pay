@@ -13,7 +13,6 @@ Motor specs: https://www.haydonkerkpittman.com/products/linear-actuators/can-sta
 #define MAX_STEP 150
 #define MAX_COUNT 10
 
-// true if there is a fault detected in one or both of the motors
 uint32_t last_exec_time_motors = 0;
 uint8_t motor_routine_status = 0;
 
@@ -315,15 +314,17 @@ void actuate_motor2(uint16_t period, uint16_t num_cycles, bool forward) {
 }
 
 void motors_routine(void){
-
     WDT_ENABLE_SYS_RESET(WDTO_8S);
 
     // enable 10V boost converter
     enable_10V_boost();
-    // delay for power to settle - 5s
-    delay_ms(5000);
 
-    WDT_ENABLE_SYS_RESET(WDTO_8S);
+    // delay for power to settle - 5s
+    for (uint8_t i = 0; i < 5; i++) {
+        print("RUNNING MOTOR ROUTINE\n");
+        delay_ms(1000);
+        WDT_ENABLE_SYS_RESET(WDTO_8S);
+    }
 
     disable_6V_boost();
 
@@ -375,7 +376,9 @@ void motors_routine(void){
         }
 
         //tilt recovery check
-        while(count_lim_switch1 != count_lim_switch2){
+        uint8_t timeout = 5;
+        while(count_lim_switch1 != count_lim_switch2 && timeout > 0){
+            timeout--;
 
             //move motors
             if(count_lim_switch1 > count_lim_switch2){
@@ -414,8 +417,6 @@ void motors_routine(void){
 
     WDT_ENABLE_SYS_RESET(WDTO_8S);
 
-    // should not reach here
     disable_10V_boost();
     enable_6V_boost();
-    return;
 }
