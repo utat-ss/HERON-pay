@@ -344,13 +344,15 @@ void motors_routine(void){
     uint8_t count_lim_switch2 = 0;
 
     // move up the motors for 15 seconds
-    while(count_mot1 < 150 && count_mot2 < 150){
+    while(count_mot1 < 75 && count_mot2 < 75){
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
         count_mot1 += 1;
         actuate_motor2 (PERIOD_MS, NUM_CYCLES, false);
         count_mot2 += 1;
         WDT_ENABLE_SYS_RESET(WDTO_8S);
     }
+
+    //print("done moving up\n");
 
     count_mot1 = 0;
     count_mot2 = 0;
