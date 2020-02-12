@@ -347,7 +347,7 @@ void motors_routine(void){
     while(count_mot1 < 75 && count_mot2 < 75){
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
         count_mot1 += 1;
-        actuate_motor2 (PERIOD_MS, NUM_CYCLES, false);
+        actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
         count_mot2 += 1;
         WDT_ENABLE_SYS_RESET(WDTO_8S);
     }
@@ -363,7 +363,7 @@ void motors_routine(void){
         // actuate one motor downwards at a time
         actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
         count_mot1 += 1;
-        actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
+        actuate_motor2 (PERIOD_MS, NUM_CYCLES, false);
         count_mot2 += 1;
 
         //update switch status
@@ -384,7 +384,7 @@ void motors_routine(void){
 
             //move motors
             if(count_lim_switch1 > count_lim_switch2){
-                actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
+                actuate_motor2 (PERIOD_MS, NUM_CYCLES, false);
                 count_mot2 += 1;
             }
             if(count_lim_switch1 < count_lim_switch2){
