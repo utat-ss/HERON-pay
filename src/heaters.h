@@ -26,7 +26,6 @@
 // Default 20 C reading for invalid thermistors
 #define INVALID_THERM_READING_RAW_DEFAULT   0x39F
 
-// TODO have a function to reject invalid setpoint - in CAN
 #define THERM_CONV_ULL -35
 #define THERM_CONV_UHL 120
 
