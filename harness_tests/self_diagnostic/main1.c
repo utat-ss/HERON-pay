@@ -368,11 +368,8 @@ void hk_all_heater_test(void){
 void motor_status_test(void){
     uint8_t status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_MOTOR_STATUS, 0x00);
 
-    // returns 2 bits, bit[1] = bottom 2, bit[0] = bottom 1
-    // 0 = not pressed, 1 = pressed
-    // fault pins are active low, so they should both be high (1, i.e. deasserted)
-    // status should be default 0 (not deployed)
-    ASSERT_EQ(status, 0x0300);
+    // Should have fault2=1, fault1=1, switch2=0, switch1=0, time=0, status=0
+    ASSERT_EQ(status, 0xC000);
 }
 
 // 17
@@ -381,7 +378,7 @@ void restart_info_test(void) {
 
     uint32_t uptime = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_UPTIME, 0x00);    
     ASSERT_GREATER(uptime, 1 - 1);
-    ASSERT_LESS(uptime, 60 + 1);
+    ASSERT_LESS(uptime, 300 + 1);
 
     uint32_t count = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_COUNT, 0x00);    
     ASSERT_GREATER(count, 1 - 1);
