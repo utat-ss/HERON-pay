@@ -53,6 +53,7 @@ test_t t2 = { .name = "EPS Reset Test", .fn = eps_reset_test };
 test_t* suite[] = { &t1, &t2 };
 
 int main(void) {
+    WDT_OFF();
     init_pay();
     init_hb(HB_PAY);
     run_tests(suite, sizeof(suite) / sizeof(suite[0]));
