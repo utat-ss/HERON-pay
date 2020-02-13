@@ -316,8 +316,8 @@ void heater_3in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 2
-    // averaging TH3-5
-    for(uint8_t i = 3; i < 6; i++){
+    // averaging TH0-2
+    for(uint8_t i = 0; i < 3; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
@@ -354,24 +354,22 @@ void heater_3in_ctrl(void){
 
 void heater_4in_ctrl(void){
     //looking at heater 1 & 3, remember to minus one for bit shift in function argument
-    //
-    // if want to introduce weighted average should do it here
-    // could incorporate the weight into error code
+
     double avg_reading = 0.0;
     double sum = 0.0;
     uint8_t normal_therm_num = 0;
 
     // heater 1
-    // averaging TH0-2 and TH11
-    for(uint8_t i = 0; i < 3; i++){
+    // averaging TH3-5 and TH0
+    for(uint8_t i = 3; i < 6; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
 
-    if(is_therm_valid(therm_err_codes[11])){
-        sum += therm_readings_conv[11];
+    if(is_therm_valid(therm_err_codes[0])){
+        sum += therm_readings_conv[0];
         normal_therm_num += 1;
     }
 
@@ -383,14 +381,19 @@ void heater_4in_ctrl(void){
     heater_toggle(avg_reading, 0);
 
     // heater 3
-    // averaging TH5-8
+    // averaging TH6-8 and TH11
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 5; i < 9; i++){
+    for(uint8_t i = 6; i < 9; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
+    }
+
+    if(is_therm_valid(therm_err_codes[11])){
+        sum += therm_readings_conv[11];
+        normal_therm_num += 1;
     }
 
     if(normal_therm_num > 0){
@@ -437,7 +440,6 @@ void print_heater_ctrl_status(void){
         print("Therm %02u, Reading: 0x%x (%.5f C), Status: 0x%.2x, Enabled: %u\n",
             i + 1, therm_readings_raw[i], therm_readings_conv[i],
             therm_err_codes[i], therm_enables[i]);
-
     }
 
     print("Heater setpoint: 0x%x (%.5f C)\n", heaters_setpoint_raw,
