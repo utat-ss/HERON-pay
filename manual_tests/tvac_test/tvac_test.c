@@ -52,15 +52,16 @@ uint32_t can_rx_tx(uint8_t op_code, uint8_t field_num, uint32_t rx_data){
 }
 
 void print_str(char* value) {
-    print(", %-25s", value);
+    // right justify
+    print(", %15s", value);
 }
 
 void print_double(double value) {
-    print(", %5.20f", value);
+    print(", %15.6f", value);
 }
 
 void print_int(uint32_t value) {
-    print(", %25f", value);
+    print(", %15lu", value);
 }
 
 
@@ -70,11 +71,11 @@ void print_header(void) {
     print_str("Restart reason");
     print_str("Humidity (%RH)");
     print_str("Pressure (kPa)");
-    print_str("Ambient Temp (C)");
+    print_str("Amb Temp (C)");
     print_str("6V Temp (C)");
     print_str("10V Temp (C)");
-    print_str("Motor Driver 1 Temp (C)");
-    print_str("Motor Driver 2 Temp (C)");
+    print_str("Mot 1 Temp (C)");
+    print_str("Mot 2 Temp (C)");
     print_str("MF Temp 1 (C)");
     print_str("MF Temp 2 (C)");
     print_str("MF Temp 3 (C)");
@@ -87,23 +88,23 @@ void print_header(void) {
     print_str("MF Temp 10 (C)");
     print_str("MF Temp 11 (C)");
     print_str("MF Temp 12 (C)");
-    print_str("Heater Setpoint (C)");
     print_str("Bat Vol (V)");
     print_str("6V Vol (V)");
     print_str("6V Cur (A)");
     print_str("10V Vol (V)");
     print_str("10V Cur (A)");
+    print("\n");
 }
 
 void collect_data(void) {
     uint32_t uptime = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_UPTIME, 0x00);
-    print_double(uptime);
+    print_int(uptime);
 
     uint32_t count = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_COUNT, 0x00);
-    print_double(count);
+    print_int(count);
 
     uint32_t reason = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_REASON, 0x00);
-    print_double(reason);
+    print_int(reason);
 
     uint32_t raw_humidity = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_HUM, 0x00);
     print_double(hum_raw_data_to_humidity(raw_humidity));
@@ -131,9 +132,6 @@ void collect_data(void) {
         print_double(adc_raw_to_therm_temp(temp_raw_mf));
     }
 
-    uint32_t heat_sp = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_HEAT_SP, 0x00);
-    print_double(dac_raw_data_to_heater_setpoint(heat_sp));
-
     uint32_t volt_raw_bat = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_BAT_VOL, 0x00);
     print_double(adc_raw_to_circ_vol(volt_raw_bat, ADC1_BATT_LOW_RES, ADC1_BATT_HIGH_RES));
 
@@ -148,11 +146,14 @@ void collect_data(void) {
 
     uint32_t raw_curr_10v = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_CUR, 0x00);
     print_double(adc_raw_to_circ_cur(raw_curr_10v, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL));
+
+    print("\n");
 }
 
 void print_time(void) {
     print("Current time: %lu s\n", uptime_s);
     print("Last collection time: %lu s\n", last_col_uptime_s);
+    print("Collection period: %lu s\n", col_period_s);
 }
 
 void heaters_off(void) {
@@ -183,7 +184,7 @@ int main(void){
     print("\n\n");
     print("Initialized PAY\n");
 
-    // print_can_msgs = false;
+    print_can_msgs = false;
 
     print("\nStarting test\n\n");
 
@@ -195,7 +196,7 @@ int main(void){
         if (get_uart_rx_count() > 0) {
             uint8_t cmd = get_uart_rx_buf()[0];
             clear_uart_rx_buf();
-            print("Got command: %u\n", cmd);
+            print("Got command: %c\n", cmd);
 
             if        (cmd == '1') {
                 collect_data();
@@ -221,7 +222,7 @@ int main(void){
 
         bool col_now = false;
         ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-            if (uptime_s + col_period_s >= last_col_uptime_s) {
+            if (uptime_s >= last_col_uptime_s + col_period_s) {
                 last_col_uptime_s = uptime_s;
                 col_now = true;
             }

@@ -20,6 +20,8 @@
 extern queue_t rx_msg_queue;
 extern queue_t tx_msg_queue;
 
+extern bool print_can_msgs;
+
 void process_next_rx_msg(void);
 void send_next_tx_msg(void);
 
