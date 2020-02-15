@@ -191,6 +191,7 @@ int main(void){
     heaters_off();
     print_cmds();
     print_header();
+    collect_data();
 
     while (1) {
         if (get_uart_rx_count() > 0) {
