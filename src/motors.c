@@ -343,25 +343,15 @@ void motors_routine(void){
     uint8_t count_lim_switch1 = 0;
     uint8_t count_lim_switch2 = 0;
 
-    // move up the motors for 15 seconds
-    while(count_mot1 < 75 && count_mot2 < 75){
-        actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
-        count_mot1 += 1;
-        actuate_motor2 (PERIOD_MS, NUM_CYCLES, true);
-        count_mot2 += 1;
-        WDT_ENABLE_SYS_RESET(WDTO_8S);
-    }
-
-    //print("done moving up\n");
-
     count_mot1 = 0;
     count_mot2 = 0;
 
     // Timeout is 30 seconds (150 * (100 + 100)) = 30,000ms = 30s
+    // false is the downward direction for EM
     while((count_lim_switch1 < MAX_COUNT && count_lim_switch2 < MAX_COUNT) &&
           (count_mot1 < MAX_STEP && count_mot2 < MAX_STEP)){
         // actuate one motor downwards at a time
-        actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
+        actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
         count_mot1 += 1;
         actuate_motor2 (PERIOD_MS, NUM_CYCLES, false);
         count_mot2 += 1;
@@ -388,7 +378,7 @@ void motors_routine(void){
                 count_mot2 += 1;
             }
             if(count_lim_switch1 < count_lim_switch2){
-                actuate_motor1 (PERIOD_MS, NUM_CYCLES, true);
+                actuate_motor1 (PERIOD_MS, NUM_CYCLES, false);
                 count_mot1 += 1;
             }
 
