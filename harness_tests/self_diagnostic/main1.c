@@ -148,36 +148,16 @@ void hk_battery_volt_test(void) {
 }
 
 // 10
-void ctrl_6V_boost_voltage_test(void) {
+void ctrl_6V_boost_test(void) {
     // enable boost converter
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
-
     // delay 1 second for power to settle (for accurate reading)
     _delay_ms(1000);
 
     // get 6V boost converter voltage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
     double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
-
     ASSERT_BETWEEN(5.0, 7.0, voltage);
-
-    // turn off boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
-    _delay_ms(1000);
-
-    // check that voltage is between 2-4V to make sure that the boost converter is turned off
-    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
-    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
-    ASSERT_BETWEEN(2.0, 4.0, voltage);
-}
-
-// 11
-void ctrl_6V_boost_current_test(void){
-    // enable boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_6V, 0x00);
-
-    // delay 1second for power to settle (for accurate reading)
-    _delay_ms(1000);
 
     // get 6V boost converter current reading
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
@@ -188,44 +168,29 @@ void ctrl_6V_boost_current_test(void){
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
     _delay_ms(1000);
 
+    // check that voltage is between 2-4V to make sure that the boost converter is turned off
+    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_VOL, 0x00);
+    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST6_LOW_RES, ADC1_BOOST6_HIGH_RES);
+    ASSERT_BETWEEN(2.0, 4.0, voltage);
+
     // check that current is between 0-20mA to make sure that the boost converter is turned off
-    // - reference, Lorna (06-Feb-2020)
     raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
     current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST6_SENSE_RES, ADC1_BOOST6_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.02, current);
 }
 
+
 // 12
-void ctrl_10V_boost_voltage_test(void) {
+void ctrl_10V_boost_test(void) {
     // enable boost converter
     can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
-
-    // delay 1 second for power to settle (for accurate reading)
-    _delay_ms(1000);
+    // delay 3 seconds for power to settle (for accurate reading)
+    _delay_ms(3000);
 
     // get 10V boost converter voltage reading
     uint16_t raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
     double voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
-
     ASSERT_BETWEEN(9.0, 12.0, voltage);
-
-    // turn off boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
-    _delay_ms(1000);
-
-    // check that voltage is between 2-4V to make sure that the boost converter is turned off
-    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
-    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
-    ASSERT_BETWEEN(2.0, 4.0, voltage);
-}
-
-// 13
-void ctrl_10V_boost_current_test(void){
-    // enable boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_ENABLE_10V, 0x00);
-
-    // delay 3 seconds for power to settle (for accurate reading)
-    _delay_ms(3000);
 
     // get 10V boost converter current reading
     uint16_t raw_curr = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_10V_CUR, 0x00);
@@ -233,15 +198,20 @@ void ctrl_10V_boost_current_test(void){
     ASSERT_BETWEEN (0.0, 0.05, current);
 
     // turn off boost converter
-    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_6V, 0x00);
+    can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_DISABLE_10V, 0x00);
     _delay_ms(3000);
 
+    // check that voltage is between 2-4V to make sure that the boost converter is turned off
+    raw_volt = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_VOL, 0x00);
+    voltage = adc_raw_to_circ_vol (raw_volt, ADC1_BOOST10_LOW_RES, ADC1_BOOST10_HIGH_RES);
+    ASSERT_BETWEEN(2.0, 4.0, voltage);
+
     // check that current is between 0-20mA to make sure that the boost converter is turned off
-    // - reference, Lorna (06-Feb-2020)
-    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_6V_CUR, 0x00);
+    raw_curr = (uint16_t) can_rx_tx (CAN_PAY_HK, CAN_PAY_HK_10V_CUR, 0x00);
     current = adc_raw_to_circ_cur(raw_curr, ADC1_BOOST10_SENSE_RES, ADC1_BOOST10_REF_VOL);
     ASSERT_BETWEEN(0.0, 0.02, current);
 }
+
 
 // 14
 void hk_therm_status(void) {
@@ -469,10 +439,8 @@ test_t t6 = { .name = "6. motor 1 temp test", .fn = hk_motor1_temp_test };
 test_t t7 = { .name = "7. motor 2 temp test", .fn = hk_motor2_temp_test };
 test_t t8 = { .name = "8. mf chip temp test", .fn = hk_chip_temp_test };
 test_t t9 = { .name = "9. battery volt test", .fn = hk_battery_volt_test };
-test_t t10 = { .name = "10. 6V boost voltage test", .fn = ctrl_6V_boost_voltage_test };
-test_t t11 = { .name = "11. 6V boost current test", .fn = ctrl_6V_boost_current_test };
-test_t t12 = { .name = "12. 10V boost voltage test", .fn = ctrl_10V_boost_voltage_test };
-test_t t13 = { .name = "13. 10V boost current test", .fn = ctrl_10V_boost_current_test };
+test_t t10 = { .name = "10. 6V boost test", .fn = ctrl_6V_boost_test };
+test_t t12 = { .name = "12. 10V boost test", .fn = ctrl_10V_boost_test };
 test_t t14 = { .name = "14. thermistor status test", .fn = hk_therm_status };
 test_t t15a = { .name = "15a. sequential heater test", .fn = hk_sequential_heater_test };
 test_t t15b = { .name = "15b. all heater test", .fn = hk_all_heater_test };
@@ -482,7 +450,7 @@ test_t t18 = { .name = "18. optical data test", .fn = optical_data_test };
 test_t t19 = { .name = "19. optical power test", .fn = optical_power_test };
 
 
-test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t11, &t12, &t13, &t14, &t15a, &t15b, &t16, &t17, &t18, &t19 };
+test_t* suite[] = { &t1, &t2, &t3, &t4, &t5, &t6, &t7, &t8, &t9, &t10, &t12, &t14, &t15a, &t15b, &t16, &t17, &t18, &t19 };
 
 int main(void) {
     WDT_OFF();
