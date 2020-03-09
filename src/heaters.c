@@ -316,8 +316,8 @@ void heater_3in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 2
-    // averaging TH0-2
-    for(uint8_t i = 0; i < 3; i++){
+    // averaging TH9-11
+    for(uint8_t i = 9; i < 12; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
@@ -333,10 +333,10 @@ void heater_3in_ctrl(void){
     heater_toggle(avg_reading, 1);
 
     // heater 4
-    // averaging TH9-11
+    // averaging TH0-2
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 9; i < 12; i++){
+    for(uint8_t i = 0; i < 3; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
