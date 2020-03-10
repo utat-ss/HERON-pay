@@ -217,9 +217,14 @@ void ctrl_10V_boost_test(void) {
 void hk_therm_status(void) {
     // run heater control so thermistor status return will be valid
     run_heater_ctrl();
+
     uint32_t therm_status = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_THERM_EN, 0x00);
     // should all be enabled
     ASSERT_EQ(therm_status, 0x0FFF);
+
+    uint32_t heater_status = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_HEAT_EN, 0x00);
+    // should all be disabled
+    ASSERT_EQ(heater_status, 0b00000);
 }
 
 
@@ -338,8 +343,8 @@ void hk_all_heater_test(void){
 void motor_status_test(void){
     uint8_t status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_MOTOR_STATUS, 0x00);
 
-    // Should have fault2=1, fault1=1, switch2=0, switch1=0, time=0, status=0
-    ASSERT_EQ(status, 0xC000);
+    // Should have fault2=1, fault1=1, switch2=0, switch1=0, last_exec_time=0, status=0
+    ASSERT_EQ(status, 0xC0000000);
 }
 
 // 17
@@ -350,9 +355,8 @@ void restart_info_test(void) {
     ASSERT_GREATER(uptime, 1 - 1);
     ASSERT_LESS(uptime, 300 + 1);
 
-    uint32_t count = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_COUNT, 0x00);    
-    ASSERT_GREATER(count, 1 - 1);
-    ASSERT_LESS(count, 10 + 1);
+    uint32_t count = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_COUNT, 0x00);
+    ASSERT_EQ(count, 1);
 
     uint32_t reason = can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_RESTART_REASON, 0x00);    
     ASSERT_EQ(reason, UPTIME_RESTART_REASON_EXTRF);
