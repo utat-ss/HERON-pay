@@ -442,8 +442,12 @@ void print_heater_ctrl_status(void){
             therm_err_codes[i], therm_enables[i]);
     }
 
-    print("Heater setpoint: 0x%x (%.5f C)\n", heaters_setpoint_raw,
+    print("Heater setpoint: 0x%x (%.5f C)\n",
+        heaters_setpoint_raw,
         dac_raw_data_to_heater_setpoint(heaters_setpoint_raw));
+    print("Default invalid thermistor reading: 0x%x (%.5f C)\n",
+        invalid_therm_reading_raw,
+        adc_raw_to_therm_temp(invalid_therm_reading_raw));
 
     //print heater status
     for(uint8_t i = 0; i < HEATER_COUNT; i++){
