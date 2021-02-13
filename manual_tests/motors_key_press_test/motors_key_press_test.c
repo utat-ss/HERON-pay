@@ -28,20 +28,20 @@ uint8_t key_pressed(const uint8_t* buf, uint8_t len) {
             actuate_motors(PERIOD_MS, NUM_CYCLES, false);
             break;
         case 'o':
-            print("Actuating Motor1 forwards\n");
-            actuate_motor1(PERIOD_MS, NUM_CYCLES, true);
+            print("Actuating motor1 down\n");
+            actuate_motor1((PERIOD_MS/10), (NUM_CYCLES/10), false);
             break;
         case 't':
-            print("Actuating Motor2 forwards\n");
-            actuate_motor2(PERIOD_MS, NUM_CYCLES, true);
+            print("Actuating motor2 down\n");
+            actuate_motor2((PERIOD_MS/10), (NUM_CYCLES/10), false);
             break;
         case 'u':
-            print("Actuating Motor1 backwards\n");
-            actuate_motor1(PERIOD_MS, NUM_CYCLES, false);
+            print("Actuating motor1 up\n");
+            actuate_motor1((PERIOD_MS/10), (NUM_CYCLES/10), true);
             break;
         case 'y':
-            print("Actuating Motor2 backwards\n");
-            actuate_motor2(PERIOD_MS, NUM_CYCLES, false);
+            print("Actuating motor2 up\n");
+            actuate_motor2((PERIOD_MS/10), (NUM_CYCLES/10), true);
             break;
         default:
             print("Invalid command\n");
@@ -70,10 +70,6 @@ int main(void){
 
     init_motors();
     print("Motors Initialized\n");
-
-    print("Press 'w' to actuate both motors forwards or 's' to actuate them backwards\n");
-    print("Press 'o' to actuate motor1 or 't' to actuate motor2 forwards\n");
-    print("Press 'u' to actuate motor1 or 'y' to actuate motor2 backwards\n");
 
     // Wait for key press interrupts
     // Register callback for key presses
