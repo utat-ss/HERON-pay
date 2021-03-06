@@ -316,8 +316,8 @@ void heater_3in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 2
-    // averaging TH9-11
-    for(uint8_t i = 9; i < 12; i++){
+    // averaging TH4-6 (start counting from 1)
+    for(uint8_t i = 3; i < 6; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
@@ -333,10 +333,10 @@ void heater_3in_ctrl(void){
     heater_toggle(avg_reading, 1);
 
     // heater 4
-    // averaging TH0-2
+    // averaging TH7-9 (start counting from 1)
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 0; i < 3; i++){
+    for(uint8_t i = 6; i < 9; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
@@ -360,16 +360,16 @@ void heater_4in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 1
-    // averaging TH3-5 and TH0
-    for(uint8_t i = 3; i < 6; i++){
+    // averaging TH10-12 and TH7 (start counting from 1)
+    for(uint8_t i = 9; i < 12; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
 
-    if(is_therm_valid(therm_err_codes[0])){
-        sum += therm_readings_conv[0];
+    if(is_therm_valid(therm_err_codes[6])){
+        sum += therm_readings_conv[6];
         normal_therm_num += 1;
     }
 
@@ -381,18 +381,18 @@ void heater_4in_ctrl(void){
     heater_toggle(avg_reading, 0);
 
     // heater 3
-    // averaging TH6-8 and TH11
+    // averaging TH1-3 and TH4 (start counting from 1)
     sum = 0.0;
     normal_therm_num = 0;
-    for(uint8_t i = 6; i < 9; i++){
+    for(uint8_t i = 0; i < 3; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
             normal_therm_num += 1;
         }
     }
 
-    if(is_therm_valid(therm_err_codes[11])){
-        sum += therm_readings_conv[11];
+    if(is_therm_valid(therm_err_codes[3])){
+        sum += therm_readings_conv[3];
         normal_therm_num += 1;
     }
 
