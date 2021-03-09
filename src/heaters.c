@@ -360,7 +360,7 @@ void heater_4in_ctrl(void){
     uint8_t normal_therm_num = 0;
 
     // heater 1
-    // averaging TH10-12 and TH7 (start counting from 1)
+    // averaging TH5-6, TH10-12
     for(uint8_t i = 9; i < 12; i++){
         if(is_therm_valid(therm_err_codes[i])){
             sum += therm_readings_conv[i];
@@ -368,9 +368,11 @@ void heater_4in_ctrl(void){
         }
     }
 
-    if(is_therm_valid(therm_err_codes[6])){
-        sum += therm_readings_conv[6];
-        normal_therm_num += 1;
+    for(uint8_t i = 4; i < 6; i++){
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
+            normal_therm_num += 1;
+        }
     }
 
     if(normal_therm_num > 0){
@@ -381,7 +383,7 @@ void heater_4in_ctrl(void){
     heater_toggle(avg_reading, 0);
 
     // heater 3
-    // averaging TH1-3 and TH4 (start counting from 1)
+    // averaging TH1-3 and TH8-9 (start counting from 1)
     sum = 0.0;
     normal_therm_num = 0;
     for(uint8_t i = 0; i < 3; i++){
@@ -391,9 +393,11 @@ void heater_4in_ctrl(void){
         }
     }
 
-    if(is_therm_valid(therm_err_codes[3])){
-        sum += therm_readings_conv[3];
-        normal_therm_num += 1;
+    for(uint8_t i = 7; i < 9; i++){
+        if(is_therm_valid(therm_err_codes[i])){
+            sum += therm_readings_conv[i];
+            normal_therm_num += 1;
+        }
     }
 
     if(normal_therm_num > 0){
