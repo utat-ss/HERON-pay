@@ -144,7 +144,7 @@ void hk_chip_temp_test(void) {
 void hk_battery_volt_test(void) {
     uint16_t volt_raw = (uint16_t) can_rx_tx(CAN_PAY_HK, CAN_PAY_HK_BAT_VOL, 0x00);
     double volt = adc_raw_to_circ_vol(volt_raw, ADC1_BATT_LOW_RES, ADC1_BATT_HIGH_RES);
-    ASSERT_BETWEEN(4.0, 4.2, volt);
+    ASSERT_BETWEEN(3.8, 4.2, volt);
 }
 
 // 10
@@ -272,7 +272,7 @@ void hk_sequential_heater_test(void){
         // only 6V converters on draws 87mA
         if ((i==1) || (i==3)){
             // heater 1/3 + converter on draws 414mA
-            ASSERT_BETWEEN(0.100, 0.150, current_inc);
+            ASSERT_BETWEEN(0.100, 0.175, current_inc);
         }
         else if((i==2) || (i==4)){
             // heater 2/4 + converter on draws 337mA
@@ -341,7 +341,7 @@ void hk_all_heater_test(void){
 
 // 16
 void motor_status_test(void){
-    uint8_t status = (uint8_t) can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_MOTOR_STATUS, 0x00);
+    uint32_t status = can_rx_tx(CAN_PAY_CTRL, CAN_PAY_CTRL_GET_MOTOR_STATUS, 0x00);
 
     // Should have fault2=1, fault1=1, switch2=0, switch1=0, last_exec_time=0, status=0
     ASSERT_EQ(status, 0xC0000000);
