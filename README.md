@@ -1,6 +1,5 @@
 # pay
 
-Code which runs on the Payload SSM ATmega32M1 inside the Heron Mk.II
-microbiology CubeSat.
+Code that runs on the PAY-SSM MCU.
 
-Please commit testing and WIP (work in progress) code to individual branches, and only push finished code to master.
+Detailed notes and instructions are in the [lib-common](https://github.com/HeronMkII/lib-common) repository's README.
